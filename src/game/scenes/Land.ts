@@ -50,7 +50,7 @@ export class Land extends GameScene {
     const leftW = content.w - rightW - SPACE.lg;
     const rightX = content.x + content.w - rightW;
     const left = new Panel(this, content.x, content.y, leftW, content.h);
-    new Panel(this, rightX, content.y, rightW, content.h);
+    Panel.decorate(this, rightX, content.y, rightW, content.h);
 
     const landG = this.add.graphics();
     left.add(landG);
@@ -100,13 +100,13 @@ export class Land extends GameScene {
     const priceLabel = (name: string, price: number) =>
       `${name} · ${price} ${t("land.per10ha")}`;
     const spend = (v: number, price: number) => Math.trunc((v * price) / 10);
-    const cost = (v: number, price: number) =>
-      v === 0
-        ? ""
-        : moneyLabel(
-            v > 0 ? -spend(v, price) : spend(v, price),
-            t("common.taler"),
-          );
+    const cost = (v: number, price: number) => {
+      if (v === 0) return "";
+      return moneyLabel(
+        v > 0 ? -spend(v, price) : spend(v, price),
+        t("common.taler"),
+      );
+    };
     const costColor = (v: number, price: number) =>
       v > 0 && spend(v, price) > p.geld ? COLORS.danger : COLORS.accent;
 

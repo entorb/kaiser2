@@ -149,6 +149,20 @@ export function chooseList(
   });
 }
 
+/** One-shot resolver: closes the modal and resolves on the first call only. */
+function settle<T>(
+  close: () => void,
+  resolve: (value: T) => void,
+): (value: T) => void {
+  let settled = false;
+  return (value) => {
+    if (settled) return;
+    settled = true;
+    close();
+    resolve(value);
+  };
+}
+
 export interface NumberPromptOptions {
   title: string;
   initial?: number;
@@ -179,13 +193,7 @@ export function sliderPrompt(
   return new Promise((resolve) => {
     let m!: Modal;
     let slider!: Slider;
-    let settled = false;
-    const finish = (value: number) => {
-      if (settled) return;
-      settled = true;
-      m.close();
-      resolve(value);
-    };
+    const finish = settle<number>(() => m.close(), resolve);
     m = openModal(scene, title, w, h, () => slider.reset());
     slider = new Slider(scene, SPACE.lg, 84, w - SPACE.lg * 2, 130, {
       ...sliderOpts,
@@ -220,13 +228,7 @@ export function numberPrompt(
   const h = opts.info ? 286 : 240;
   return new Promise((resolve) => {
     let m!: Modal;
-    let settled = false;
-    const finish = (value: number | null) => {
-      if (settled) return;
-      settled = true;
-      m.close();
-      resolve(value);
-    };
+    const finish = settle<number | null>(() => m.close(), resolve);
     m = openModal(scene, opts.title, w, h, () => finish(null));
     let infoText: GameObjects.Text | undefined;
     const field = new NumberField(scene, (w - 260) / 2, 86, 260, 52, {

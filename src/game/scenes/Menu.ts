@@ -65,7 +65,7 @@ export class Menu extends GameScene {
     });
 
     // Right: the menu buttons on a parchment panel.
-    new Panel(this, RIGHT_X, PANELS_Y, PANEL_W, PANEL_H);
+    Panel.decorate(this, RIGHT_X, PANELS_Y, PANEL_W, PANEL_H);
 
     const bx = RIGHT_X + 20;
     const bw = PANEL_W - 40;
@@ -165,7 +165,7 @@ export class Menu extends GameScene {
     this.events.once("shutdown", stopWatchingMute);
 
     // Left: a framed screenshot of the original 1989 game.
-    new Panel(this, LEFT_X, PANELS_Y, PANEL_W, PANEL_H);
+    Panel.decorate(this, LEFT_X, PANELS_Y, PANEL_W, PANEL_H);
     const shotH = 222;
     const shot = this.add.image(
       LEFT_X + PANEL_W / 2,

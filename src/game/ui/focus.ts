@@ -22,9 +22,9 @@ export class FocusGroup {
   private items: Focusable[] = [];
   private index = -1;
   private isActive = true;
-  private handler: (event: KeyboardEvent) => void;
+  private readonly handler: (event: KeyboardEvent) => void;
 
-  constructor(private scene: Phaser.Scene) {
+  constructor(private readonly scene: Phaser.Scene) {
     this.handler = (event) => this.onKey(event);
     scene.input.keyboard?.on("keydown", this.handler);
     const groups = stack.get(scene) ?? [];

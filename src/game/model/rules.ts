@@ -222,11 +222,10 @@ export function tradeHouse(
 
   let ah = -int(p.hh - p.bd / 5);
   if (ah > p.hh) ah = p.hh;
+  const active = ah > 0 ? 1 : 0;
   const gew =
     p.hh > 0
-      ? int(
-          ah * (200 + rand(state.jahr, rng) + p.punkte * 5) * (ah > 0 ? 1 : 0),
-        ) + 0
+      ? int(ah * (200 + rand(state.jahr, rng) + p.punkte * 5) * active) + 0
       : 0;
 
   p.geld = p.geld - p.bd * 50;
