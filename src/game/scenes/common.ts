@@ -8,6 +8,7 @@ import { clearSave } from "../model/save";
 import type { GameState } from "../model/types";
 import { alert } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
+import { fullscreenButton } from "../ui/fullscreen";
 import { drawShield } from "../ui/icon";
 import { CANVAS_H, CANVAS_W, frame } from "../ui/layout";
 import { label } from "../ui/text";
@@ -147,7 +148,7 @@ export function gameMenuButton(scene: Phaser.Scene, group: FocusGroup): Button {
  */
 function openGameMenu(scene: Phaser.Scene): void {
   const w = 420;
-  const h = 300;
+  const h = 360;
   const x = (CANVAS_W - w) / 2;
   const y = (CANVAS_H - h) / 2;
   const overlay = scene.add
@@ -179,6 +180,8 @@ function openGameMenu(scene: Phaser.Scene): void {
   music.bind(group);
   end.bind(group);
   resume.bind(group);
+  const fullscreen = fullscreenButton(scene, group, 50, 260, 320, 46);
+  if (fullscreen) panel.add(fullscreen);
   group.focus(resume);
 
   const stopWatchingMute = onMuteChange(() => music.setText(musicLabel()));
