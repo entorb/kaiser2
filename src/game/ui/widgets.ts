@@ -119,6 +119,12 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export interface ButtonOptions {
   variant?: ButtonVariant;
   onClick?: () => void;
+  /**
+   * Pointer gesture that activates the button. Defaults to `"down"`. Use
+   * `"up"` for actions the browser only allows from a pointerup gesture (e.g.
+   * the Fullscreen API).
+   */
+  activateOn?: "down" | "up";
 }
 
 export class Button extends Widget {
@@ -148,7 +154,11 @@ export class Button extends Widget {
     this.on("pointerdown", () => {
       if (this.disabled) return;
       this.focusSelf();
-      this.activate();
+      if (this.opts.activateOn !== "up") this.activate();
+    });
+    this.on("pointerup", () => {
+      if (this.disabled) return;
+      if (this.opts.activateOn === "up") this.activate();
     });
     this.redraw();
   }
