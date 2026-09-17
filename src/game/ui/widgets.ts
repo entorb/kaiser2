@@ -99,6 +99,19 @@ export class Panel extends GameObjects.Container {
       this.add(panelTitle(scene, SPACE.lg, SPACE.md, w - SPACE.lg * 2, title));
     }
   }
+
+  /** Draw a bare panel frame with no container, for pure background decoration. */
+  static decorate(
+    scene: Scene,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+  ): void {
+    const g = scene.add.graphics();
+    g.setPosition(x, y);
+    panelFrame(g, 0, 0, w, h);
+  }
 }
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
@@ -370,20 +383,13 @@ export class ListMenu extends Widget {
         row.bg.fillRoundedRect(0, y + 6, 5, rowH - 12, 2.5);
       }
 
-      const textColor = disabled
-        ? COLORS.muted
-        : highlight
-          ? COLORS.accentText
-          : (row.item.color ?? COLORS.text);
+      const active = highlight
+        ? COLORS.accentText
+        : (row.item.color ?? COLORS.text);
+      const textColor = disabled ? COLORS.muted : active;
       row.label.setColor(css(textColor));
       row.value?.setColor(
-        css(
-          disabled
-            ? COLORS.muted
-            : highlight
-              ? COLORS.accentText
-              : COLORS.muted,
-        ),
+        css(!disabled && highlight ? COLORS.accentText : COLORS.muted),
       );
     });
   }
@@ -586,7 +592,7 @@ export class NumberField extends Widget {
 
   handleKey(event: KeyboardEvent): boolean {
     if (this.editing) {
-      if (/^[0-9]$/.test(event.key)) {
+      if (/^\d$/.test(event.key)) {
         if (this.buffer.length < this.stel) this.buffer += event.key;
       } else if (event.key === "Backspace") {
         this.buffer = this.buffer.slice(0, -1);
@@ -612,7 +618,7 @@ export class NumberField extends Widget {
       this.stepBy(-1);
       return true;
     }
-    if (/^[0-9]$/.test(event.key)) {
+    if (/^\d$/.test(event.key)) {
       this.beginEdit();
       this.buffer = event.key;
       this.updateText();
@@ -650,7 +656,9 @@ export type SliderTradeIcon = "plus" | "minus";
 /** Signed money label for slider cost lines, e.g. "+123 Taler" / "-123 Taler". */
 export function moneyLabel(delta: number, taler: string): string {
   const n = Math.trunc(Math.abs(delta));
-  const sign = delta > 0 ? "+" : delta < 0 ? "-" : "";
+  let sign = "";
+  if (delta > 0) sign = "+";
+  else if (delta < 0) sign = "-";
   return `${sign}${n} ${taler}`;
 }
 
@@ -705,8 +713,8 @@ export class Slider extends Widget {
   private max: number;
   private step: number;
   private readonly initial: number;
-  private minLabelText?: GameObjects.Text;
-  private maxLabelText?: GameObjects.Text;
+  private readonly minLabelText?: GameObjects.Text;
+  private readonly maxLabelText?: GameObjects.Text;
   private readonly trackX = 26;
   private readonly trackY = 32;
   private readonly trackW: number;

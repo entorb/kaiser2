@@ -29,13 +29,13 @@ export class NewGame extends GameScene {
   }
 
   async create() {
-    reportGameStart();
     const state = createGameState(GAME_CONFIG.maxPlayers);
     setState(this, state);
 
     state.count = await this.askPlayerCount();
     for (let i = 1; i <= state.count; i++) await this.setupPlayer(state, i);
     state.sp = 1;
+    reportGameStart();
 
     // KAISERB:2380 - the first ruler also ages and scores on their first turn.
     startRuler(state);
@@ -60,7 +60,7 @@ export class NewGame extends GameScene {
       min: GAME_CONFIG.minPlayers,
       max: GAME_CONFIG.maxPlayers,
       initial: GAME_CONFIG.minPlayers,
-      format: (v) => String(v),
+      format: String,
       ticks: Array.from(
         { length: GAME_CONFIG.maxPlayers - GAME_CONFIG.minPlayers + 1 },
         (_, i) => ({
