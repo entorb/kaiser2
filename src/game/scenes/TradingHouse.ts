@@ -4,7 +4,7 @@ import { t } from "../i18n/i18n";
 import { expropriate, taxDemotion } from "../model/events";
 import { tradeHouse } from "../model/rules";
 import { getState } from "../model/session";
-import { type GameState, rand } from "../model/types";
+import { type GameState, type PlayerState, rand } from "../model/types";
 import { alert, sliderPrompt } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
 import { frame } from "../ui/layout";
@@ -50,99 +50,17 @@ export class TradingHouse extends GameScene {
     }
 
     while (!done) {
-      this.children.removeAll();
-      const group = new FocusGroup(this);
-      const { content, action } = frame();
-      statusBar(this, state, group);
-      screenTitle(this, t("trade.title"), content.y);
-
-      // Servants needed for the houses to turn a profit: `INT(HH - BD/5) < 0`
-      // is the source's profitability test (KAISERB:1170), i.e. BD > HH*5.
-      const needed = p.hh > 0 ? 5 * p.hh + 1 : 0;
-      const staffNow = p.bd + state.turn.neu - state.turn.alt;
-      const understaffed = needed > 0 && staffNow < needed;
-      // Annual wage bill: 50 taler per servant (KAISERB:1190).
-      const wages = staffNow * 50;
-
-      const panelW = 430;
-      const panel = new Panel(
-        this,
-        content.x,
-        content.y + 54,
-        panelW,
-        content.h - 54,
+      const choice = await this.chooseAction(
+        state,
+        zahl,
+        gew,
+        tributed,
+        leased,
       );
-      const rows: [string, string, number?][] = [
-        [t("trade.wages"), `${wages} ${t("common.taler")}`],
-        [t("trade.fortune"), `${Math.trunc(p.geld)} ${t("common.taler")}`],
-        [t("trade.profit"), `${gew} ${t("common.taler")}`],
-        [t("trade.demands"), `${zahl} ${t("common.taler")}`, COLORS.danger],
-        [t("trade.give"), `${state.turn.abg} ${t("common.taler")}`],
-        [t("trade.houses"), `${p.hh}`],
-        [
-          t("trade.servants"),
-          `${staffNow}`,
-          understaffed ? COLORS.danger : undefined,
-        ],
-      ];
-      rows.forEach(([labelText, value, color], i) => {
-        panel.add(
-          new StatRow(
-            this,
-            SPACE.lg,
-            64 + i * 40,
-            panelW - SPACE.lg * 2,
-            labelText,
-            value,
-            { valueColor: color ?? COLORS.text },
-          ),
-        );
-      });
-
-      // Only buy when the 5000 taler price is covered (grey otherwise).
-      const canLease = p.geld >= 5000 && state.players[0].hh > 0;
-      const options: ListItem[] = [
-        { label: t("trade.tribute"), disabled: tributed },
-        { label: t("trade.servants"), value: `${staffNow}` },
-      ];
-      if (!leased)
-        options.push({ label: t("trade.rent"), disabled: !canLease });
-
-      // Footer: what the highlighted action does.
-      const footer = label(this, action.x + 140, action.y + action.h / 2, "", {
-        color: COLORS.onWood,
-      });
-      footer.setOrigin(0, 0.5);
-      const describe = (index: number): string => {
-        if (index === 1)
-          return needed > 0
-            ? t("trade.staffHint", { need: needed })
-            : t("trade.staffNoHouse");
-        if (index === 2) return t("trade.rentHint");
-        return "";
-      };
-      footer.setText(describe(0));
-
-      const choice = await this.choose(group, options, content, (i) =>
-        footer.setText(describe(i)),
-      );
-      group.destroy();
 
       if (choice === 1) {
         // One combined slider like grain/land: left = dismiss, right = hire.
-        const v = await sliderPrompt(this, {
-          title: t("trade.servants"),
-          min: -Math.trunc(p.bd),
-          max: 99,
-          step: 1,
-          initial: 0,
-          minLabel: t("trade.fire"),
-          maxLabel: t("trade.hire"),
-          format: (v) => (v > 0 ? `+${v}` : `${v}`),
-          info: (v) => `${t("trade.servants")}: ${p.bd + v}`,
-          infoColor: (v) =>
-            needed > 0 && p.bd + v < needed ? COLORS.danger : COLORS.success,
-        });
+        const v = await this.servantPrompt(p);
         state.turn.neu = Math.max(0, v);
         state.turn.alt = Math.max(0, -v);
       } else if (choice === 2) {
@@ -175,6 +93,112 @@ export class TradingHouse extends GameScene {
     toPartner(this.scene);
   }
 
+  /** One menu pass: redraw the stats, let the player pick, return the choice. */
+  private async chooseAction(
+    state: GameState,
+    zahl: number,
+    gew: number,
+    tributed: boolean,
+    leased: boolean,
+  ): Promise<number> {
+    const p = state.players[state.sp];
+    this.children.removeAll();
+    const group = new FocusGroup(this);
+    const { content, action } = frame();
+    statusBar(this, state, group);
+    screenTitle(this, t("trade.title"), content.y);
+
+    // Servants needed for the houses to turn a profit: `INT(HH - BD/5) < 0`
+    // is the source's profitability test (KAISERB:1170), i.e. BD > HH*5.
+    const needed = p.hh > 0 ? 5 * p.hh + 1 : 0;
+    const staffNow = p.bd + state.turn.neu - state.turn.alt;
+    const understaffed = needed > 0 && staffNow < needed;
+    // Annual wage bill: 50 taler per servant (KAISERB:1190).
+    const wages = staffNow * 50;
+
+    const panelW = 430;
+    const panel = new Panel(
+      this,
+      content.x,
+      content.y + 54,
+      panelW,
+      content.h - 54,
+    );
+    const rows: [string, string, number?][] = [
+      [t("trade.wages"), `${wages} ${t("common.taler")}`],
+      [t("trade.fortune"), `${Math.trunc(p.geld)} ${t("common.taler")}`],
+      [t("trade.profit"), `${gew} ${t("common.taler")}`],
+      [t("trade.demands"), `${zahl} ${t("common.taler")}`, COLORS.danger],
+      [t("trade.give"), `${state.turn.abg} ${t("common.taler")}`],
+      [t("trade.houses"), `${p.hh}`],
+      [
+        t("trade.servants"),
+        `${staffNow}`,
+        understaffed ? COLORS.danger : undefined,
+      ],
+    ];
+    rows.forEach(([labelText, value, color], i) => {
+      panel.add(
+        new StatRow(
+          this,
+          SPACE.lg,
+          64 + i * 40,
+          panelW - SPACE.lg * 2,
+          labelText,
+          value,
+          { valueColor: color ?? COLORS.text },
+        ),
+      );
+    });
+
+    // Only buy when the 5000 taler price is covered (grey otherwise).
+    const canLease = p.geld >= 5000 && state.players[0].hh > 0;
+    const options: ListItem[] = [
+      { label: t("trade.tribute"), disabled: tributed },
+      { label: t("trade.servants"), value: `${staffNow}` },
+    ];
+    if (!leased) options.push({ label: t("trade.rent"), disabled: !canLease });
+
+    // Footer: what the highlighted action does.
+    const footer = label(this, action.x + 140, action.y + action.h / 2, "", {
+      color: COLORS.onWood,
+    });
+    footer.setOrigin(0, 0.5);
+    const describe = (index: number): string => {
+      if (index === 1)
+        return needed > 0
+          ? t("trade.staffHint", { need: needed })
+          : t("trade.staffNoHouse");
+      if (index === 2) return t("trade.rentHint");
+      return "";
+    };
+    footer.setText(describe(0));
+
+    const choice = await this.choose(group, options, content, (i) =>
+      footer.setText(describe(i)),
+    );
+    group.destroy();
+    return choice;
+  }
+
+  /** Hire/fire slider: positive hires, negative fires. Returns the delta. */
+  private servantPrompt(p: PlayerState): Promise<number> {
+    const needed = p.hh > 0 ? 5 * p.hh + 1 : 0;
+    return sliderPrompt(this, {
+      title: t("trade.servants"),
+      min: -Math.trunc(p.bd),
+      max: 99,
+      step: 1,
+      initial: 0,
+      minLabel: t("trade.fire"),
+      maxLabel: t("trade.hire"),
+      format: (v) => (v > 0 ? `+${v}` : `${v}`),
+      info: (v) => `${t("trade.servants")}: ${p.bd + v}`,
+      infoColor: (v) =>
+        needed > 0 && p.bd + v < needed ? COLORS.danger : COLORS.success,
+    });
+  }
+
   /** Tribute popup. Red marker on the demanded sum; 0 (refusal) allowed. */
   private async payTribute(state: GameState, zahl: number): Promise<boolean> {
     const p = state.players[state.sp];
@@ -185,7 +209,7 @@ export class TradingHouse extends GameScene {
       max: budget,
       step: 100,
       // Open at the minimum the Emperor expects.
-      initial: budget >= zahl ? zahl : budget,
+      initial: Math.min(budget, zahl),
       minLabel: "0",
       maxLabel: `${budget}`,
       format: (v) => `${v} ${t("common.taler")}`,

@@ -60,8 +60,11 @@ export function label(
   text: string,
   opts: LabelOptions = {},
 ): Phaser.GameObjects.Text {
+  let fontFamily = FONT_UI;
+  if (opts.mono) fontFamily = FONT_MONO;
+  else if (opts.display) fontFamily = FONT_DISPLAY;
   const obj = scene.add.text(x, y, text, {
-    fontFamily: opts.mono ? FONT_MONO : opts.display ? FONT_DISPLAY : FONT_UI,
+    fontFamily,
     fontSize: `${opts.size ?? FS.body}px`,
     color: css(opts.color ?? COLORS.text),
     fontStyle: opts.weight ?? "normal",
