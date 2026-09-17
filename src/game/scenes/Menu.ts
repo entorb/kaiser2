@@ -8,7 +8,8 @@ import { readGlobalGames } from "../model/stats";
 import { hasInstallPrompt, promptInstall } from "../pwa";
 import { alert } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
-import { CANVAS_W } from "../ui/layout";
+import { fullscreenButton } from "../ui/fullscreen";
+import { CANVAS_W, MARGIN } from "../ui/layout";
 import { crest, divider } from "../ui/ornament";
 import { label } from "../ui/text";
 import { COLORS, css, FONT_UI, FS } from "../ui/theme";
@@ -161,6 +162,7 @@ export class Menu extends GameScene {
     music.bind(group);
     share.bind(group);
     install.bind(group);
+    fullscreenButton(this, group, CANVAS_W - MARGIN - 150, 30, 150, 40);
     const stopWatchingMute = onMuteChange(() => music.setText(musicLabel()));
     this.events.once("shutdown", stopWatchingMute);
 
