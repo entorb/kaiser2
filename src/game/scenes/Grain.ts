@@ -94,7 +94,7 @@ export class Grain extends GameScene {
 
     const controlsX = content.x + 572;
     const controlsW = content.w - 572;
-    new Panel(this, controlsX, content.y + 54, controlsW, 316);
+    Panel.decorate(this, controlsX, content.y + 54, controlsW, 316);
 
     const sliderX = controlsX + 24;
     const sliderW = controlsW - 48;
@@ -140,10 +140,10 @@ export class Grain extends GameScene {
         // Red while the resulting stock stays under the required amount.
         valueColor: (v) =>
           p.lkorn + v < required ? COLORS.danger : COLORS.success,
-        cost: (v) =>
-          v === 0
-            ? ""
-            : moneyLabel(v > 0 ? -total(v) : total(v), t("common.taler")),
+        cost: (v) => {
+          if (v === 0) return "";
+          return moneyLabel(v > 0 ? -total(v) : total(v), t("common.taler"));
+        },
         costColor: (v) =>
           v > 0 && total(v) > p.geld ? COLORS.danger : COLORS.accent,
         onChange: (v) => {

@@ -80,9 +80,11 @@ const HEIR_SUFFIXES = [
 
 /** Next heir name: appends or bumps the trailing roman-numeral generation. */
 export function heirName(name: string): string {
-  const m = /^(.*?)\s+(II|III|IV|V|VI|VII|VIII|IX|X)\.$/.exec(name);
-  const base = (m ? m[1] : name).trim();
-  const next = m ? HEIR_SUFFIXES.indexOf(`${m[2]}.`) + 1 : 0;
+  const trimmed = name.trim();
+  const cut = trimmed.lastIndexOf(" ");
+  const idx = cut >= 0 ? HEIR_SUFFIXES.indexOf(trimmed.slice(cut + 1)) : -1;
+  const base = idx >= 0 ? trimmed.slice(0, cut).trimEnd() : trimmed;
+  const next = idx >= 0 ? idx + 1 : 0;
   return `${base} ${HEIR_SUFFIXES[Math.min(next, HEIR_SUFFIXES.length - 1)]}`;
 }
 

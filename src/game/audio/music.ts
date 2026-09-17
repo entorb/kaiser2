@@ -261,7 +261,7 @@ export function playTrack(name: TrackName): void {
   nextTime = loopStart + (notes[0]?.beat ?? 0) * secondsPerBeat;
   if (track.drone) startDrone(track.drone, loopStart);
 
-  if (scheduler === null) scheduler = window.setInterval(tick, TICK_MS);
+  scheduler ??= window.setInterval(tick, TICK_MS);
 }
 
 /**
@@ -373,15 +373,16 @@ export function playFanfare(): void {
 
 /** Short decaying white noise for the coin transient (built once per context). */
 function coinNoise(ctx: AudioContext): AudioBuffer {
-  if (noiseBuffer && noiseBuffer.sampleRate === ctx.sampleRate) {
+  if (noiseBuffer?.sampleRate === ctx.sampleRate) {
     return noiseBuffer;
   }
   const len = Math.floor(ctx.sampleRate * 0.06);
   const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
   const data = buffer.getChannelData(0);
+  const noise = crypto.getRandomValues(new Uint32Array(len));
   for (let i = 0; i < len; i++) {
     const decay = 1 - i / len;
-    data[i] = (Math.random() * 2 - 1) * decay * decay;
+    data[i] = (noise[i] / 2 ** 31 - 1) * decay * decay;
   }
   noiseBuffer = buffer;
   return buffer;
