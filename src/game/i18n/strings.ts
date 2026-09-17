@@ -36,6 +36,7 @@ export const STRINGS = {
     de: 'Teilen-Symbol → "Zum Home-Bildschirm"',
     en: 'Share icon → "Add to Home Screen"',
   },
+  "menu.fullscreen": { de: "Vollbild", en: "Fullscreen" },
   "menu.creditsSource": {
     de: "Basierend auf dem Atari-Quellcode von 1989, freundlicherweise geteilt von",
     en: "Based on the 1989 Atari source code, thankfully shared by",
