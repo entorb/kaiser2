@@ -1,0 +1,9 @@
+.DS_Store
+/atari/re/
+/dist/
+/node_modules/
+/public/assets/
+/tmp/
+__pycache__/
+atari/out.raw
+cspell-words-missing.txt
