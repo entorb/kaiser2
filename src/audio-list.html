@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kaiser II — Audio audition</title>
+    <style>
+      :root {
+        --wood: #241708;
+        --wood-light: #3a2614;
+        --parchment: #efe2c4;
+        --ink: #2c2016;
+        --gold: #c8a24a;
+        --muted: #a08c66;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 2.5rem clamp(1rem, 5vw, 4rem);
+        background: radial-gradient(circle at 50% 0, var(--wood-light), var(--wood));
+        color: var(--parchment);
+        font-family: Georgia, "Times New Roman", serif;
+      }
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+        color: var(--gold);
+        letter-spacing: 0.04em;
+      }
+      h2 {
+        margin: 2.5rem 0 1rem;
+        font-size: 1.2rem;
+        color: var(--gold);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+      }
+      .subtitle {
+        margin: 0.4rem 0 1.5rem;
+        color: var(--muted);
+      }
+      .bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1rem;
+      }
+      button {
+        font: inherit;
+        color: var(--ink);
+        background: linear-gradient(#f3e8cd, #ddc9a0);
+        border: 1px solid #8a6d3b;
+        border-radius: 6px;
+        padding: 0.5rem 1.1rem;
+        cursor: pointer;
+        transition:
+          filter 0.15s ease,
+          transform 0.05s ease;
+      }
+      button:hover {
+        filter: brightness(1.08);
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      button.playing {
+        color: var(--wood);
+        background: linear-gradient(#c8a24a, #a9853a);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1rem;
+      }
+      .card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+        border: 1px solid rgba(200, 162, 74, 0.35);
+        border-radius: 10px;
+        background: rgba(239, 226, 196, 0.08);
+      }
+      .card .name {
+        font-size: 1.1rem;
+      }
+      .card .meta {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      #status {
+        color: var(--muted);
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Kaiser II · Audio audition</h1>
+    <p class="subtitle">
+      Every track and effect is synthesized live with Web Audio — no sound files.
+      Click anything to unlock the audio context.
+    </p>
+
+    <div class="bar">
+      <button id="mute" type="button">Mute</button>
+      <button id="stop" type="button">Stop music</button>
+      <span id="status">Idle</span>
+    </div>
+
+    <h2>Music</h2>
+    <div id="tracks" class="grid"></div>
+
+    <h2>Sound effects</h2>
+    <div id="sfx" class="row"></div>
+
+    <script type="module">
+      import {
+        attachAudio,
+        blip,
+        isMuted,
+        onMuteChange,
+        playCoins,
+        playFanfare,
+        playTrack,
+        setMuted,
+        stopMusic,
+      } from "./game/audio/music";
+      import { TRACKS } from "./game/audio/tracks";
+
+      const status = document.getElementById("status");
+      let audio = null;
+
+      function ensureAudio() {
+        if (!audio) {
+          const Ctor = window.AudioContext || window.webkitAudioContext;
+          audio = new Ctor();
+          attachAudio(audio);
+          setMuted(false);
+        }
+        if (audio.state === "suspended") audio.resume();
+        return audio;
+      }
+
+      const muteButton = document.getElementById("mute");
+      const refreshMute = () => {
+        muteButton.textContent = isMuted() ? "Unmute" : "Mute";
+      };
+      muteButton.addEventListener("click", () => {
+        ensureAudio();
+        setMuted(!isMuted());
+      });
+      onMuteChange(refreshMute);
+      refreshMute();
+
+      const trackButtons = new Map();
+      const markPlaying = (name) => {
+        for (const [key, button] of trackButtons) {
+          button.classList.toggle("playing", key === name);
+        }
+      };
+
+      document.getElementById("stop").addEventListener("click", () => {
+        stopMusic();
+        markPlaying(null);
+        status.textContent = "Idle";
+      });
+
+      const tracks = document.getElementById("tracks");
+      for (const [name, track] of Object.entries(TRACKS)) {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const title = document.createElement("div");
+        title.className = "name";
+        title.textContent = name;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        const drone = track.drone ? " · drone" : "";
+        meta.textContent = `${track.bpm} BPM · ${track.loopBeats} beats · ${track.notes.length} notes${drone}`;
+
+        const play = document.createElement("button");
+        play.type = "button";
+        play.textContent = "Play";
+        play.addEventListener("click", () => {
+          ensureAudio();
+          playTrack(name);
+          markPlaying(name);
+          status.textContent = `Playing: ${name}`;
+        });
+        trackButtons.set(name, play);
+
+        card.append(title, meta, play);
+        tracks.append(card);
+      }
+
+      const sfx = document.getElementById("sfx");
+      const effects = [
+        ["Click", () => blip("click")],
+        ["Move", () => blip("move")],
+        ["Coins", () => playCoins()],
+        ["Fanfare", () => playFanfare()],
+      ];
+      for (const [label, play] of effects) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = label;
+        button.addEventListener("click", () => {
+          ensureAudio();
+          play();
+        });
+        sfx.append(button);
+      }
+    </script>
+  </body>
+</html>
