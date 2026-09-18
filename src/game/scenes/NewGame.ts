@@ -6,9 +6,11 @@ import {
   freeColor,
   MAX_PORTRAIT,
   nextFreeColor,
+  PROVINCES,
   playerNameError,
   takenColors,
 } from "../model/constants";
+import { loadProfiles, type Profile, saveProfiles } from "../model/profiles";
 import { saveGame } from "../model/save";
 import { setState } from "../model/session";
 import { reportGameStart } from "../model/stats";
@@ -33,7 +35,11 @@ export class NewGame extends GameScene {
     setState(this, state);
 
     state.count = await this.askPlayerCount();
-    for (let i = 1; i <= state.count; i++) await this.setupPlayer(state, i);
+    // Last game's rulers come back prefilled (name, kingdom, coat of arms).
+    const profiles = loadProfiles();
+    for (let i = 1; i <= state.count; i++)
+      await this.setupPlayer(state, i, profiles[i - 1]);
+    saveProfiles(state.players, state.count);
     state.sp = 1;
     reportGameStart();
 
@@ -80,16 +86,24 @@ export class NewGame extends GameScene {
   }
 
   /**
-   * Per ruler: enter a name and pick a coat of arms on one screen. Both stay
-   * editable until OK. The confirm button sits inline next to the input so the
-   * on-screen keyboard cannot cover it.
+   * Per ruler: enter a name and a kingdom and pick a coat of arms on one
+   * screen. All stay editable until OK. The confirm button sits inline next to
+   * the inputs so the on-screen keyboard cannot cover it.
    */
-  private setupPlayer(state: GameState, index: number): Promise<void> {
+  private setupPlayer(
+    state: GameState,
+    index: number,
+    profile: Profile | null,
+  ): Promise<void> {
     this.children.removeAll();
     const group = new FocusGroup(this);
     const { content } = frame();
     const p = state.players[index];
-    p.portrait = freeColor(state.players, index, p.portrait);
+    p.portrait = freeColor(
+      state.players,
+      index,
+      profile?.portrait ?? p.portrait,
+    );
     const taken = takenColors(state.players, index);
     const usedNames = state.players
       .slice(1, index)
@@ -150,43 +164,39 @@ export class NewGame extends GameScene {
       update();
     };
 
-    // Name: a native DOM input (canvas has no caret), scaled with the camera.
-    label(this, content.x, content.y + 212, t("newGame.nameHint"), {
+    // Name and kingdom: native DOM inputs (canvas has no caret), scaled with
+    // the camera.
+    const inputW = 300;
+    const kingdomX = content.x + inputW + 30;
+    const heading = {
       size: FS.heading,
       color: COLORS.accent,
       weight: "bold",
-    });
-    const input = document.createElement("input");
-    input.type = "text";
-    input.maxLength = 10;
-    input.autocomplete = "off";
-    input.autocapitalize = "words";
-    input.spellcheck = false;
-    input.enterKeyHint = "done";
-    input.inputMode = "text";
-    input.placeholder = "_";
-    Object.assign(input.style, {
-      width: "300px",
-      height: "40px",
-      boxSizing: "border-box",
-      padding: `0 ${SPACE.md}px`,
-      fontFamily: FONT_UI,
-      fontSize: `${FS.heading}px`,
-      color: css(COLORS.text),
-      background: css(COLORS.surfaceAlt),
-      border: `1px solid ${css(COLORS.border)}`,
-      borderRadius: `${RADIUS}px`,
-      outline: "none",
-    });
-    const field = this.add
-      .dom(content.x, content.y + 240, input)
-      .setOrigin(0, 0);
+    } as const;
+    label(this, content.x, content.y + 212, t("newGame.nameHint"), heading);
+    label(this, kingdomX, content.y + 212, t("newGame.kingdomHint"), heading);
+    const [nameInput, nameField] = this.textInput(
+      content.x,
+      content.y + 240,
+      inputW,
+      10,
+      profile?.name ?? "",
+    );
+    const [kingdomInput, kingdomField] = this.textInput(
+      kingdomX,
+      content.y + 240,
+      inputW,
+      12,
+      profile?.kingdom ?? PROVINCES[index - 1] ?? "",
+    );
+    const inputs = [nameInput, kingdomInput];
 
     const err = label(this, content.x, content.y + 288, "", {
       color: COLORS.danger,
       size: FS.small,
     });
-    input.addEventListener("input", () => err.setText(""));
+    for (const input of inputs)
+      input.addEventListener("input", () => err.setText(""));
 
     // The picker is the first focus target: arrows move the shield, Enter moves
     // on to the name field.
@@ -208,7 +218,7 @@ export class NewGame extends GameScene {
         }
         if (event.key === "Enter") {
           event.preventDefault();
-          input.focus();
+          nameInput.focus();
           return true;
         }
         return false;
@@ -232,20 +242,30 @@ export class NewGame extends GameScene {
     return new Promise<void>((resolve) => {
       let settled = false;
       const confirm = () => {
-        const name = input.value.trim().slice(0, 10);
-        const error = playerNameError(name, usedNames);
-        if (error) {
-          err.setText(
-            error === "empty" ? t("newGame.nameEmpty") : t("newGame.nameTaken"),
-          );
-          input.focus();
+        const name = nameInput.value.trim().slice(0, 10);
+        const kingdom = kingdomInput.value.trim().slice(0, 12);
+        const nameError = playerNameError(name, usedNames);
+        if (nameError || !kingdom) {
+          if (nameError) {
+            err.setText(
+              nameError === "empty"
+                ? t("newGame.nameEmpty")
+                : t("newGame.nameTaken"),
+            );
+            nameInput.focus();
+          } else {
+            err.setText(t("newGame.kingdomEmpty"));
+            kingdomInput.focus();
+          }
           return;
         }
         if (settled) return;
         settled = true;
         p.name = name;
-        input.blur();
-        field.destroy();
+        p.kingdom = kingdom;
+        for (const input of inputs) input.blur();
+        nameField.destroy();
+        kingdomField.destroy();
         group.destroy();
         resolve();
       };
@@ -263,18 +283,58 @@ export class NewGame extends GameScene {
 
       // Isolate typing from game keys (Phaser listens on window), so arrows do
       // not move the shield and Enter does not double-fire through the group.
-      input.addEventListener("keydown", (event) => {
-        event.stopPropagation();
-        if (event.key === "ArrowUp" || event.key === "Escape") {
+      // Enter moves from the name to the kingdom, and confirms from there.
+      inputs.forEach((input, i) => {
+        input.addEventListener("keydown", (event) => {
+          event.stopPropagation();
+          if (event.key === "ArrowUp" || event.key === "Escape") {
+            event.preventDefault();
+            input.blur();
+            group.focus(iconFocus);
+            return;
+          }
+          if (event.key !== "Enter") return;
           event.preventDefault();
-          input.blur();
-          group.focus(iconFocus);
-          return;
-        }
-        if (event.key !== "Enter") return;
-        event.preventDefault();
-        confirm();
+          if (i === 0) kingdomInput.focus();
+          else confirm();
+        });
       });
     });
+  }
+
+  /** A text input styled like the game UI, as a DOM element in the scene. */
+  private textInput(
+    x: number,
+    y: number,
+    width: number,
+    maxLength: number,
+    value: string,
+  ): [HTMLInputElement, Phaser.GameObjects.DOMElement] {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = value;
+    input.maxLength = maxLength;
+    input.autocomplete = "off";
+    input.autocapitalize = "words";
+    input.spellcheck = false;
+    input.enterKeyHint = "done";
+    input.inputMode = "text";
+    input.placeholder = "_";
+    // A prefilled value is replaced by typing.
+    input.addEventListener("focus", () => input.select());
+    Object.assign(input.style, {
+      width: `${width}px`,
+      height: "40px",
+      boxSizing: "border-box",
+      padding: `0 ${SPACE.md}px`,
+      fontFamily: FONT_UI,
+      fontSize: `${FS.heading}px`,
+      color: css(COLORS.text),
+      background: css(COLORS.surfaceAlt),
+      border: `1px solid ${css(COLORS.border)}`,
+      borderRadius: `${RADIUS}px`,
+      outline: "none",
+    });
+    return [input, this.add.dom(x, y, input).setOrigin(0, 0)];
   }
 }

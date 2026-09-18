@@ -12,6 +12,9 @@ import { type GameState, type PlayerState, type Rng, rand } from "./types";
 const int = Math.floor;
 const abs = Math.abs;
 
+/** Least tribute the Emperor ever demands from a trading-house owner. */
+const MIN_TRIBUTE = 500;
+
 export interface HarvestResult {
   faul: number;
   weather: number;
@@ -232,7 +235,8 @@ export function tradeHouse(
   p.geld = p.geld + gew;
   zahl = zahl + int((p.geld * 14) / 100);
   if (zahl > p.geld) zahl = int(zahl - (zahl - p.geld) * 1.123);
-  if (zahl < 0) zahl = 1;
+  // The Emperor always asks for at least this much, however small the realm.
+  zahl = Math.max(MIN_TRIBUTE, zahl);
 
   state.turn.zahl = zahl;
   state.turn.gew = gew;

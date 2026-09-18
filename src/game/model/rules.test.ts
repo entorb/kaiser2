@@ -127,6 +127,16 @@ describe("tradeHouse", () => {
     expect(r.zahl).toBeGreaterThan(0);
   });
 
+  it("never demands less than 500 tribute", () => {
+    const state = createGameState(1);
+    const p = state.players[1];
+    p.titel = 0;
+    p.leute = 0;
+    p.hh = 0;
+    p.geld = 0;
+    expect(tradeHouse(state, 1, seq(0, 0)).zahl).toBe(500);
+  });
+
   it("gives no profit when understaffed", () => {
     const state = createGameState(1);
     const p = state.players[1];

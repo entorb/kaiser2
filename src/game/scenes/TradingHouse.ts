@@ -7,6 +7,7 @@ import { getState } from "../model/session";
 import { type GameState, type PlayerState, rand } from "../model/types";
 import { alert, sliderPrompt } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
+import { drawCoinsIcon } from "../ui/icon";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
 import { COLORS, SPACE } from "../ui/theme";
@@ -16,9 +17,10 @@ import {
   moneyLabel,
   Panel,
   StatRow,
+  type StatRowOptions,
 } from "../ui/widgets";
 import { GameScene } from "./base";
-import { primaryAction, screenTitle, statusBar } from "./common";
+import { continueAction, screenTitle, statusBar } from "./common";
 
 export class TradingHouse extends GameScene {
   constructor() {
@@ -40,30 +42,21 @@ export class TradingHouse extends GameScene {
 
     const { zahl, gew } = tradeHouse(state, state.sp);
     let leased = false;
-    // Tribute may only be paid once per turn (deliberate deviation from source).
-    let tributed = false;
     let done = false;
 
-    // Tribute is the first order of business: the popup opens right away.
-    if (await this.payTribute(state, zahl)) {
-      tributed = true;
-    }
+    // Tribute is the first order of business: the popup opens right away, so
+    // it has no menu entry (and can only be paid once per turn).
+    await this.payTribute(state, zahl);
 
     while (!done) {
-      const choice = await this.chooseAction(
-        state,
-        zahl,
-        gew,
-        tributed,
-        leased,
-      );
+      const choice = await this.chooseAction(state, zahl, gew, leased);
 
-      if (choice === 1) {
+      if (choice === 0) {
         // One combined slider like grain/land: left = dismiss, right = hire.
         const v = await this.servantPrompt(p);
         state.turn.neu = Math.max(0, v);
         state.turn.alt = Math.max(0, -v);
-      } else if (choice === 2) {
+      } else if (choice === 1) {
         const kaiser = state.players[0];
         if (p.geld > 2500 && kaiser.hh > 0) {
           playCoins();
@@ -98,7 +91,6 @@ export class TradingHouse extends GameScene {
     state: GameState,
     zahl: number,
     gew: number,
-    tributed: boolean,
     leased: boolean,
   ): Promise<number> {
     const p = state.players[state.sp];
@@ -124,20 +116,21 @@ export class TradingHouse extends GameScene {
       panelW,
       content.h - 54,
     );
-    const rows: [string, string, number?][] = [
-      [t("trade.wages"), `${wages} ${t("common.taler")}`],
-      [t("trade.fortune"), `${Math.trunc(p.geld)} ${t("common.taler")}`],
-      [t("trade.profit"), `${gew} ${t("common.taler")}`],
-      [t("trade.demands"), `${zahl} ${t("common.taler")}`, COLORS.danger],
-      [t("trade.give"), `${state.turn.abg} ${t("common.taler")}`],
+    const money: StatRowOptions = { icon: drawCoinsIcon };
+    const rows: [string, string, StatRowOptions?][] = [
+      [t("trade.wages"), `${wages}`, money],
+      [t("trade.fortune"), `${Math.trunc(p.geld)}`, money],
+      [t("trade.profit"), `${gew}`, money],
+      [t("trade.demands"), `${zahl}`, { ...money, valueColor: COLORS.danger }],
+      [t("trade.give"), `${state.turn.abg}`, money],
       [t("trade.houses"), `${p.hh}`],
       [
         t("trade.servants"),
         `${staffNow}`,
-        understaffed ? COLORS.danger : undefined,
+        understaffed ? { valueColor: COLORS.danger } : undefined,
       ],
     ];
-    rows.forEach(([labelText, value, color], i) => {
+    rows.forEach(([labelText, value, opts], i) => {
       panel.add(
         new StatRow(
           this,
@@ -146,7 +139,7 @@ export class TradingHouse extends GameScene {
           panelW - SPACE.lg * 2,
           labelText,
           value,
-          { valueColor: color ?? COLORS.text },
+          opts,
         ),
       );
     });
@@ -154,7 +147,6 @@ export class TradingHouse extends GameScene {
     // Only buy when the 5000 taler price is covered (grey otherwise).
     const canLease = p.geld >= 5000 && state.players[0].hh > 0;
     const options: ListItem[] = [
-      { label: t("trade.tribute"), disabled: tributed },
       { label: t("trade.servants"), value: `${staffNow}` },
     ];
     if (!leased) options.push({ label: t("trade.rent"), disabled: !canLease });
@@ -165,11 +157,11 @@ export class TradingHouse extends GameScene {
     });
     footer.setOrigin(0, 0.5);
     const describe = (index: number): string => {
-      if (index === 1)
+      if (index === 0)
         return needed > 0
           ? t("trade.staffHint", { need: needed })
           : t("trade.staffNoHouse");
-      if (index === 2) return t("trade.rentHint");
+      if (index === 1) return t("trade.rentHint");
       return "";
     };
     footer.setText(describe(0));
@@ -200,7 +192,7 @@ export class TradingHouse extends GameScene {
   }
 
   /** Tribute popup. Red marker on the demanded sum; 0 (refusal) allowed. */
-  private async payTribute(state: GameState, zahl: number): Promise<boolean> {
+  private async payTribute(state: GameState, zahl: number): Promise<void> {
     const p = state.players[state.sp];
     const budget = Math.max(0, Math.trunc(p.geld));
     const n = await sliderPrompt(this, {
@@ -212,8 +204,9 @@ export class TradingHouse extends GameScene {
       initial: Math.min(budget, zahl),
       minLabel: "0",
       maxLabel: `${budget}`,
-      format: (v) => `${v} ${t("common.taler")}`,
-      cost: (v) => (v === 0 ? "" : moneyLabel(-v, t("common.taler"))),
+      format: (v) => `${v}`,
+      valueIcon: drawCoinsIcon,
+      cost: (v) => (v === 0 ? "" : moneyLabel(-v)),
       costColor: (v) => (v >= zahl ? COLORS.success : COLORS.danger),
       markers: [{ value: zahl, color: COLORS.danger }],
     });
@@ -221,9 +214,7 @@ export class TradingHouse extends GameScene {
       playCoins();
       state.turn.abg += n;
       p.geld -= n;
-      return true;
     }
-    return false;
   }
 
   private choose(
@@ -243,7 +234,7 @@ export class TradingHouse extends GameScene {
       });
       menu.bind(group);
       // The common next button lives in the shared bottom action bar.
-      primaryAction(this, group, t("ui.continue"), () => resolve(-1));
+      continueAction(this, group, () => resolve(-1));
     });
   }
 }

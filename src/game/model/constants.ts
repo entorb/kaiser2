@@ -107,6 +107,7 @@ export const KAISER = 0;
 export function createPlayer(name: string, index: number): PlayerState {
   return {
     name,
+    kingdom: "",
     portrait: (index - 1 + MAX_PORTRAIT) % MAX_PORTRAIT,
     controller: 0,
     acker: 10000,
@@ -118,8 +119,8 @@ export function createPlayer(name: string, index: number): PlayerState {
     muhl: 0,
     markt: 0,
     geld: 10000,
-    lpreis: 20,
-    apreis: 20,
+    lpreis: 2000,
+    apreis: 2000,
     verAcker: 2500,
     punkte: 0,
     verBau: 2500,

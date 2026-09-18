@@ -2,14 +2,22 @@ import { toBusiness } from "../flow";
 import { t } from "../i18n/i18n";
 import { getState } from "../model/session";
 import { FocusGroup } from "../ui/focus";
+import {
+  drawAcreIcon,
+  drawBuildingIcon,
+  drawCoinsIcon,
+  drawGrainIcon,
+  type IconDraw,
+} from "../ui/icon";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
 import { COLORS, FS, SPACE } from "../ui/theme";
 import { Panel, Slider } from "../ui/widgets";
 import { GameScene } from "./base";
 import {
+  actionFooter,
   applyLandShortage,
-  primaryAction,
+  continueAction,
   screenTitle,
   statusBar,
 } from "./common";
@@ -53,31 +61,40 @@ export class TradeData extends GameScene {
     );
     const rows: {
       label: string;
+      icon: IconDraw;
       price: PriceKey;
       amount: AmountKey;
       max: MaxKey;
       range: [number, number];
+      step: number;
     }[] = [
       {
         label: t("grain.title"),
+        icon: drawGrainIcon,
         price: "kpreis",
         amount: "verkorn",
         max: "lkorn",
         range: [75, 125],
+        step: 1,
       },
       {
         label: t("land.acre"),
+        icon: drawAcreIcon,
         price: "apreis",
         amount: "verAcker",
         max: "acker",
-        range: [15, 25],
+        // Land prices are per 1000 ha.
+        range: [1500, 2500],
+        step: 100,
       },
       {
         label: t("land.building"),
+        icon: drawBuildingIcon,
         price: "lpreis",
         amount: "verBau",
         max: "land",
-        range: [15, 25],
+        range: [1500, 2500],
+        step: 100,
       },
     ];
 
@@ -85,27 +102,24 @@ export class TradeData extends GameScene {
     const priceW = 210;
     const amountX = 480;
     const amountW = panel.w - amountX - SPACE.lg;
-    panel.add(
-      label(this, priceX, 8, t("tradeData.price"), {
-        color: COLORS.accent,
-        size: FS.heading,
-        weight: "bold",
-      }),
-    );
-    panel.add(
-      label(this, amountX, 8, t("tradeData.amount"), {
-        color: COLORS.accent,
-        size: FS.heading,
-        weight: "bold",
-      }),
-    );
+    const head = {
+      color: COLORS.accent,
+      size: FS.heading,
+      weight: "bold",
+    } as const;
+    panel.add(label(this, priceX, 8, t("tradeData.price"), head));
+    panel.add(label(this, amountX, 8, t("tradeData.amount"), head));
 
+    const footer = actionFooter(this, t("tradeData.priceHint"));
     let finish: () => void = () => {};
     let first: Slider | undefined;
     rows.forEach((row, i) => {
       const y = 40 + i * 78;
+      const goods = this.add.graphics();
+      row.icon(goods, SPACE.lg + 14, y + 30, 28);
+      panel.add(goods);
       panel.add(
-        label(this, SPACE.lg, y + 16, row.label, {
+        label(this, SPACE.lg + 40, y + 20, row.label, {
           size: FS.heading,
           weight: "bold",
         }),
@@ -116,9 +130,10 @@ export class TradeData extends GameScene {
       const price = new Slider(this, priceX, y, priceW, 60, {
         min: pmin,
         max: pmax,
-        step: 1,
+        step: row.step,
         initial: p[row.price],
         format: (v) => `${v}`,
+        valueIcon: drawCoinsIcon,
         onChange: (v) => (p[row.price] = v),
         onSubmit: () => finish(),
       });
@@ -136,29 +151,16 @@ export class TradeData extends GameScene {
       p[row.amount] = amount.value;
       panel.add(price);
       panel.add(amount);
+      price.onFocus(() => footer.setText(t("tradeData.priceHint")));
+      amount.onFocus(() => footer.setText(t("tradeData.amountHint")));
       price.bind(group);
       amount.bind(group);
       first ??= price;
     });
 
-    const bottom = content.h - 54;
-    panel.add(
-      label(this, SPACE.lg, bottom - 60, t("tradeData.rule"), {
-        color: COLORS.muted,
-        size: FS.small,
-      }),
-    );
-    panel.add(
-      label(this, SPACE.lg, bottom - 38, t("tradeData.hint"), {
-        color: COLORS.muted,
-        size: FS.small,
-        wrap: content.w - SPACE.lg * 2,
-      }),
-    );
-
     await new Promise<void>((resolve) => {
       finish = resolve;
-      primaryAction(this, group, t("ui.continue"), finish);
+      continueAction(this, group, finish);
       if (first) group.focus(first);
     });
     group.destroy();
