@@ -1,6 +1,7 @@
 import { GAME_CONFIG } from "../config";
 import { at } from "../lookup";
-import { type GameState, type PlayerState, rand } from "./types";
+import { REMAKE_START_TAXES } from "./tax";
+import { type GameState, type PlayerState, type Ruleset, rand } from "./types";
 
 /** LAND$ (KAISER3:180) - the six provinces, index 0 = province of player 1. */
 export const PROVINCES = [
@@ -31,6 +32,63 @@ export const TITLES = [
 export const WIN_TITLE = 8;
 export const MAX_BURG = 15;
 export const MAX_DOM = 20;
+
+export type BuildingKind = "markt" | "muhl" | "burg" | "dom";
+
+export interface BuildingInfo {
+  cost: number;
+  /** Building land per building (market/mill) or the total required (palace/cathedral). */
+  land: number;
+  points: number;
+  max?: number;
+}
+
+/** KAISER4 #GESCHAFT purchases (rules.md §9.2). */
+export const BUILDINGS: Record<BuildingKind, BuildingInfo> = {
+  markt: { cost: 1000, land: 600, points: 0.5 },
+  muhl: { cost: 2000, land: 1000, points: 0.8 },
+  burg: { cost: 5000, land: 20000, points: 1.6, max: MAX_BURG },
+  dom: { cost: 9000, land: 30000, points: 2.1, max: MAX_DOM },
+};
+
+/** Remake: each palace/cathedral part already owned adds this share of the base price. */
+export const PRESTIGE_COST_STEP = 0.05;
+
+/** Price of the next `kind`; remake makes every further palace/cathedral part dearer. */
+export function buildingCost(
+  p: PlayerState,
+  kind: BuildingKind,
+  rules: Ruleset,
+): number {
+  const { cost } = BUILDINGS[kind];
+  const prestige = kind === "burg" || kind === "dom";
+  return rules === "remake" && prestige
+    ? Math.round(cost * (1 + PRESTIGE_COST_STEP * p[kind]))
+    : cost;
+}
+
+/** Building land needed to add one more of `kind`. */
+export function landRequired(p: PlayerState, kind: BuildingKind): number {
+  const b = BUILDINGS[kind];
+  return kind === "burg" || kind === "dom" ? b.land : (p[kind] + 1) * b.land;
+}
+
+/** The count of `kind` is at its maximum (only palace and cathedral have one). */
+export function atMaxBuildings(p: PlayerState, kind: BuildingKind): boolean {
+  const { max } = BUILDINGS[kind];
+  return max !== undefined && p[kind] >= max;
+}
+
+/** Pay for and add one building; the caller checked land and maximum. */
+export function addBuilding(
+  p: PlayerState,
+  kind: BuildingKind,
+  rules: Ruleset,
+): void {
+  p.geld -= buildingCost(p, kind, rules);
+  p[kind] += 1;
+  p.punkte += BUILDINGS[kind].points;
+}
 
 /** Distinct ruler colors; a player's `portrait` is an index into this. */
 export const PLAYER_COLORS = [
@@ -145,14 +203,20 @@ export function createPlayer(name: string, index: number): PlayerState {
 }
 
 /** Build a fresh game: Kaiser at index 0, `count` human rulers at 1..count. */
-export function createGameState(count: number): GameState {
+export function createGameState(
+  count: number,
+  rules: Ruleset = "atari",
+): GameState {
   const players: PlayerState[] = [];
   players[KAISER] = createPlayer("der Kaiser", 0);
   players[KAISER].hh = rand(20) + 30; // HH(0)=RAND(20)+30 (KAISER3:115)
   for (let i = 1; i <= GAME_CONFIG.maxPlayers; i++) {
-    players[i] = createPlayer("", i);
+    const ruler = createPlayer("", i);
+    if (rules === "remake") Object.assign(ruler, REMAKE_START_TAXES);
+    players[i] = ruler;
   }
   return {
+    rules,
     players,
     count,
     sp: 1,

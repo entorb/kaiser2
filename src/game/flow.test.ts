@@ -51,6 +51,8 @@ describe("scene flow", () => {
     Flow.toPromotion(s, {
       name: "Anna",
       title: "Baron",
+      kingdom: "Anloor",
+      rank: 1,
       portrait: 2,
       nextRanking: false,
     });
@@ -58,9 +60,28 @@ describe("scene flow", () => {
       [
         "start",
         "Promotion",
-        { name: "Anna", title: "Baron", portrait: 2, nextRanking: false },
+        {
+          name: "Anna",
+          title: "Baron",
+          kingdom: "Anloor",
+          rank: 1,
+          portrait: 2,
+          nextRanking: false,
+        },
       ],
     ]);
+  });
+
+  it("crowns the winner before the highscore", () => {
+    const s = makeSwitcher();
+    Flow.toCoronation(s, { name: "Anna" });
+    expect(s.calls).toEqual([["start", "Coronation", { name: "Anna" }]]);
+  });
+
+  it("shows the finished building before returning to Business", () => {
+    const s = makeSwitcher();
+    Flow.toMonument(s, { kind: "dom" });
+    expect(s.calls).toEqual([["start", "Monument", { kind: "dom" }]]);
   });
 
   it("quitting returns to a fresh (non-pause) Menu", () => {

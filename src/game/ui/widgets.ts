@@ -119,6 +119,8 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export interface ButtonOptions {
   variant?: ButtonVariant;
   onClick?: () => void;
+  /** Enter runs this instead of `onClick` (Space and pointer still click). */
+  onSubmit?: () => void;
   /**
    * Pointer gesture that activates the button. Defaults to `"down"`. Use
    * `"up"` for actions the browser only allows from a pointerup gesture (e.g.
@@ -184,6 +186,13 @@ export class Button extends Widget {
     return this;
   }
 
+  /** Restyle the button, e.g. to show a toggle as on (`primary`) or off. */
+  setVariant(variant: ButtonVariant): this {
+    this.opts.variant = variant;
+    this.redraw();
+    return this;
+  }
+
   /** Center icon + gap + label as one block. */
   private layoutIcon(draw: IconDraw): void {
     if (!this.iconG) return;
@@ -201,7 +210,9 @@ export class Button extends Widget {
   handleKey(event: KeyboardEvent): boolean {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      this.activate();
+      if (event.key === "Enter" && this.opts.onSubmit && !this.disabled)
+        this.opts.onSubmit();
+      else this.activate();
       return true;
     }
     return false;

@@ -2,8 +2,14 @@
 // the scene mapping and the SFX specs are unit-testable. `music.ts` turns
 // these numbers into oscillators. All tunes are original — no Atari audio.
 
-export type Voice = "harp" | "flute";
-export type TrackName = "menu" | "game" | "fanfare";
+export type Voice = "harp" | "flute" | "brass";
+export type TrackName =
+  | "menu"
+  | "game"
+  | "fanfare"
+  | "coronation"
+  | "palace"
+  | "cathedral";
 export type BlipName = "click" | "move";
 
 export interface Note {
@@ -45,6 +51,9 @@ const harp = (rows: Row[]): Note[] =>
   rows.map(([beat, dur, midi]) => ({ beat, dur, midi, voice: "harp" }));
 const flute = (rows: Row[]): Note[] =>
   rows.map(([beat, dur, midi]) => ({ beat, dur, midi, voice: "flute" }));
+
+const brass = (rows: Row[]): Note[] =>
+  rows.map(([beat, dur, midi]) => ({ beat, dur, midi, voice: "brass" }));
 
 function track(
   bpm: number,
@@ -212,10 +221,207 @@ const FANFARE = track(132, 8, [
   ]),
 ]);
 
+// Coronation processional in D major, 4/4 at 84 BPM (~23 s loop). Brass states a
+// stately dotted theme over a rolling harp arpeggio and a D drone (D Bm G A, then
+// D G A A); on the second pass a flute descant doubles it an octave up. The
+// closing A chord resolves back into the loop's D.
+const CHORDS: [number, number[]][] = [
+  [0, [50, 57, 62, 66]], // D
+  [4, [47, 54, 59, 62]], // Bm
+  [8, [43, 50, 55, 59]], // G
+  [12, [45, 52, 57, 61]], // A
+  [16, [50, 57, 62, 66]], // D
+  [20, [43, 50, 55, 59]], // G
+  [24, [45, 52, 57, 61]], // A
+  [28, [45, 52, 57, 61]], // A
+];
+const ARP = [0, 1, 2, 3, 2, 1, 2, 1];
+
+const THEME_A: Row[] = [
+  [0, 1.5, 74], // D5
+  [1.5, 0.5, 76], // E5
+  [2, 2, 78], // F#5
+  [4, 1.5, 78], // F#5
+  [5.5, 0.5, 74], // D5
+  [6, 2, 71], // B4
+  [8, 1.5, 71], // B4
+  [9.5, 0.5, 74], // D5
+  [10, 2, 79], // G5
+  [12, 1.5, 78], // F#5
+  [13.5, 0.5, 76], // E5
+  [14, 2, 73], // C#5
+];
+const THEME_B: Row[] = [
+  [16, 1.5, 74], // D5
+  [17.5, 0.5, 78], // F#5
+  [18, 2, 81], // A5
+  [20, 1.5, 79], // G5
+  [21.5, 0.5, 78], // F#5
+  [22, 2, 74], // D5
+  [24, 1, 73], // C#5
+  [25, 1, 76], // E5
+  [26, 2, 81], // A5
+  [28, 1.5, 78], // F#5
+  [29.5, 0.5, 76], // E5
+  [30, 2, 73], // C#5 (leading tone into the loop's D)
+];
+
+const CORONATION = track(
+  84,
+  32,
+  [
+    ...brass([...THEME_A, ...THEME_B]),
+    ...flute(THEME_B.map(([beat, dur, midi]): Row => [beat, dur, midi + 12])),
+    ...harp(
+      CHORDS.flatMap(([beat, tones]) =>
+        ARP.map((tone, i): Row => [beat + i / 2, 0.5, tones[tone] ?? 50]),
+      ),
+    ),
+  ],
+  { midi: 38, gain: 0.06 },
+);
+
+// Palace: a courtly march in F major, 4/4 at 100 BPM (~19 s loop). Brass calls
+// the theme in dotted heraldic rhythm (F Dm Bb C, then F Bb C F) over a lute-like
+// oom-pah harp (bass on 1 and 3, chord on 2 and 4); on the second pass a flute
+// descant doubles it an octave up. Ends on the dominant so the call returns.
+const PALACE_CHORDS: [number, number, number[]][] = [
+  [0, 41, [57, 60, 65]], // F
+  [4, 50, [57, 62, 65]], // Dm
+  [8, 46, [58, 62, 65]], // Bb
+  [12, 48, [55, 60, 64]], // C
+  [16, 41, [57, 60, 65]], // F
+  [20, 46, [58, 62, 65]], // Bb
+  [24, 48, [55, 60, 64]], // C
+  [28, 41, [57, 60, 65]], // F
+];
+
+const PALACE_A: Row[] = [
+  [0, 0.75, 65], // F4
+  [0.75, 0.25, 65], // F4
+  [1, 1, 69], // A4
+  [2, 1, 72], // C5
+  [3, 1, 77], // F5
+  [4, 1.5, 74], // D5
+  [5.5, 0.5, 72], // C5
+  [6, 2, 69], // A4
+  [8, 0.75, 70], // Bb4
+  [8.75, 0.25, 74], // D5
+  [9, 1, 77], // F5
+  [10, 1, 74], // D5
+  [11, 1, 70], // Bb4
+  [12, 0.75, 67], // G4
+  [12.75, 0.25, 72], // C5
+  [13, 1, 76], // E5
+  [14, 2, 79], // G5
+];
+const PALACE_B: Row[] = [
+  [16, 0.75, 77], // F5
+  [16.75, 0.25, 77], // F5
+  [17, 1, 81], // A5
+  [18, 1, 79], // G5
+  [19, 1, 77], // F5
+  [20, 0.75, 74], // D5
+  [20.75, 0.25, 77], // F5
+  [21, 1, 82], // Bb5
+  [22, 1, 81], // A5
+  [23, 1, 77], // F5
+  [24, 0.75, 76], // E5
+  [24.75, 0.25, 79], // G5
+  [25, 1, 84], // C6
+  [26, 1, 81], // A5
+  [27, 1, 79], // G5
+  [28, 1, 79], // G5
+  [29, 1, 77], // F5
+  [30, 2, 72], // C5 (dominant, back into the F call)
+];
+
+const PALACE = track(
+  100,
+  32,
+  [
+    ...brass([...PALACE_A, ...PALACE_B]),
+    ...flute(PALACE_B.map(([beat, dur, midi]): Row => [beat, dur, midi + 12])),
+    ...harp(
+      PALACE_CHORDS.flatMap(([beat, bass, chord]): Row[] => [
+        [beat, 1, bass],
+        ...chord.map((midi): Row => [beat + 1, 1, midi]),
+        [beat + 2, 1, bass],
+        ...chord.map((midi): Row => [beat + 3, 1, midi]),
+      ]),
+    ),
+  ],
+  { midi: 41, gain: 0.05 },
+);
+
+// Cathedral: a slow chorale in D minor, 4/4 at 56 BPM (~34 s loop), like an
+// organ in a nave. Brass holds whole-note chords (Dm Bb Gm A, then Dm F Gm A),
+// a flute sings a chant-like line over them, the harp rings a soft arpeggio
+// one note a beat like distant bells, and a deep D drone sits below. The A
+// major chord at the end pulls back to the opening D minor.
+const CATHEDRAL_CHORDS: [number, number[]][] = [
+  [0, [50, 57, 65]], // Dm
+  [4, [46, 53, 62]], // Bb
+  [8, [43, 50, 58]], // Gm
+  [12, [45, 52, 61]], // A
+  [16, [50, 57, 65]], // Dm
+  [20, [41, 48, 57]], // F
+  [24, [43, 50, 58]], // Gm
+  [28, [45, 52, 61]], // A
+];
+
+const CHANT: Row[] = [
+  [0, 2, 74], // D5
+  [2, 1, 77], // F5
+  [3, 1, 76], // E5
+  [4, 1, 77], // F5
+  [5, 1, 74], // D5
+  [6, 2, 70], // Bb4
+  [8, 2, 74], // D5
+  [10, 1, 72], // C5
+  [11, 1, 70], // Bb4
+  [12, 2, 69], // A4
+  [14, 2, 73], // C#5
+  [16, 2, 74], // D5
+  [18, 1, 77], // F5
+  [19, 1, 81], // A5
+  [20, 2, 81], // A5
+  [22, 1, 79], // G5
+  [23, 1, 77], // F5
+  [24, 1, 79], // G5
+  [25, 1, 77], // F5
+  [26, 2, 74], // D5
+  [28, 2, 73], // C#5
+  [30, 2, 76], // E5 (leading into the D)
+];
+
+const CATHEDRAL = track(
+  56,
+  32,
+  [
+    ...CATHEDRAL_CHORDS.flatMap(([beat, chord]) =>
+      brass(chord.map((midi): Row => [beat, 3.8, midi])).map((n) => ({
+        ...n,
+        gain: 0.6,
+      })),
+    ),
+    ...flute(CHANT),
+    ...harp(
+      CATHEDRAL_CHORDS.flatMap(([beat, [a = 50, b = 57, c = 65]]): Row[] =>
+        [a, b, c, b].map((midi, i): Row => [beat + i, 1, midi + 12]),
+      ),
+    ),
+  ],
+  { midi: 38, gain: 0.07 },
+);
+
 export const TRACKS: Record<TrackName, Track> = {
   menu: MENU,
   game: GAME,
   fanfare: FANFARE,
+  coronation: CORONATION,
+  palace: PALACE,
+  cathedral: CATHEDRAL,
 };
 
 export const BLIPS: Record<BlipName, BlipSpec> = {
@@ -254,6 +460,7 @@ const SCENE_TRACKS: Record<string, TrackName> = {
   Promotion: "game",
   Ranking: "game",
   SecretService: "game",
+  Coronation: "coronation",
 };
 
 /** Music for a scene key, or `null` for screens that stay silent (Boot). */

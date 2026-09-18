@@ -2,6 +2,7 @@ import screenshotUrl from "../../assets/kaiserpic4.png";
 import { isMuted, onMuteChange, toggleMute } from "../audio/music";
 import { toNewGame } from "../flow";
 import { getLang, setLang, t } from "../i18n/i18n";
+import { getRuleset, toggleRuleset } from "../model/ruleset";
 import { hasSave, loadGame } from "../model/save";
 import { setState } from "../model/session";
 import { readGlobalGames } from "../model/stats";
@@ -72,11 +73,38 @@ export class Menu extends GameScene {
     const bw = PANEL_W - 40;
     let y = PANELS_Y + 16;
 
-    const newGame = new Button(this, bx, y, bw, BUTTON_H, t("menu.newGame"), {
-      variant: "primary",
-      onClick: () => toNewGame(this.scene),
-    });
+    // Top row: start a game and pick the rules it will use.
+    const halfW = (bw - 12) / 2;
+    const rulesLabel = () =>
+      t(getRuleset() === "atari" ? "menu.rulesAtari" : "menu.rulesRemake");
+    const newGame = new Button(
+      this,
+      bx,
+      y,
+      halfW,
+      BUTTON_H,
+      t("menu.newGame"),
+      {
+        variant: "primary",
+        onClick: () => toNewGame(this.scene),
+      },
+    );
+    const rules = new Button(
+      this,
+      bx + halfW + 12,
+      y,
+      halfW,
+      BUTTON_H,
+      rulesLabel(),
+      {
+        onClick: () => {
+          toggleRuleset();
+          rules.setText(rulesLabel());
+        },
+      },
+    );
     newGame.bind(group);
+    rules.bind(group);
     y += BUTTON_H + BUTTON_GAP;
 
     if (hasSave()) {

@@ -1,11 +1,13 @@
 import type Phaser from "phaser";
 import { isMuted, onMuteChange, toggleMute } from "../audio/music";
-import { toHighscore } from "../flow";
+import { nextTurn, toHighscore, toPromotion, toRanking } from "../flow";
 import { t } from "../i18n/i18n";
-import { TITLES } from "../model/constants";
-import { landShortage } from "../model/rules";
-import { clearSave } from "../model/save";
-import type { GameState } from "../model/types";
+import type { StringKey } from "../i18n/strings";
+import { type BuildingKind, TITLES } from "../model/constants";
+import { claimTitle, landShortage } from "../model/rules";
+import { clearSave, saveGame } from "../model/save";
+import { advancePlayer } from "../model/turn";
+import type { GameState, PlayerState } from "../model/types";
 import { playerAt } from "../model/types";
 import { alert } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
@@ -333,3 +335,50 @@ export function actionFooter(
     wrap: action.w - 360,
   }).setOrigin(0, 0.5);
 }
+
+/**
+ * A ruler's turn is over (human or computer): advance to the next ruler and
+ * show what follows: the promotion screen when the ruler advanced a rank, then
+ * the ranking on a new year.
+ */
+export function closeTurn(
+  scene: Phaser.Scene,
+  state: GameState,
+  p: PlayerState,
+  promoted: boolean,
+): void {
+  // Only a human's first time at a rank gets the promotion picture.
+  const celebrate = promoted && !p.ai && claimTitle(p);
+  const year = state.jahr;
+  advancePlayer(state);
+  // Every ruler has played: checkpoint the new year to localStorage.
+  const rolled = state.jahr !== year;
+  if (rolled) saveGame(state);
+
+  // KAISER4 PROC TITEL shows the new title before the next ruler starts; the
+  // new-year ranking page follows it.
+  if (celebrate) {
+    toPromotion(scene.scene, {
+      name: p.name,
+      title: titleName(p.titel),
+      kingdom: p.kingdom,
+      rank: p.titel,
+      portrait: p.portrait,
+      nextRanking: rolled,
+    });
+    return;
+  }
+  if (rolled) {
+    toRanking(scene.scene);
+    return;
+  }
+  nextTurn(scene.scene);
+}
+
+/** Name of each building kind in the purchase list and the reports. */
+export const BUILDING_LABEL: Record<BuildingKind, StringKey> = {
+  markt: "business.market",
+  muhl: "business.mill",
+  burg: "business.palace",
+  dom: "business.cathedral",
+};

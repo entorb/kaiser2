@@ -4,7 +4,9 @@ import { createGameState, createPlayer } from "./constants";
 import {
   chronicle,
   cities,
+  claimTitle,
   distributeGuards,
+  FARMING,
   grainBounds,
   guardsInBuilding,
   harvest,
@@ -37,6 +39,14 @@ describe("harvest", () => {
     // fixed rot: 15000*99/100 + 1191
     expect(p.lkorn).toBeCloseTo(16041, 5);
     expect(r.vkorn).toBe(11001);
+  });
+
+  it("yields more per acre in the Remake", () => {
+    const state = createGameState(1, "remake");
+    // 100*1.9 + (10000/10) * 1 * FARMING.acreYield + 1
+    const r = harvest(state, 1, seq(0, 0, 0, 0));
+    expect(r.harvest).toBeCloseTo(191 + 1000 * FARMING.acreYield, 5);
+    expect(FARMING.acreYield).toBeGreaterThan(1);
   });
 
   it("reports weather on the state", () => {
@@ -193,6 +203,21 @@ describe("titleAdvance", () => {
     p.burg = 15;
     expect(titleAdvance(state, 1)).toBe(true);
     expect(p.titel).toBe(8);
+  });
+});
+
+describe("claimTitle", () => {
+  it("celebrates each rank once, even after a demotion", () => {
+    const p = createPlayer("x", 1);
+    expect(claimTitle(p)).toBe(false);
+    p.titel = 1;
+    expect(claimTitle(p)).toBe(true);
+    expect(claimTitle(p)).toBe(false);
+    p.titel = 0;
+    p.titel = 1;
+    expect(claimTitle(p)).toBe(false);
+    p.titel = 2;
+    expect(claimTitle(p)).toBe(true);
   });
 });
 
