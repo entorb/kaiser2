@@ -8,6 +8,7 @@ import {
   drawCrowdIcon,
   drawEventIcon,
   type EventIcon,
+  type IconDraw,
 } from "../ui/icon";
 import { columns, frame } from "../ui/layout";
 import { divider } from "../ui/ornament";
@@ -15,7 +16,7 @@ import { label } from "../ui/text";
 import { COLORS, FS, SPACE } from "../ui/theme";
 import { Panel } from "../ui/widgets";
 import { GameScene } from "./base";
-import { primaryAction, screenTitle, statusBar } from "./common";
+import { continueAction, panelFigure, screenTitle, statusBar } from "./common";
 
 /** A chronicle row: event icon, the figure, and the sentence. */
 type Row = [EventIcon, string, string];
@@ -28,13 +29,12 @@ export class Chronicle extends GameScene {
   async create() {
     const state = getState(this);
     const c = chronicle(state, state.sp);
-    const p = state.players[state.sp];
 
     this.children.removeAll();
     const group = new FocusGroup(this);
     const { content } = frame();
     statusBar(this, state, group);
-    screenTitle(this, `${t("chronicle.title")} · ${p.name}`, content.y);
+    screenTitle(this, t("chronicle.title"), content.y);
 
     const [leftRect, rightRect] = columns(content, 2, SPACE.lg);
     const top = content.y + 54;
@@ -74,35 +74,32 @@ export class Chronicle extends GameScene {
         t("chronicle.secretService"),
       ]);
 
-    this.section(left, "crowd", t("chronicle.population"), peopleRows, {
-      text: `${sign(people)}  ${t("chronicle.peopleChange")}`,
+    this.section(left, drawCrowdIcon, t("chronicle.population"), peopleRows, {
+      text: sign(people),
       color: people >= 0 ? COLORS.success : COLORS.danger,
     });
-    this.section(right, "coins", t("chronicle.money"), moneyRows, {
-      text: `${sign(money)} ${t("common.taler")}`,
+    this.section(right, drawCoinsIcon, t("chronicle.money"), moneyRows, {
+      text: sign(money),
       color: money >= 0 ? COLORS.success : COLORS.danger,
     });
 
-    await new Promise<void>((resolve) =>
-      primaryAction(this, group, t("ui.continue"), resolve),
-    );
+    await new Promise<void>((resolve) => continueAction(this, group, resolve));
     group.destroy();
 
     toTaxes(this.scene);
   }
 
-  /** One themed column: header, the event rows and a bold total. */
+  /** One themed column: header, the event rows and a big total with its unit icon. */
   private section(
     panel: Panel,
-    icon: "crowd" | "coins",
+    icon: IconDraw,
     title: string,
     rows: Row[],
     sum: { text: string; color: number },
   ): void {
     const w = panel.w;
     const g = this.add.graphics();
-    if (icon === "crowd") drawCrowdIcon(g, SPACE.lg + 12, 22, 24);
-    else drawCoinsIcon(g, SPACE.lg + 12, 22, 24);
+    icon(g, SPACE.lg + 12, 22, 24);
     panel.add(g);
     panel.add(
       label(this, SPACE.lg + 32, 10, title, {
@@ -131,15 +128,11 @@ export class Chronicle extends GameScene {
       );
     });
 
-    const sumY = panel.h - 40;
-    panel.add(divider(this, w / 2, sumY - 16, w - SPACE.lg * 2));
-    panel.add(
-      label(this, w / 2, sumY, sum.text, {
-        size: FS.body,
-        weight: "bold",
-        color: sum.color,
-        origin: 0.5,
-      }),
-    );
+    // The total sits vertically centered in the band below the divider, as
+    // one block: unit icon, gap, number.
+    const bandH = 84;
+    const sumY = panel.h - bandH / 2;
+    panel.add(divider(this, w / 2, panel.h - bandH, w - SPACE.lg * 2));
+    panelFigure(this, panel, sumY, sum.text, sum.color, icon);
   }
 }

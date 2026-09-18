@@ -58,6 +58,14 @@ export const STRINGS = {
     de: "Name (max. 10 Zeichen)",
     en: "Name (max 10 characters)",
   },
+  "newGame.kingdomHint": {
+    de: "Name des Reiches (max. 12 Zeichen)",
+    en: "Kingdom name (max 12 characters)",
+  },
+  "newGame.kingdomEmpty": {
+    de: "Bitte Reichsnamen eingeben",
+    en: "Please enter a kingdom name",
+  },
   "newGame.nameEmpty": {
     de: "Bitte Namen eingeben",
     en: "Please enter a name",
@@ -95,7 +103,6 @@ export const STRINGS = {
   "trade.servants": { de: "Bedienstete", en: "Servants" },
   "trade.hire": { de: "Neu einstellen", en: "Hire" },
   "trade.fire": { de: "Entlassen", en: "Dismiss" },
-  "trade.tribute": { de: "Tributzahlung", en: "Pay tribute" },
   "trade.tributeTitle": {
     de: "Der Kaiser verlangt {zahl} Taler",
     en: "The Emperor demands {zahl} taler",
@@ -125,6 +132,11 @@ export const STRINGS = {
   "grain.title": { de: "Korn", en: "Grain" },
   "grain.trade": { de: "Kornhandel", en: "Grain Trade" },
   "partner.title": { de: "Handelspartner", en: "Trading partner" },
+  "partner.max": { de: "max", en: "max" },
+  "partner.hint": {
+    de: "Sie kaufen und verkaufen Korn und Land zu den Preisen und Angeboten des gewählten Partners.",
+    en: "You buy and sell grain and land at the chosen partner's prices and offers.",
+  },
   "partner.pick": {
     de: "Ihr Handelspartner ist",
     en: "Your trading partner is",
@@ -213,7 +225,6 @@ export const STRINGS = {
     de: "Links verkaufen, rechts kaufen",
     en: "Left to sell, right to buy",
   },
-  "land.per10ha": { de: "Taler / 10 ha", en: "taler / 10 ha" },
   "land.shortageTitle": { de: "Landmangel", en: "Land shortage" },
   "land.shortageText": {
     de: "Wegen Landmangels haben Sie {muhl} Mühle(n) und {markt} Markt/Märkte verloren.",
@@ -241,7 +252,11 @@ export const STRINGS = {
   },
 
   "tax.title": { de: "Staatseinnahmen", en: "State income" },
-  "tax.income": { de: "Staatseinnahmen:", en: "State income:" },
+  "tax.income": { de: "Einnahmen dieses Jahres", en: "Income this year" },
+  "tax.nextYear": {
+    de: "Steuern für das nächste Jahr",
+    en: "Taxes for next year",
+  },
   "tax.customs": { de: "Zoll", en: "Customs" },
   "tax.vat": { de: "Mehrwertsteuer", en: "VAT" },
   "tax.incomeTax": { de: "Einkommensteuer", en: "Income tax" },
@@ -277,13 +292,13 @@ export const STRINGS = {
   },
   "tradeData.price": { de: "Preis", en: "Price" },
   "tradeData.amount": { de: "Menge", en: "Amount" },
-  "tradeData.rule": {
-    de: "Mindestens 10% der Güter müssen angeboten werden",
-    en: "At least 10% of goods must be offered",
+  "tradeData.priceHint": {
+    de: "Preis je Einheit, zu dem Mitspieler bei Ihnen kaufen und Sie bei Mitspielern kaufen.",
+    en: "Price per unit at which rivals buy from you and you buy from rivals.",
   },
-  "tradeData.hint": {
-    de: "Preis = Preis pro Einheit, zu dem Mitspieler bei Ihnen kaufen und Sie bei Mitspielern kaufen. Menge = wie viel Sie diese Runde anbieten.",
-    en: "Price = price per unit at which rivals buy from you and you buy from rivals. Amount = how much you offer this round.",
+  "tradeData.amountHint": {
+    de: "Menge, die Sie diese Runde anbieten. Mindestens 10 % der Güter müssen angeboten werden.",
+    en: "Amount you offer this round. At least 10% of goods must be offered.",
   },
 
   "business.title": { de: "Staatseinkäufe", en: "State purchases" },
@@ -292,7 +307,7 @@ export const STRINGS = {
   "business.mill": { de: "Mühle", en: "Mill" },
   "business.palace": { de: "Palast", en: "Palace" },
   "business.cathedral": { de: "Kathedrale", en: "Cathedral" },
-  "business.interest": { de: "Zinsen (erwartet)", en: "Interest (expected)" },
+  "business.interest": { de: "Zinsen", en: "Interest" },
   "business.noLand": { de: "Zu wenig Bauland", en: "Not enough building land" },
   "business.pawn": { de: "Pfändung", en: "Seizure" },
   "business.pawnText": {

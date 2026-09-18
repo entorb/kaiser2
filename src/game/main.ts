@@ -8,12 +8,12 @@ import { Highscore } from "./scenes/Highscore";
 import { Land } from "./scenes/Land";
 import { Menu } from "./scenes/Menu";
 import { NewGame } from "./scenes/NewGame";
-import { Partner } from "./scenes/Partner";
 import { Promotion } from "./scenes/Promotion";
 import { Ranking } from "./scenes/Ranking";
 import { SecretService } from "./scenes/SecretService";
 import { Taxes } from "./scenes/Taxes";
 import { TradeData } from "./scenes/TradeData";
+import { TradePartner } from "./scenes/TradePartner";
 import { TradingHouse } from "./scenes/TradingHouse";
 import { GAME_H, GAME_W } from "./ui/layout";
 import { COLORS, css } from "./ui/theme";
@@ -45,7 +45,7 @@ const config: Types.Core.GameConfig = {
     Menu,
     NewGame,
     TradingHouse,
-    Partner,
+    TradePartner,
     Grain,
     Land,
     Chronicle,

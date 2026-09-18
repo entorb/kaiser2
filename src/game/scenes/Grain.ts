@@ -1,4 +1,4 @@
-import { type GameObjects, Math as PhaserMath } from "phaser";
+import type { GameObjects } from "phaser";
 import { playCoins } from "../audio/music";
 import { toLand } from "../flow";
 import { t } from "../i18n/i18n";
@@ -7,11 +7,18 @@ import { giveGrain, grainBounds, harvest } from "../model/rules";
 import { getState } from "../model/session";
 import type { GameState } from "../model/types";
 import { FocusGroup } from "../ui/focus";
+import { drawGrainIcon, drawWeatherIcon } from "../ui/icon";
 import { frame } from "../ui/layout";
 import { COLORS, RADIUS, SPACE } from "../ui/theme";
-import { moneyLabel, Panel, Slider, StatRow } from "../ui/widgets";
+import {
+  moneyLabel,
+  Panel,
+  Slider,
+  StatRow,
+  type StatRowOptions,
+} from "../ui/widgets";
 import { GameScene } from "./base";
-import { primaryAction, screenTitle, statusBar } from "./common";
+import { continueAction, screenTitle, statusBar } from "./common";
 
 export class Grain extends GameScene {
   private granary?: GameObjects.Graphics;
@@ -66,14 +73,19 @@ export class Grain extends GameScene {
 
     const panelW = 340;
     const panel = new Panel(this, content.x + 220, content.y + 54, panelW, 316);
-    const rows: [string, string, number?][] = [
-      [t("grain.rot"), `${state.turn.faul} %`, COLORS.danger],
-      [t(`weather.${state.wetter}` as StringKey), "", COLORS.info],
-      [t("grain.reserve"), `${Math.trunc(p.lkorn)}`],
-      [t("grain.need"), `${required}`],
-      [t("grain.price"), `${seller.kpreis}`],
+    const grain: StatRowOptions = { icon: drawGrainIcon };
+    const rows: [string, string, StatRowOptions?][] = [
+      [t("grain.rot"), `${state.turn.faul} %`, { valueColor: COLORS.danger }],
+      [
+        t(`weather.${state.wetter}` as StringKey),
+        "",
+        { valueColor: COLORS.info },
+      ],
+      [t("grain.reserve"), `${Math.trunc(p.lkorn)}`, grain],
+      [t("grain.need"), `${required}`, grain],
+      [t("grain.price"), `${seller.kpreis}`, grain],
     ];
-    rows.forEach(([labelText, value, color], i) => {
+    rows.forEach(([labelText, value, opts], i) => {
       panel.add(
         new StatRow(
           this,
@@ -82,7 +94,7 @@ export class Grain extends GameScene {
           panelW - SPACE.lg * 2,
           labelText,
           value,
-          { valueColor: color ?? COLORS.text },
+          opts,
         ),
       );
     });
@@ -90,7 +102,7 @@ export class Grain extends GameScene {
     // Weather effect gets its own icon beside the row.
     const weatherG = this.add.graphics();
     panel.add(weatherG);
-    this.drawWeatherIcon(weatherG, panelW - 26, 112, state.wetter);
+    drawWeatherIcon(weatherG, panelW - 26, 112, 26, state.wetter);
 
     const controlsX = content.x + 572;
     const controlsW = content.w - 572;
@@ -142,7 +154,7 @@ export class Grain extends GameScene {
           p.lkorn + v < required ? COLORS.danger : COLORS.success,
         cost: (v) => {
           if (v === 0) return "";
-          return moneyLabel(v > 0 ? -total(v) : total(v), t("common.taler"));
+          return moneyLabel(v > 0 ? -total(v) : total(v));
         },
         costColor: (v) =>
           v > 0 && total(v) > p.geld ? COLORS.danger : COLORS.accent,
@@ -163,7 +175,7 @@ export class Grain extends GameScene {
 
       trade.bind(group);
       dist.bind(group);
-      primaryAction(this, group, t("common.continue"), finish);
+      continueAction(this, group, finish);
       group.focus(trade);
     });
     group.destroy();
@@ -247,150 +259,6 @@ export class Grain extends GameScene {
 
     g.lineStyle(3, COLORS.woodDark, 1);
     g.strokeRoundedRect(bodyX, bodyTop, bodyW, bodyBottom - bodyTop, RADIUS);
-  }
-
-  /**
-   * Small procedural weather pictogram centred on (cx, cy), distinct per
-   * WETTER level: 1-3 storms/drought, 4-6 clouds/sun mix, 7-10 radiant suns.
-   */
-  private drawWeatherIcon(
-    g: GameObjects.Graphics,
-    cx: number,
-    cy: number,
-    wetter: number,
-  ): void {
-    const cloudColor = 0x8d95a3;
-    const stormColor = 0x5f6b80;
-    const sunAt = (
-      x: number,
-      y: number,
-      r: number,
-      count: number,
-      len: number,
-      color: number,
-    ) => {
-      g.fillStyle(color, 1);
-      g.fillCircle(x, y, r);
-      g.lineStyle(1.6, color, 1);
-      for (let i = 0; i < count; i++) {
-        const a = (i / count) * 2 * Math.PI - Math.PI / 2;
-        g.beginPath();
-        g.moveTo(x + Math.cos(a) * (r + 2), y + Math.sin(a) * (r + 2));
-        g.lineTo(
-          x + Math.cos(a) * (r + 2 + len),
-          y + Math.sin(a) * (r + 2 + len),
-        );
-        g.strokePath();
-      }
-    };
-    const cloudAt = (x: number, y: number, s: number, color: number) => {
-      g.fillStyle(color, 1);
-      g.fillCircle(x - 4 * s, y, 3 * s);
-      g.fillCircle(x, y - 2 * s, 4 * s);
-      g.fillCircle(x + 4 * s, y, 3 * s);
-      g.fillRect(x - 4 * s, y, 8 * s, 3 * s);
-    };
-    switch (wetter) {
-      case 1: {
-        // Hurricane: tight swirl with a lightning bolt.
-        g.lineStyle(2.5, stormColor, 1);
-        for (let i = 0; i < 4; i++) {
-          const a0 = -Math.PI / 2 + i * (Math.PI / 2.4);
-          g.beginPath();
-          g.arc(cx, cy, 2.5 + i * 3, a0, a0 + Math.PI * 1.35);
-          g.strokePath();
-        }
-        const s = 1.5;
-        g.fillStyle(COLORS.danger, 1);
-        g.fillPoints(
-          [
-            new PhaserMath.Vector2(cx + 2 * s, cy - 6 * s),
-            new PhaserMath.Vector2(cx + 5 * s, cy + 0.5 * s),
-            new PhaserMath.Vector2(cx + 3.2 * s, cy + 0.5 * s),
-            new PhaserMath.Vector2(cx + 1.6 * s, cy + 6 * s),
-            new PhaserMath.Vector2(cx - 0.4 * s, cy + 1.5 * s),
-            new PhaserMath.Vector2(cx + 1.2 * s, cy + 1.5 * s),
-            new PhaserMath.Vector2(cx - 0.8 * s, cy - 0.5 * s),
-          ],
-          true,
-        );
-        break;
-      }
-      case 2: {
-        // Drought: scorching sun over cracked ground.
-        g.fillStyle(0xdf8c3f, 1);
-        g.fillCircle(cx, cy - 5, 7);
-        g.lineStyle(1.5, 0xdf8c3f, 1);
-        for (let i = 0; i < 6; i++) {
-          const a = (i / 6) * 2 * Math.PI - Math.PI / 2;
-          g.beginPath();
-          g.moveTo(cx + Math.cos(a) * 10, cy - 5 + Math.sin(a) * 10);
-          g.lineTo(cx + Math.cos(a) * 12, cy - 5 + Math.sin(a) * 12);
-          g.strokePath();
-        }
-        g.lineStyle(2, 0xa06a1f, 1);
-        g.lineBetween(cx - 12, cy + 8, cx + 12, cy + 9);
-        g.lineStyle(1.5, 0xa06a1f, 1);
-        g.lineBetween(cx - 7, cy + 8.5, cx - 4, cy + 13);
-        g.lineBetween(cx, cy + 9, cx + 3, cy + 13);
-        g.lineBetween(cx + 7, cy + 9, cx + 4, cy + 13);
-        break;
-      }
-      case 3: {
-        // Storm and rain: storm cloud with slanted rain streaks.
-        cloudAt(cx, cy, 1.4, stormColor);
-        g.lineStyle(1.8, COLORS.info, 1);
-        g.beginPath();
-        g.moveTo(cx - 7, cy + 6);
-        g.lineTo(cx - 10, cy + 12);
-        g.strokePath();
-        g.beginPath();
-        g.moveTo(cx, cy + 6);
-        g.lineTo(cx - 3, cy + 12);
-        g.strokePath();
-        g.beginPath();
-        g.moveTo(cx + 7, cy + 6);
-        g.lineTo(cx + 4, cy + 12);
-        g.strokePath();
-        break;
-      }
-      case 4: {
-        // Bad weather: heavy dark cloud.
-        cloudAt(cx, cy, 1.7, stormColor);
-        break;
-      }
-      case 5: {
-        // Normal: sun half hidden behind a cloud.
-        sunAt(cx + 5, cy - 2, 5, 0, 0, COLORS.accent);
-        cloudAt(cx - 3, cy - 2, 1.0, cloudColor);
-        break;
-      }
-      case 6: {
-        // OK: sun peeking out from under a small cloud.
-        sunAt(cx + 2, cy + 2, 7, 0, 0, COLORS.accentHover);
-        cloudAt(cx - 4, cy - 6, 1.0, cloudColor);
-        break;
-      }
-      case 7:
-        sunAt(cx, cy, 6, 4, 4, COLORS.accentHover);
-        break;
-      case 8:
-        sunAt(cx, cy, 6, 6, 5, COLORS.accentHover);
-        break;
-      case 9:
-        sunAt(cx, cy, 6, 8, 6, COLORS.accent);
-        break;
-      case 10: {
-        // Record summer: radiant sun with a halo and sparks.
-        sunAt(cx, cy, 6, 10, 7, COLORS.accent);
-        g.lineStyle(1.5, COLORS.accent, 1);
-        g.strokeCircle(cx, cy, 13);
-        g.fillStyle(COLORS.accent, 1);
-        g.fillCircle(cx - 15, cy - 8, 1.5);
-        g.fillCircle(cx + 15, cy - 8, 1.5);
-        break;
-      }
-    }
   }
 
   private applyTrade(state: GameState, amount: number): void {
