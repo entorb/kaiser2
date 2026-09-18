@@ -4,6 +4,15 @@ import { toChronicle } from "../flow";
 import { t } from "../i18n/i18n";
 import { at } from "../lookup";
 import { getState } from "../model/session";
+import {
+  buyCost,
+  dealPrice,
+  maxBuy,
+  maxSale,
+  sellProceeds,
+  type TradeGood,
+  tradeLand,
+} from "../model/trade";
 import type { GameState } from "../model/types";
 import { playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
@@ -26,9 +35,6 @@ import {
   statusBar,
 } from "./common";
 
-/** Land prices are quoted per this many hectares. */
-const PRICE_UNIT = 1000;
-
 export class Land extends GameScene {
   constructor() {
     super("Land");
@@ -48,7 +54,6 @@ export class Land extends GameScene {
    */
   private async play(state: GameState): Promise<void> {
     const p = playerAt(state, state.sp);
-    const seller = playerAt(state, state.turn.han);
     const group = new FocusGroup(this);
     const { content } = frame();
     statusBar(this, state, group);
@@ -107,13 +112,21 @@ export class Land extends GameScene {
     let resolvePlay: () => void = () => {};
     const finish = () => resolvePlay();
 
-    const spend = (v: number, price: number) =>
-      Math.trunc((v * price) / PRICE_UNIT);
+    const { han } = state.turn;
+    // Buying more raises the price, selling more lowers it (rules-remake.md §3.7).
+    const spend = (v: number, good: TradeGood) =>
+      v > 0
+        ? Math.trunc(buyCost(state, han, good, v))
+        : -Math.trunc(sellProceeds(state, han, good, -v));
     // Buying (v > 0) costs money (-), selling (v < 0) earns it (+).
-    const cost = (v: number, price: number) =>
-      v === 0 ? "" : moneyLabel(-spend(v, price));
-    const costColor = (v: number, price: number) =>
-      v > 0 && spend(v, price) > p.geld ? COLORS.danger : COLORS.accent;
+    const cost = (v: number, good: TradeGood) =>
+      v === 0 ? "" : moneyLabel(-spend(v, good));
+    const costColor = (v: number, good: TradeGood) =>
+      v > 0 && spend(v, good) > p.geld ? COLORS.danger : COLORS.accent;
+    // The price per 500 ha like the grain price per 500 units; it follows the
+    // deal because a big deal moves the price.
+    const priceText = (good: TradeGood, v: number) =>
+      `${dealPrice(state, han, good, v)}`;
 
     /**
      * One land kind: big icon top left, its name beside it with the price
@@ -124,7 +137,7 @@ export class Land extends GameScene {
       y: number,
       draw: IconDraw,
       name: string,
-      price: number,
+      good: TradeGood,
       stock: { min: number; max: number },
       onChange: (v: number) => void,
     ): Slider => {
@@ -137,7 +150,7 @@ export class Land extends GameScene {
         display: true,
         color: COLORS.wood,
       });
-      label(this, sliderX + 82, y + 33, `${price}`, {
+      const price = label(this, sliderX + 82, y + 33, priceText(good, 0), {
         mono: true,
         size: FS.heading,
       });
@@ -148,9 +161,10 @@ export class Land extends GameScene {
         size: FS.heading,
       }).setOrigin(1, 0.5);
       const showCost = (v: number) => {
-        const text = cost(v, price);
+        const text = cost(v, good);
         costText.setText(text);
-        costText.setColor(css(costColor(v, price)));
+        price.setText(priceText(good, v));
+        costText.setColor(css(costColor(v, good)));
         costIcon.setVisible(text !== "");
       };
       showCost(0);
@@ -173,8 +187,11 @@ export class Land extends GameScene {
       top + 29,
       drawAcreIcon,
       t("land.acre"),
-      seller.apreis,
-      { min: -Math.trunc(p.acker), max: Math.trunc(seller.verAcker) },
+      "acker",
+      {
+        min: -Math.trunc(maxSale(state, state.sp, han, "acker")),
+        max: Math.trunc(maxBuy(state, han, "acker")),
+      },
       (v) => {
         acreAmount = v;
         redraw();
@@ -185,8 +202,11 @@ export class Land extends GameScene {
       top + 181,
       drawBuildingIcon,
       t("land.building"),
-      seller.lpreis,
-      { min: -Math.trunc(p.land), max: Math.trunc(seller.verBau) },
+      "land",
+      {
+        min: -Math.trunc(maxSale(state, state.sp, han, "land")),
+        max: Math.trunc(maxBuy(state, han, "land")),
+      },
       (v) => {
         buildingAmount = v;
         redraw();
@@ -202,8 +222,8 @@ export class Land extends GameScene {
     });
     group.destroy();
 
-    this.applyLand(state, "land", building.value, seller.lpreis);
-    this.applyLand(state, "acker", acre.value, seller.apreis);
+    this.applyLand(state, "land", building.value);
+    this.applyLand(state, "acker", acre.value);
   }
 
   /**
@@ -256,30 +276,8 @@ export class Land extends GameScene {
     state: GameState,
     kind: "land" | "acker",
     amount: number,
-    price: number,
   ): void {
-    const p = playerAt(state, state.sp);
-    const s = playerAt(state, state.turn.han);
-    const avail: "verBau" | "verAcker" =
-      kind === "land" ? "verBau" : "verAcker";
-    if (amount > 0) {
-      const e = Math.min(amount, s[avail]);
-      if (e <= 0) return;
-      playCoins();
-      p[kind] += e;
-      s[kind] -= e;
-      s[avail] -= e;
-      const total = Math.trunc((e * price) / PRICE_UNIT);
-      p.geld -= total;
-      s.geld += total;
-    } else if (amount < 0) {
-      const e = Math.min(-amount, p[kind]);
-      p[kind] -= e;
-      s[kind] += e;
-      s[avail] += e;
-      const total = Math.trunc((e * price) / PRICE_UNIT);
-      p.geld += total;
-      s.geld -= total;
-    }
+    const traded = tradeLand(state, state.sp, state.turn.han, kind, amount);
+    if (traded > 0 && amount > 0) playCoins();
   }
 }

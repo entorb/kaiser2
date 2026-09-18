@@ -1,12 +1,15 @@
 // End-of-turn events from KAISER4: pawn, deposition and death. Pure functions
 // with an injectable RNG so they can be tested.
 
+import { tributeVerdict } from "./houses";
+import { UNREST_LIMIT, unrest } from "./tax";
 import {
   defaultRng,
   type GameState,
   type PlayerState,
   playerAt,
   type Rng,
+  type Ruleset,
   rand,
 } from "./types";
 
@@ -38,11 +41,15 @@ export function depose(p: PlayerState): void {
 
 /**
  * KAISERB:2710-2900 ENTHOB2: a tax burden above 80% costs the ruler a rank and
- * two years in office. Runs at the start of the turn (KAISERB:53). Returns true
+ * two years in office (Remake: unrest above 1, i.e. burden above 80). Runs at the start of the turn (KAISERB:53). Returns true
  * when it fired.
  */
-export function taxDemotion(p: PlayerState): boolean {
-  if (p.mwst + p.ein + p.zoll <= 80) return false;
+export function taxDemotion(p: PlayerState, rules: Ruleset = "atari"): boolean {
+  const overtaxed =
+    rules === "remake"
+      ? unrest(p) > UNREST_LIMIT
+      : p.mwst + p.ein + p.zoll > 80;
+  if (!overtaxed) return false;
   p.entHob = 2;
   p.punkte = Math.max(0, p.punkte - p.titel * 5);
   p.titel = Math.max(0, p.titel - 1);
@@ -53,13 +60,19 @@ export function taxDemotion(p: PlayerState): boolean {
  * KAISERB:2530-2680 PROC ENT: after the trading-house screen the Emperor
  * confiscates a house from a ruler who hoarded grain or underpaid tribute.
  * Only Landgraf+ rulers reach it (KAISERB:620). Returns true when a house
- * changed hands.
+ * changed hands. Remake: no roll; a tribute the Emperor takes as an insult
+ * (rules-remake.md §3.2) costs a house for certain.
  */
 export function expropriate(
   state: GameState,
   sp: number,
   rng: Rng = defaultRng,
 ): boolean {
+  if (state.rules === "remake")
+    return (
+      tributeVerdict(state.turn.abg, state.turn.zahl).seize &&
+      takeHouse(state, sp)
+    );
   // 5/6 of the time the Emperor takes no notice (RAND(6)<5).
   if (rand(6, rng) < 5) return false;
   const p = playerAt(state, sp);
@@ -67,6 +80,13 @@ export function expropriate(
   const hoarded = p.verkorn + rand(5000, rng) < p.lkorn;
   const underpaid = state.turn.abg + rand(5000, rng) < state.turn.zahl;
   if (!hoarded && !underpaid) return false;
+  return takeHouse(state, sp);
+}
+
+/** The Emperor takes one of the ruler's houses back into his pool. */
+function takeHouse(state: GameState, sp: number): boolean {
+  const p = playerAt(state, sp);
+  if (p.hh <= 0) return false;
   p.hh -= 1;
   playerAt(state, 0).hh += 1;
   return true;

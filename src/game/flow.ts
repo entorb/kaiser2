@@ -1,3 +1,5 @@
+import type { BuildingKind } from "./model/constants";
+
 // The slice of Phaser's ScenePlugin the flow needs. Scenes pass `this.scene`;
 // tests pass a recorder, so the transitions are testable without Phaser.
 export type SceneName =
@@ -13,6 +15,8 @@ export type SceneName =
   | "TradeData"
   | "Business"
   | "Promotion"
+  | "Coronation"
+  | "Monument"
   | "Ranking"
   | "SecretService"
   | "Highscore";
@@ -78,12 +82,31 @@ export function toPromotion(
   data: {
     name: string;
     title: string;
+    kingdom: string;
+    /** Title rank 1..7; picks the picture. */
+    rank: number;
     portrait: number;
     /** True when the year rolled over, so the ranking page follows. */
     nextRanking: boolean;
   },
 ): void {
   switcher.start("Promotion", data);
+}
+
+/** Business → coronation animation when a ruler wins the game. */
+export function toCoronation(
+  switcher: SceneSwitcher,
+  data: { name: string },
+): void {
+  switcher.start("Coronation", data);
+}
+
+/** Business → picture of the finished palace or cathedral, then back. */
+export function toMonument(
+  switcher: SceneSwitcher,
+  data: { kind: BuildingKind },
+): void {
+  switcher.start("Monument", data);
 }
 
 /** Business → player ranking. */
@@ -101,7 +124,7 @@ export function nextTurn(switcher: SceneSwitcher): void {
   switcher.start("TradingHouse");
 }
 
-/** End of game → highscore / coronation. */
+/** End of game (or coronation) → highscore. */
 export function toHighscore(switcher: SceneSwitcher): void {
   switcher.start("Highscore");
 }

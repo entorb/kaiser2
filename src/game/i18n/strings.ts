@@ -19,6 +19,8 @@ export const STRINGS = {
   "menu.newGame": { de: "Neues Spiel", en: "New game" },
   "menu.continue": { de: "Spiel fortsetzen", en: "Continue game" },
   "menu.language": { de: "Sprache: Deutsch", en: "Language: English" },
+  "menu.rulesAtari": { de: "Regeln: Atari", en: "Rules: Atari" },
+  "menu.rulesRemake": { de: "Regeln: Remake", en: "Rules: Remake" },
   "menu.musicOn": { de: "Musik: an", en: "Music: on" },
   "menu.musicOff": { de: "Musik: aus", en: "Music: off" },
   "menu.gamesPlayed": { de: "{n} Spiele gespielt", en: "{n} games played" },
@@ -54,6 +56,64 @@ export const STRINGS = {
     en: "Number of players",
   },
   "newGame.player": { de: "Spieler", en: "Player" },
+  "newGame.computers": { de: "Computergegner", en: "Computer opponents" },
+  "newGame.computersHint": {
+    de: "Keinen, einen oder mehrere wählen. Sie spielen ganze Züge selbst und handeln mit dem Kaiser.",
+    en: "Pick none, one or several. They play whole turns themselves and trade with the Emperor.",
+  },
+  "newGame.none": { de: "Keiner", en: "None" },
+  "newGame.computersFull": {
+    de: "Mehr Plätze gibt es nicht.",
+    en: "There are no more seats.",
+  },
+  "level.easy": { de: "leicht", en: "easy" },
+  "level.medium": { de: "mittel", en: "medium" },
+  "level.hard": { de: "schwer", en: "hard" },
+  "level.easyText": {
+    de: "Wirtschaftet knapp und träge.",
+    en: "Runs a lean, slow realm.",
+  },
+  "level.mediumText": {
+    de: "Solide, aber ohne Feinschliff.",
+    en: "Solid, but not polished.",
+  },
+  "level.hardText": {
+    de: "Hält Steuern, Nahrung und Bauten im Optimum.",
+    en: "Keeps taxes, food and building at the optimum.",
+  },
+  "ai.summary": {
+    de: "Bevölkerung {pop}, {geld} Taler, {rank}.",
+    en: "Population {pop}, {geld} taler, {rank}.",
+  },
+  "ai.built": { de: "Gebaut: {list}.", en: "Built: {list}." },
+  "ai.leased": {
+    de: "Ein Handelshaus gepachtet.",
+    en: "Leased a trading house.",
+  },
+  "ai.demoted": {
+    de: "{name} verlor wegen zu hoher Steuern einen Rang.",
+    en: "{name} lost a rank to excessive taxes.",
+  },
+  "ai.seized": {
+    de: "Der Kaiser enteignete {name} ein Handelshaus.",
+    en: "The Emperor took a trading house from {name}.",
+  },
+  "ai.pawn": {
+    de: "{name} musste Besitz verpfänden.",
+    en: "{name} had to pawn possessions.",
+  },
+  "ai.deposedLand": {
+    de: "{name} wurde wegen Landmangels für ein Jahr abgesetzt.",
+    en: "{name} was suspended for a year over a lack of land.",
+  },
+  "ai.deposedTax": {
+    de: "{name} wurde wegen zu niedriger Steuern für ein Jahr abgesetzt.",
+    en: "{name} was suspended for a year over taxes that were too low.",
+  },
+  "ai.death": {
+    de: "{name} starb, der Erbe übernimmt.",
+    en: "{name} died, the heir takes over.",
+  },
   "newGame.nameHint": {
     de: "Name (max. 10 Zeichen)",
     en: "Name (max 10 characters)",
@@ -94,34 +154,68 @@ export const STRINGS = {
 
   "trade.title": { de: "Handelshäuser", en: "Trading houses" },
   "trade.wages": { de: "Lohnkosten", en: "Wage costs" },
-  "trade.fortune": { de: "Ihr Taler", en: "Your taler" },
   "trade.profit": { de: "Gewinn", en: "Profit" },
-  "trade.demands": { de: "Der Kaiser verlangt", en: "The Emperor demands" },
-  "trade.give": { de: "Sie geben", en: "You give" },
   "trade.total": { de: "Gesamt", en: "Total" },
   "trade.houses": { de: "Handelshäuser", en: "Trading houses" },
   "trade.servants": { de: "Bedienstete", en: "Servants" },
   "trade.hire": { de: "Neu einstellen", en: "Hire" },
   "trade.fire": { de: "Entlassen", en: "Dismiss" },
+  "trade.noticeTitle": {
+    de: "Handel in Ihrer Abwesenheit",
+    en: "Trades while you were away",
+  },
+  "trade.noticeSold": {
+    de: "{who} kaufte {units} {good} (+{money} Taler)",
+    en: "{who} bought {units} {good} (+{money} taler)",
+  },
+  "trade.noticeBought": {
+    de: "{who} verkaufte Ihnen {units} {good} (-{money} Taler)",
+    en: "{who} sold you {units} {good} (-{money} taler)",
+  },
+  "trade.noticeMore": { de: "… und {n} weitere", en: "… and {n} more" },
   "trade.tributeTitle": {
     de: "Der Kaiser verlangt {zahl} Taler",
     en: "The Emperor demands {zahl} taler",
   },
   "trade.rent": {
-    de: "Handelshaus kaufen (5000)",
-    en: "Buy trading house (5000)",
+    de: "Handelshaus kaufen ({price})",
+    en: "Buy trading house ({price})",
   },
   "trade.staffHint": {
     de: "Für Gewinn werden mindestens {need} Bedienstete benötigt.",
     en: "At least {need} servants are needed for a profit.",
+  },
+  "trade.staffHintRemake": {
+    de: "Jedes Haus braucht {per} Bedienstete für vollen Gewinn: {staffed} von {hh} Häusern besetzt.",
+    en: "Each house needs {per} servants for full profit: {staffed} of {hh} houses staffed.",
   },
   "trade.staffNoHouse": {
     de: "Noch kein Handelshaus gepachtet.",
     en: "No trading house leased yet.",
   },
   "trade.rentHint": {
-    de: "Handelshaus für 5000 Taler kaufen, +1.3 Punkte.",
-    en: "Buy a trading house for 5000 taler, +1.3 points.",
+    de: "Handelshaus für {price} Taler kaufen, +1.3 Punkte.",
+    en: "Buy a trading house for {price} taler, +1.3 points.",
+  },
+  "trade.verdictPleased": {
+    de: "Der Kaiser ist erfreut",
+    en: "The Emperor is pleased",
+  },
+  "trade.verdictTolerated": {
+    de: "Der Kaiser duldet es",
+    en: "The Emperor tolerates it",
+  },
+  "trade.verdictDispleased": {
+    de: "Der Kaiser ist verstimmt",
+    en: "The Emperor is displeased",
+  },
+  "trade.verdictInsulted": {
+    de: "Der Kaiser ist beleidigt: Enteignung",
+    en: "The Emperor is insulted: expropriation",
+  },
+  "trade.expropriationTextRemake": {
+    de: "Ihr Tribut war eine Beleidigung: Der Kaiser hat Ihnen eines der Handelshäuser genommen.",
+    en: "Your tribute was an insult: the Emperor took one of your trading houses.",
   },
   "trade.expropriation": { de: "Enteignung", en: "Expropriation" },
   "trade.expropriationText": {
@@ -136,6 +230,10 @@ export const STRINGS = {
   "partner.hint": {
     de: "Sie kaufen und verkaufen Korn und Land zu den Preisen und Angeboten des gewählten Partners.",
     en: "You buy and sell grain and land at the chosen partner's prices and offers.",
+  },
+  "partner.bid": {
+    de: "Ein Preis je 500 Einheiten. Große Käufe treiben ihn hoch, große Verkäufe drücken ihn. Der Kaiser verlangt mehr, wenn sein Vorrat knapp ist.",
+    en: "One price per 500 units. Big purchases raise it, big sales lower it. The Emperor charges more when his stock is short.",
   },
   "partner.pick": {
     de: "Ihr Handelspartner ist",
@@ -159,7 +257,6 @@ export const STRINGS = {
   "grain.reserve": { de: "Kornreserve", en: "Grain reserve" },
   "grain.give": { de: "Ausgabe", en: "Issue" },
   "grain.need": { de: "Nötiges Korn", en: "Needed grain" },
-  "grain.price": { de: "Kornpreis", en: "Grain price" },
   "grain.exhausted": { de: "Vorräte erschöpft", en: "Out of stock" },
   "grain.distribution": { de: "Kornausgabe", en: "Grain Issue" },
   "grain.distributionHint": {
@@ -281,6 +378,32 @@ export const STRINGS = {
     de: "Alle drei zusammen: über 60 % wandern Bürger aus, über 80 % verlieren Sie einen Rang, unter 20 % werden Sie ein Jahr enthoben.",
     en: "All three combined: above 60% citizens emigrate, above 80% you lose a rank, below 20% you are suspended for a year.",
   },
+  "tax.headTax": { de: "Kopfsteuer", en: "Head tax" },
+  "tax.buildingTax": { de: "Gebäudesteuer", en: "Building tax" },
+  "tax.fines": { de: "Gerichtsgebühren", en: "Court fines" },
+  "tax.fed": { de: "Ernährung", en: "Nutrition" },
+  "tax.forecast": { de: "Erwartet pro Jahr", en: "Expected per year" },
+  "tax.mood": { de: "Stimmung", en: "Mood" },
+  "tax.mood0": { de: "Zufrieden", en: "Content" },
+  "tax.mood1": { de: "Das Volk murrt", en: "The people grumble" },
+  "tax.mood2": { de: "Bürger wandern ab", en: "Citizens leave" },
+  "tax.mood3": { de: "Aufruhr: Rangverlust", en: "Revolt: rank lost" },
+  "tax.headHint": {
+    de: "Kopfsteuer: Anteil am Verdienst von {wage} Talern je Bürger; hungernde Bürger zahlen bis zur Hälfte weniger.",
+    en: "Head tax: share of the {wage} talers each citizen earns; starving citizens pay up to half less.",
+  },
+  "tax.buildingHint": {
+    de: "Gebäudesteuer: Anteil am geschätzten Jahresertrag von Mühlen ({mill}) und Märkten ({market}); Palast, Dom und Handelshäuser sind frei.",
+    en: "Building tax: share of the assessed yearly yield of mills ({mill}) and markets ({market}); palace, cathedral and trading houses are exempt.",
+  },
+  "tax.justiceHintRemake": {
+    de: "Justiz: Gebühren von 0 bis 3 Talern je Bürger; Härte erhöht die Belastung, Milde senkt sie.",
+    en: "Justice: fines of 0 to 3 talers per citizen; severity raises the burden, mildness lowers it.",
+  },
+  "tax.limitsRemake": {
+    de: "Ab 30 Belastungspunkten (beide Steuern plus Justiz) sinken Geburten und Zuzug und mehr Bürger wandern ab; über 70 verlieren Sie einen Rang, unter 20 (nur Steuern) werden Sie ein Jahr enthoben.",
+    en: "Above 30 burden points (both taxes plus justice) births and immigration fall and more citizens leave; above 70 you lose a rank, below 20 (taxes only) you are suspended for a year.",
+  },
   "tax.changeCustoms": { de: "Zoll ändern", en: "Change customs" },
   "tax.changeVat": { de: "Mehrwertsteuer ändern", en: "Change VAT" },
   "tax.changeIncome": { de: "Einkommensteuer ändern", en: "Change income tax" },
@@ -295,6 +418,14 @@ export const STRINGS = {
   "tradeData.priceHint": {
     de: "Preis je Einheit, zu dem Mitspieler bei Ihnen kaufen und Sie bei Mitspielern kaufen.",
     en: "Price per unit at which rivals buy from you and you buy from rivals.",
+  },
+  "tradeData.priceHintRemake": {
+    de: "Preis je Einheit, zu dem Mitspieler und Computer bei Ihnen kaufen und Sie bei Mitspielern kaufen. Käufer wählen den Billigsten, auch den Kaiser.",
+    en: "Price per unit at which rivals and computers buy from you and you buy from rivals. Buyers pick the cheapest seller, the Emperor included.",
+  },
+  "tradeData.amountHintRemake": {
+    de: "Menge, die Sie diese Runde anbieten; auch 0 ist erlaubt. Land nur, soweit Mühlen, Märkte und 10 ha je Einwohner gedeckt bleiben.",
+    en: "Amount you offer this round; 0 is allowed. Land only as far as mills, markets and 10 ha per head stay covered.",
   },
   "tradeData.amountHint": {
     de: "Menge, die Sie diese Runde anbieten. Mindestens 10 % der Güter müssen angeboten werden.",
@@ -341,12 +472,20 @@ export const STRINGS = {
     de: "Glücklicherweise haben Sie rechtzeitig einen Erben hinterlassen.",
     en: "Fortunately you left an heir in time.",
   },
-  "business.win": { de: "Zum Kaiser gekrönt!", en: "Crowned Emperor!" },
 
-  "promotion.title": { de: "Beförderung", en: "Promotion" },
-  "promotion.text": {
-    de: "Sie wurden befördert zum",
-    en: "You have been promoted to",
+  "coronation.text": {
+    de: "{name} wird zum Kaiser gekrönt!",
+    en: "{name} is crowned Emperor!",
+  },
+
+  "monument.palace": { de: "Palast vollendet", en: "Palace completed" },
+  "monument.cathedral": {
+    de: "Kathedrale vollendet",
+    en: "Cathedral completed",
+  },
+  "promotion.title": {
+    de: "{name} wurde zum {titleDat} von {kingdom} ernannt",
+    en: "{name} was made {title} of {kingdom}",
   },
 
   "ranking.title": { de: "Rangliste", en: "Ranking" },

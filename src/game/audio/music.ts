@@ -160,6 +160,42 @@ function playFlute(freq: number, when: number, seconds: number, gain: number) {
   keep(vibrato);
 }
 
+/** Bowed-brass swell: detuned saws, a lowpass that opens on the attack. */
+function playBrass(freq: number, when: number, seconds: number, gain: number) {
+  if (!engine) return;
+  const { ctx } = engine;
+  const attack = 0.09;
+  const release = 0.2;
+  const end = when + Math.max(0.3, seconds);
+
+  const lp = ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.Q.value = 0.8;
+  lp.frequency.setValueAtTime(500, when);
+  lp.frequency.linearRampToValueAtTime(2200, when + attack + 0.05);
+
+  const level = 0.2 * gain;
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(0, when);
+  env.gain.linearRampToValueAtTime(level, when + attack);
+  const releaseAt = Math.max(when + attack, end - release);
+  env.gain.setValueAtTime(level, releaseAt);
+  env.gain.linearRampToValueAtTime(0, end + 0.05);
+  lp.connect(env);
+  env.connect(engine.musicBus);
+
+  for (const detune of [-7, 7]) {
+    const osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.value = freq;
+    osc.detune.value = detune;
+    osc.connect(lp);
+    osc.start(when);
+    osc.stop(end + 0.1);
+    keep(osc);
+  }
+}
+
 /** Bagpipe-style drone: two detuned saws through a lowpass, slow swell. */
 function startDrone(drone: DroneSpec, when: number) {
   if (!engine) return;
@@ -197,6 +233,7 @@ function scheduleNote(note: Note, when: number, beatSeconds: number) {
   const seconds = note.dur * beatSeconds;
   const gain = note.gain ?? 1;
   if (note.voice === "flute") playFlute(freq, when, seconds, gain);
+  else if (note.voice === "brass") playBrass(freq, when, seconds, gain);
   else playHarp(freq, when, seconds, gain);
 }
 
@@ -267,7 +304,7 @@ export function playTrack(name: TrackName): void {
 
 /**
  * Fade out and stop the current track; `playTrack` starts one again. Used by
- * the `audio-list.html` audition page, hence `@public`.
+ * the `list-audio.html` audition page, hence `@public`.
  *
  * @public
  */
