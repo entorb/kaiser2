@@ -39,7 +39,8 @@ export function deserialize(json: string): GameState | null {
   try {
     const file = JSON.parse(json) as SaveFile;
     if (file.version !== SAVE_VERSION || !isGameState(file.state)) return null;
-    return file.state;
+    // Saves from before the ruleset toggle were all Atari rules.
+    return { ...file.state, rules: file.state.rules ?? "atari" };
   } catch {
     return null;
   }

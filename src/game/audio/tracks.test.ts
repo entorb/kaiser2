@@ -48,6 +48,14 @@ describe("trackForScene", () => {
     }
   });
 
+  it("leaves the Monument screen to pick its own hymn", () => {
+    expect(trackForScene("Monument")).toBeNull();
+  });
+
+  it("uses the coronation processional on the crowning", () => {
+    expect(trackForScene("Coronation")).toBe("coronation");
+  });
+
   it("stays silent on boot and unknown scenes", () => {
     expect(trackForScene("Boot")).toBeNull();
     expect(trackForScene("Backdrop")).toBeNull();

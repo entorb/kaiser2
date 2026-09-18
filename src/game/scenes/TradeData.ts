@@ -1,6 +1,7 @@
 import { toBusiness } from "../flow";
 import { t } from "../i18n/i18n";
 import { getState } from "../model/session";
+import { shownPrice, spareLand, type TradeGood } from "../model/trade";
 import { playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
 import {
@@ -42,6 +43,7 @@ export class TradeData extends GameScene {
     // KAISER4:765 - raze markets/mills the building land no longer covers.
     await applyLandShortage(this, state);
     const p = playerAt(state, state.sp);
+    const remake = state.rules === "remake";
     // KAISER4:740-760 - refresh the offer on entry; must offer at least 10%.
     p.verkorn = p.lkorn;
     p.verAcker = Math.trunc(p.acker / 10);
@@ -61,6 +63,7 @@ export class TradeData extends GameScene {
     );
     const rows: {
       label: string;
+      good: TradeGood;
       icon: IconDraw;
       price: PriceKey;
       amount: AmountKey;
@@ -70,30 +73,33 @@ export class TradeData extends GameScene {
     }[] = [
       {
         label: t("grain.title"),
+        good: "grain",
         icon: drawGrainIcon,
         price: "kpreis",
         amount: "verkorn",
         max: "lkorn",
-        range: [75, 125],
-        step: 1,
+        range: remake ? [50, 200] : [75, 125],
+        step: remake ? 5 : 1,
       },
       {
         label: t("land.acre"),
+        good: "acker",
         icon: drawAcreIcon,
         price: "apreis",
         amount: "verAcker",
         max: "acker",
         // Land prices are per 1000 ha.
-        range: [1500, 2500],
+        range: remake ? [1000, 4000] : [1500, 2500],
         step: 100,
       },
       {
         label: t("land.building"),
+        good: "land",
         icon: drawBuildingIcon,
         price: "lpreis",
         amount: "verBau",
         max: "land",
-        range: [1500, 2500],
+        range: remake ? [1000, 4000] : [1500, 2500],
         step: 100,
       },
     ];
@@ -110,7 +116,13 @@ export class TradeData extends GameScene {
     panel.add(label(this, priceX, 8, t("tradeData.price"), head));
     panel.add(label(this, amountX, 8, t("tradeData.amount"), head));
 
-    const footer = actionFooter(this, t("tradeData.priceHint"));
+    const priceHint = t(
+      remake ? "tradeData.priceHintRemake" : "tradeData.priceHint",
+    );
+    const amountHint = t(
+      remake ? "tradeData.amountHintRemake" : "tradeData.amountHint",
+    );
+    const footer = actionFooter(this, priceHint);
     let finish: () => void = () => {};
     let first: Slider | undefined;
     rows.forEach((row, i) => {
@@ -124,15 +136,19 @@ export class TradeData extends GameScene {
           weight: "bold",
         }),
       );
-      const max = Math.trunc(p[row.max]);
-      const min = Math.trunc(max / 10);
+      const held = Math.trunc(p[row.max]);
+      // Remake: only land the buildings and the 10 ha per head do not need.
+      const max = remake && row.max !== "lkorn" ? spareLand(p, row.max) : held;
+      // Atari: at least 10 % must be offered. Remake: any amount, 10 % to start.
+      const min = remake ? 0 : Math.trunc(max / 10);
       const [pmin, pmax] = row.range;
       const price = new Slider(this, priceX, y, priceW, 60, {
         min: pmin,
         max: pmax,
         step: row.step,
         initial: p[row.price],
-        format: (v) => `${v}`,
+        // Land prices are stored per 1000 ha and shown per 500, like grain.
+        format: (v) => `${shownPrice(row.good, v)}`,
         valueIcon: drawCoinsIcon,
         onChange: (v) => (p[row.price] = v),
         onSubmit: () => finish(),
@@ -142,7 +158,7 @@ export class TradeData extends GameScene {
         min,
         max,
         step: 1,
-        initial: min,
+        initial: remake ? Math.min(max, Math.trunc(held / 10)) : min,
         format: (v) => `${v}`,
         onChange: (v) => (p[row.amount] = v),
         onSubmit: () => finish(),
@@ -151,8 +167,8 @@ export class TradeData extends GameScene {
       p[row.amount] = amount.value;
       panel.add(price);
       panel.add(amount);
-      price.onFocus(() => footer.setText(t("tradeData.priceHint")));
-      amount.onFocus(() => footer.setText(t("tradeData.amountHint")));
+      price.onFocus(() => footer.setText(priceHint));
+      amount.onFocus(() => footer.setText(amountHint));
       price.bind(group);
       amount.bind(group);
       first ??= price;

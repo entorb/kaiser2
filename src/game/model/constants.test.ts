@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  addBuilding,
+  BUILDINGS,
+  buildingCost,
+  createPlayer,
   freeColor,
   MAX_PORTRAIT,
   nextFreeColor,
@@ -53,5 +57,32 @@ describe("playerNameError", () => {
   it("accepts a valid unique name", () => {
     expect(playerNameError("Alice", ["Torben", "Bob"])).toBeNull();
     expect(playerNameError("torben", ["Alice", "Bob"])).toBeNull();
+  });
+});
+
+describe("prestige building prices", () => {
+  it("raises each further palace/cathedral part in remake only", () => {
+    const p = createPlayer("A", 1);
+    expect(buildingCost(p, "burg", "remake")).toBe(BUILDINGS.burg.cost);
+    p.burg = 2;
+    p.dom = 10;
+    expect(buildingCost(p, "burg", "remake")).toBe(5500);
+    expect(buildingCost(p, "dom", "remake")).toBe(13500);
+    expect(buildingCost(p, "burg", "atari")).toBe(BUILDINGS.burg.cost);
+  });
+
+  it("leaves markets and mills at their base price", () => {
+    const p = createPlayer("A", 1);
+    p.markt = 5;
+    expect(buildingCost(p, "markt", "remake")).toBe(BUILDINGS.markt.cost);
+  });
+
+  it("charges the raised price when buying", () => {
+    const p = createPlayer("A", 1);
+    p.burg = 2;
+    p.geld = 10000;
+    addBuilding(p, "burg", "remake");
+    expect(p.geld).toBe(4500);
+    expect(p.burg).toBe(3);
   });
 });

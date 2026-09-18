@@ -1,20 +1,18 @@
 import { playCoins } from "../audio/music";
-import {
-  nextTurn,
-  toHighscore,
-  toPromotion,
-  toRanking,
-  toSecretService,
-} from "../flow";
+import { toCoronation, toMonument, toSecretService } from "../flow";
 import { t } from "../i18n/i18n";
-import type { StringKey } from "../i18n/strings";
 import { at } from "../lookup";
-import { MAX_BURG, MAX_DOM } from "../model/constants";
+import {
+  addBuilding,
+  atMaxBuildings,
+  BUILDINGS,
+  type BuildingKind,
+  buildingCost,
+  landRequired,
+} from "../model/constants";
 import { applyInterest, depose, die, interest, pawn } from "../model/events";
 import { titleAdvance } from "../model/rules";
-import { saveGame } from "../model/save";
 import { getState } from "../model/session";
-import { advancePlayer } from "../model/turn";
 import type { GameState } from "../model/types";
 import { playerAt } from "../model/types";
 import { alert } from "../ui/dialog";
@@ -33,32 +31,15 @@ import { label } from "../ui/text";
 import { COLORS, css, SPACE } from "../ui/theme";
 import { type ListItem, ListMenu, Panel, StatRow } from "../ui/widgets";
 import { GameScene } from "./base";
-import { primaryAction, screenTitle, statusBar, titleName } from "./common";
+import {
+  BUILDING_LABEL,
+  closeTurn,
+  primaryAction,
+  screenTitle,
+  statusBar,
+} from "./common";
 
-type BuildingKind = "markt" | "muhl" | "burg" | "dom";
-
-interface BuildingInfo {
-  cost: number;
-  /** Building land per building (market/mill) or the total required (palace/cathedral). */
-  land: number;
-  points: number;
-  max?: number;
-}
-
-const BUILDINGS: Record<BuildingKind, BuildingInfo> = {
-  markt: { cost: 1000, land: 600, points: 0.5 },
-  muhl: { cost: 2000, land: 1000, points: 0.8 },
-  burg: { cost: 5000, land: 20000, points: 1.6, max: MAX_BURG },
-  dom: { cost: 9000, land: 30000, points: 2.1, max: MAX_DOM },
-};
 const BUILDING_ORDER: BuildingKind[] = ["markt", "muhl", "burg", "dom"];
-
-const BUILDING_LABEL: Record<BuildingKind, StringKey> = {
-  markt: "business.market",
-  muhl: "business.mill",
-  burg: "business.palace",
-  dom: "business.cathedral",
-};
 
 const BUILDING_ICON: Record<BuildingKind, IconDraw> = {
   markt: (g, x, y, size) => drawEventIcon(g, x, y, size, "market"),
@@ -93,6 +74,7 @@ export class Business extends GameScene {
         const b = BUILDINGS[kind];
         const required =
           kind === "burg" || kind === "dom" ? b.land : (p[kind] + 1) * b.land;
+        const cost = buildingCost(p, kind, state.rules);
         const maxed = b.max !== undefined && p[kind] >= b.max;
         const count =
           kind === "burg" || kind === "dom"
@@ -102,9 +84,9 @@ export class Business extends GameScene {
           label: t(BUILDING_LABEL[kind]),
           lead: count,
           icon: BUILDING_ICON[kind],
-          value: `${b.cost}`,
+          value: `${cost}`,
           valueIcon: drawCoinsIcon,
-          disabled: maxed || p.geld < b.cost || p.land < required,
+          disabled: maxed || p.geld < cost || p.land < required,
         };
       });
       options.push({
@@ -144,14 +126,13 @@ export class Business extends GameScene {
           return;
         }
         const b = BUILDINGS[kind];
+        const cost = buildingCost(p, kind, state.rules);
         const required =
           kind === "burg" || kind === "dom" ? b.land : (p[kind] + 1) * b.land;
         for (const icon of [costIcon, landIcon, pointsIcon])
           icon.setVisible(true);
-        costLabel.setText(`${b.cost}`);
-        costLabel.setColor(
-          css(p.geld < b.cost ? COLORS.danger : COLORS.onWood),
-        );
+        costLabel.setText(`${cost}`);
+        costLabel.setColor(css(p.geld < cost ? COLORS.danger : COLORS.onWood));
         landLabel.setText(`${required} / ${Math.trunc(p.land)}`);
         landLabel.setColor(
           css(p.land < required ? COLORS.danger : COLORS.onWood),
@@ -204,7 +185,11 @@ export class Business extends GameScene {
       group.destroy();
 
       if (choice >= 0 && choice < BUILDING_ORDER.length) {
-        await this.buyBuilding(state, at(BUILDING_ORDER, choice));
+        const kind = at(BUILDING_ORDER, choice);
+        if (await this.buyBuilding(state, kind)) {
+          toMonument(this.scene, { kind });
+          return;
+        }
         focusList = true;
       } else if (choice === 4) {
         // KAISER4:3151 - entering the secret service in debt costs 0.5 points.
@@ -219,24 +204,23 @@ export class Business extends GameScene {
     await this.endOfTurn(state);
   }
 
-  /** Market/mill need land per building; palace/cathedral need a land total. */
+  /**
+   * Market/mill need land per building; palace/cathedral need a land total.
+   * Returns true when this purchase completed the palace or cathedral.
+   */
   private async buyBuilding(
     state: GameState,
     kind: BuildingKind,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const p = playerAt(state, state.sp);
-    const b = BUILDINGS[kind];
-    if (b.max !== undefined && p[kind] >= b.max) return;
-    const required =
-      kind === "burg" || kind === "dom" ? b.land : (p[kind] + 1) * b.land;
-    if (p.land < required) {
+    if (atMaxBuildings(p, kind)) return false;
+    if (p.land < landRequired(p, kind)) {
       await alert(this, t("business.noLand"));
-      return;
+      return false;
     }
     playCoins();
-    p.geld -= b.cost;
-    p[kind] += 1;
-    p.punkte += b.points;
+    addBuilding(p, kind, state.rules);
+    return atMaxBuildings(p, kind);
   }
 
   private async endOfTurn(state: GameState): Promise<void> {
@@ -269,32 +253,10 @@ export class Business extends GameScene {
     applyInterest(p);
     const beforeTitel = p.titel;
     if (titleAdvance(state, state.sp)) {
-      await alert(this, t("business.win"));
-      toHighscore(this.scene);
+      toCoronation(this.scene, { name: p.name });
       return;
     }
 
-    const year = state.jahr;
-    advancePlayer(state);
-    // Every ruler has played: checkpoint the new year to localStorage.
-    const rolled = state.jahr !== year;
-    if (rolled) saveGame(state);
-
-    // KAISER4 PROC TITEL shows the new title before the next ruler starts; the
-    // new-year ranking page follows it.
-    if (p.titel > beforeTitel) {
-      toPromotion(this.scene, {
-        name: p.name,
-        title: titleName(p.titel),
-        portrait: p.portrait,
-        nextRanking: rolled,
-      });
-      return;
-    }
-    if (rolled) {
-      toRanking(this.scene);
-      return;
-    }
-    nextTurn(this.scene);
+    closeTurn(this, state, p, p.titel > beforeTitel);
   }
 }

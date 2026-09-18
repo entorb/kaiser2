@@ -5,8 +5,24 @@ import { at } from "../lookup";
 // human rulers live at indices 1..count. This matches the 1-based arrays in
 // the source, so ports read almost identically.
 
+/** A trade a human ruler was not present for; shown at the start of their next turn. */
+export interface TradeNote {
+  /** Name of the ruler who traded with them. */
+  who: string;
+  good: "grain" | "acker" | "land";
+  /** True when the noted ruler sold (and received `money`), false when they bought. */
+  sold: boolean;
+  units: number;
+  money: number;
+}
+
+/** Skill of a computer ruler; see `model/ai.ts`. */
+export type Difficulty = "easy" | "medium" | "hard";
+
 export interface PlayerState {
   name: string;
+  /** Set for computer rulers, absent for humans. */
+  ai?: Difficulty;
   /** Kingdom name chosen at name entry. */
   kingdom: string;
   /** Portrait index 0..7 chosen at name entry. */
@@ -43,7 +59,11 @@ export interface PlayerState {
   manov: number; // MANOV - saboteur training
   tod: number; // TOD - year of death
   titel: number; // TITEL - title rank 0..8
+  /** Remake: highest title already celebrated on the promotion screen (absent = 0). */
+  bestTitel?: number;
   verkorn: number; // VERKORN - grain offered for trade
+  /** Remake: trades by other rulers since this ruler's last turn. */
+  notices?: TradeNote[];
 }
 
 /** Per-turn scratch values (KAISERB / KAISER3). */
@@ -60,7 +80,12 @@ export interface TurnState {
   faul: number; // FAUL - % of grain reserves reported as rotted
 }
 
+/** Rule variant of a game: the original Atari rules or the reworked remake rules. */
+export type Ruleset = "atari" | "remake";
+
 export interface GameState {
+  /** Fixed at game start; see rules-remake.md for the remake differences. */
+  rules: Ruleset;
   players: PlayerState[];
   /** Number of human rulers (1..maxPlayers). */
   count: number;

@@ -3,10 +3,12 @@ import { Backdrop } from "./scenes/Backdrop";
 import { Boot } from "./scenes/Boot";
 import { Business } from "./scenes/Business";
 import { Chronicle } from "./scenes/Chronicle";
+import { Coronation } from "./scenes/Coronation";
 import { Grain } from "./scenes/Grain";
 import { Highscore } from "./scenes/Highscore";
 import { Land } from "./scenes/Land";
 import { Menu } from "./scenes/Menu";
+import { Monument } from "./scenes/Monument";
 import { NewGame } from "./scenes/NewGame";
 import { Promotion } from "./scenes/Promotion";
 import { Ranking } from "./scenes/Ranking";
@@ -53,6 +55,8 @@ const config: Types.Core.GameConfig = {
     TradeData,
     Business,
     Promotion,
+    Coronation,
+    Monument,
     Ranking,
     SecretService,
     Highscore,

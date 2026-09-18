@@ -1,6 +1,7 @@
 import { GAME_CONFIG } from "../config";
 import { startTurn } from "../flow";
 import { t } from "../i18n/i18n";
+import { AI_PROFILES, DIFFICULTIES, setupComputer } from "../model/ai";
 import {
   createGameState,
   freeColor,
@@ -11,11 +12,12 @@ import {
   takenColors,
 } from "../model/constants";
 import { loadProfiles, type Profile, saveProfiles } from "../model/profiles";
+import { getRuleset } from "../model/ruleset";
 import { saveGame } from "../model/save";
 import { setState } from "../model/session";
 import { reportGameStart } from "../model/stats";
 import { startRuler } from "../model/turn";
-import type { GameState } from "../model/types";
+import type { Difficulty, GameState } from "../model/types";
 import { playerAt } from "../model/types";
 import { type Focusable, FocusGroup } from "../ui/focus";
 import { drawShield } from "../ui/icon";
@@ -32,15 +34,25 @@ export class NewGame extends GameScene {
   }
 
   async create() {
-    const state = createGameState(GAME_CONFIG.maxPlayers);
+    const state = createGameState(GAME_CONFIG.maxPlayers, getRuleset());
     setState(this, state);
 
-    state.count = await this.askPlayerCount();
+    const humans = await this.askPlayerCount();
+    const levels = await this.askComputers(GAME_CONFIG.maxPlayers - humans);
+    state.count = humans + levels.length;
     // Last game's rulers come back prefilled (name, kingdom, coat of arms).
     const profiles = loadProfiles();
-    for (let i = 1; i <= state.count; i++)
-      await this.setupPlayer(state, i, profiles[i - 1] ?? null);
-    saveProfiles(state.players, state.count);
+    const reserved = levels.map((level) => AI_PROFILES[level].name);
+    for (let i = 1; i <= humans; i++)
+      await this.setupPlayer(state, i, profiles[i - 1] ?? null, reserved);
+    saveProfiles(state.players, humans);
+    // Computer rulers sit after the humans, with fixed names and kingdoms.
+    levels.forEach((level, k) => {
+      const index = humans + 1 + k;
+      const p = playerAt(state, index);
+      setupComputer(p, level, state.rules);
+      p.portrait = freeColor(state.players, index, p.portrait);
+    });
     state.sp = 1;
     reportGameStart();
 
@@ -88,6 +100,84 @@ export class NewGame extends GameScene {
   }
 
   /**
+   * Which computer rulers join, if any: one toggle per fixed opponent, limited
+   * to the seats the humans leave free. Returns the chosen levels, easy first.
+   */
+  private async askComputers(seats: number): Promise<Difficulty[]> {
+    if (seats <= 0) return [];
+    this.clearScreen();
+    const group = new FocusGroup(this, true);
+    const { content } = frame();
+    screenTitle(this, t("newGame.prompt"), content.y);
+    label(this, content.x, content.y + 48, t("newGame.computers"), {
+      size: FS.heading,
+      color: COLORS.accent,
+      weight: "bold",
+    });
+    const note = label(
+      this,
+      content.x,
+      content.y + 84,
+      t("newGame.computersHint"),
+      {
+        color: COLORS.onWood,
+        size: FS.small,
+        wrap: content.w,
+      },
+    );
+
+    const chosen = new Set<Difficulty>();
+    const gap = SPACE.lg;
+    const cols = DIFFICULTIES.length + 1;
+    const w = (content.w - gap * (cols - 1)) / cols;
+    const y = content.y + 132;
+
+    const picked = await new Promise<Difficulty[]>((resolve) => {
+      const finish = () =>
+        resolve(DIFFICULTIES.filter((level) => chosen.has(level)));
+      const proceed = new Button(this, content.x, y, w, 80, t("newGame.none"), {
+        variant: "primary",
+        onClick: finish,
+      });
+      proceed.bind(group);
+      for (const [i, level] of DIFFICULTIES.entries()) {
+        const x = content.x + (i + 1) * (w + gap);
+        const button = new Button(
+          this,
+          x,
+          y,
+          w,
+          80,
+          `${AI_PROFILES[level].name} (${t(`level.${level}`)})`,
+          {
+            onClick: () => {
+              if (chosen.delete(level))
+                note.setText(t("newGame.computersHint"));
+              else if (chosen.size < seats) chosen.add(level);
+              else note.setText(t("newGame.computersFull"));
+              button.setVariant(chosen.has(level) ? "primary" : "secondary");
+              proceed.setText(t(chosen.size ? "ui.continue" : "newGame.none"));
+            },
+            // Enter picks the focused opponent (if a seat is free) and starts.
+            onSubmit: () => {
+              if (chosen.size < seats) chosen.add(level);
+              finish();
+            },
+          },
+        );
+        button.bind(group);
+        label(this, x, y + 92, t(`level.${level}Text`), {
+          color: COLORS.onWood,
+          size: FS.small,
+          wrap: w,
+        });
+      }
+    });
+    group.destroy();
+    return picked;
+  }
+
+  /**
    * Per ruler: enter a name and a kingdom and pick a coat of arms on one
    * screen. All stay editable until OK. The confirm button sits inline next to
    * the inputs so the on-screen keyboard cannot cover it.
@@ -96,6 +186,7 @@ export class NewGame extends GameScene {
     state: GameState,
     index: number,
     profile: Profile | null,
+    reserved: string[],
   ): Promise<void> {
     this.clearScreen();
     const group = new FocusGroup(this);
@@ -107,10 +198,13 @@ export class NewGame extends GameScene {
       profile?.portrait ?? p.portrait,
     );
     const taken = takenColors(state.players, index);
-    const usedNames = state.players
-      .slice(1, index)
-      .map((x) => x.name)
-      .filter((n) => n !== "");
+    const usedNames = [
+      ...state.players
+        .slice(1, index)
+        .map((x) => x.name)
+        .filter((n) => n !== ""),
+      ...reserved,
+    ];
 
     screenTitle(this, `${t("newGame.player")} ${index}:`, content.y);
 

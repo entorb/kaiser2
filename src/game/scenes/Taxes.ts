@@ -4,13 +4,23 @@ import { at } from "../lookup";
 import { JUSTICE } from "../model/constants";
 import { stateIncome } from "../model/rules";
 import { getState } from "../model/session";
-import { playerAt } from "../model/types";
+import {
+  fedFactor,
+  MARKT_VALUE,
+  MILL_VALUE,
+  taxBreakdown,
+  UNREST_LIMIT,
+  unrest,
+  unrestLevel,
+  WAGE,
+} from "../model/tax";
+import { type GameState, type PlayerState, playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
 import { drawCoinsIcon } from "../ui/icon";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
-import { COLORS, SPACE } from "../ui/theme";
-import { Panel, SegmentedControl, Slider } from "../ui/widgets";
+import { COLORS, css, SPACE } from "../ui/theme";
+import { Panel, SegmentedControl, Slider, StatRow } from "../ui/widgets";
 import { GameScene } from "./base";
 import {
   actionFooter,
@@ -19,6 +29,14 @@ import {
   screenTitle,
   statusBar,
 } from "./common";
+
+/** Gauge and mood-word color per `unrestLevel`. */
+const MOOD_COLORS = [
+  COLORS.success,
+  COLORS.accent,
+  COLORS.danger,
+  COLORS.danger,
+] as const;
 
 /** Height of a titled panel's heading (title plus rule). */
 const TITLE_H = 28;
@@ -31,6 +49,8 @@ export class Taxes extends GameScene {
   async create() {
     const state = getState(this);
     const p = playerAt(state, state.sp);
+    const remake = state.rules === "remake";
+    const parts = taxBreakdown(state, p);
     const se = stateIncome(state, state.sp);
 
     const group = new FocusGroup(this);
@@ -46,11 +66,12 @@ export class Taxes extends GameScene {
     panelFigure(
       this,
       income,
-      (h + TITLE_H) / 2,
+      remake ? 96 : (h + TITLE_H) / 2,
       `${se}`,
       COLORS.accent,
       drawCoinsIcon,
     );
+    if (remake) this.incomeRows(income, state, parts);
     const panelW = content.w - incomeW - SPACE.lg;
     const panel = new Panel(
       this,
@@ -68,20 +89,36 @@ export class Taxes extends GameScene {
 
     // Footer: the effect of whichever option is focused. The three tax rates
     // share one formula (and one set of limits), so their hints share a note.
-    const limits = t("tax.limits");
-    const hints = [
-      `${t("tax.customsHint")} ${limits}`,
-      `${t("tax.vatHint")} ${limits}`,
-      `${t("tax.incomeTaxHint")} ${limits}`,
-      t("tax.justiceHint"),
-    ];
+    const limits = t(remake ? "tax.limitsRemake" : "tax.limits");
+    const hints = remake
+      ? [
+          `${t("tax.headHint", { wage: WAGE })} ${limits}`,
+          `${t("tax.buildingHint", { mill: MILL_VALUE, market: MARKT_VALUE })} ${limits}`,
+          t("tax.justiceHintRemake"),
+        ]
+      : [
+          `${t("tax.customsHint")} ${limits}`,
+          `${t("tax.vatHint")} ${limits}`,
+          `${t("tax.incomeTaxHint")} ${limits}`,
+          t("tax.justiceHint"),
+        ];
     const footer = actionFooter(this, at(hints, 0));
 
-    const fields: [string, number, (v: number) => void][] = [
-      [t("tax.customs"), p.zoll, (v) => (p.zoll = v)],
-      [t("tax.vat"), p.mwst, (v) => (p.mwst = v)],
-      [t("tax.incomeTax"), p.ein, (v) => (p.ein = v)],
-    ];
+    // Remake taxes people (EIN) and buildings (MWST); customs are unused.
+    const fields: [string, number, (v: number) => void][] = remake
+      ? [
+          [t("tax.headTax"), p.ein, (v) => (p.ein = v)],
+          [t("tax.buildingTax"), p.mwst, (v) => (p.mwst = v)],
+        ]
+      : [
+          [t("tax.customs"), p.zoll, (v) => (p.zoll = v)],
+          [t("tax.vat"), p.mwst, (v) => (p.mwst = v)],
+          [t("tax.incomeTax"), p.ein, (v) => (p.ein = v)],
+        ];
+    const justiceY = 56 + fields.length * 58 + 6;
+    const refresh = remake
+      ? this.preview(panel, state, p, justiceY + 60)
+      : () => {};
     fields.forEach(([text, value, set], i) => {
       const y = 56 + i * 58;
       const field = new Slider(this, SPACE.lg, y, panelW - SPACE.lg * 2, 52, {
@@ -90,7 +127,10 @@ export class Taxes extends GameScene {
         max: 99,
         initial: value,
         format: (v) => `${v} %`,
-        onChange: set,
+        onChange: (v) => {
+          set(v);
+          refresh();
+        },
         onSubmit: finish,
       });
       panel.add(field);
@@ -98,7 +138,6 @@ export class Taxes extends GameScene {
       field.bind(group);
     });
 
-    const justiceY = 56 + fields.length * 58 + 6;
     panel.add(
       label(this, SPACE.lg, justiceY + 14, t("tax.justice"), {
         color: COLORS.muted,
@@ -113,18 +152,107 @@ export class Taxes extends GameScene {
       [JUSTICE[1], JUSTICE[2], JUSTICE[3], JUSTICE[4]],
       {
         selected: p.justiz - 1,
-        onChange: (i) => (p.justiz = i + 1),
+        onChange: (i) => {
+          p.justiz = i + 1;
+          refresh();
+        },
         onSubmit: finish,
       },
     );
     panel.add(justice);
-    justice.onFocus(() => footer.setText(at(hints, 3)));
+    justice.onFocus(() => footer.setText(at(hints, fields.length)));
     justice.bind(group);
 
+    refresh();
     continueAction(this, group, finish);
     await done;
     group.destroy();
 
     toTradeData(this.scene);
+  }
+
+  /** Remake: this year's income split by source, and how well fed people pay. */
+  private incomeRows(
+    panel: Panel,
+    state: GameState,
+    parts: ReturnType<typeof taxBreakdown>,
+  ): void {
+    const rows: [string, string][] = [
+      [t("tax.headTax"), `${parts.head}`],
+      [t("tax.buildingTax"), `${parts.building}`],
+      [t("tax.fines"), `${parts.fines}`],
+      [t("tax.fed"), `${Math.round(fedFactor(state) * 100)} %`],
+    ];
+    rows.forEach(([name, value], i) => {
+      panel.add(
+        new StatRow(
+          this,
+          SPACE.lg,
+          150 + i * 32,
+          panel.w - SPACE.lg * 2,
+          name,
+          value,
+          {
+            valueColor: i === 3 ? COLORS.muted : COLORS.text,
+          },
+        ),
+      );
+    });
+  }
+
+  /**
+   * Remake: live forecast of next year's income and the unrest gauge, so the
+   * quadratic penalty is visible before it costs people. Returns the refresh.
+   */
+  private preview(
+    panel: Panel,
+    state: GameState,
+    p: PlayerState,
+    y: number,
+  ): () => void {
+    const right = panel.w - SPACE.lg;
+    panel.add(
+      label(this, SPACE.lg, y, t("tax.forecast"), { color: COLORS.muted }),
+    );
+    const total = label(this, right, y, "", {
+      color: COLORS.accent,
+      mono: true,
+      weight: "bold",
+    }).setOrigin(1, 0);
+    panel.add(total);
+
+    const rowY = y + 34;
+    panel.add(
+      label(this, SPACE.lg, rowY, t("tax.mood"), { color: COLORS.muted }),
+    );
+    const gaugeX = SPACE.lg + 110;
+    const gaugeW = 180;
+    const gauge = this.add.graphics();
+    panel.add(gauge);
+    const word = label(this, right, rowY, "", { weight: "bold" }).setOrigin(
+      1,
+      0,
+    );
+    panel.add(word);
+
+    return () => {
+      total.setText(`${taxBreakdown(state, p).total} ${t("common.taler")}`);
+      const u = unrest(p);
+      const level = unrestLevel(u);
+      const color = at(MOOD_COLORS, level);
+      gauge.clear();
+      gauge.fillStyle(COLORS.surfaceAlt, 1);
+      gauge.fillRect(gaugeX, rowY + 6, gaugeW, 12);
+      gauge.fillStyle(color, 1);
+      gauge.fillRect(
+        gaugeX,
+        rowY + 6,
+        gaugeW * Math.min(1, u / UNREST_LIMIT),
+        12,
+      );
+      gauge.lineStyle(1, COLORS.border, 1);
+      gauge.strokeRect(gaugeX, rowY + 6, gaugeW, 12);
+      word.setText(t(`tax.mood${level}`)).setColor(css(color));
+    };
   }
 }

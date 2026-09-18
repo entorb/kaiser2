@@ -13,6 +13,12 @@ describe("save", () => {
     expect(restored?.players[2]?.geld).toBe(12345);
   });
 
+  it("treats saves without a ruleset as Atari", () => {
+    const old = JSON.parse(serialize(createGameState(2, "remake")));
+    delete old.state.rules;
+    expect(deserialize(JSON.stringify(old))?.rules).toBe("atari");
+  });
+
   it("rejects corrupt input", () => {
     expect(deserialize("not json")).toBeNull();
     expect(deserialize(JSON.stringify({ version: 999 }))).toBeNull();
