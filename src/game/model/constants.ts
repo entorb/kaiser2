@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from "../config";
+import { at } from "../lookup";
 import { type GameState, type PlayerState, rand } from "./types";
 
 /** LAND$ (KAISER3:180) - the six provinces, index 0 = province of player 1. */
@@ -41,7 +42,7 @@ export const MAX_PORTRAIT = PLAYER_COLORS.length;
 
 export function playerColor(portrait: number): number {
   const n = PLAYER_COLORS.length;
-  return PLAYER_COLORS[((portrait % n) + n) % n];
+  return at(PLAYER_COLORS, ((portrait % n) + n) % n);
 }
 
 /** Colors already taken by players 1..index-1. */
@@ -50,7 +51,7 @@ export function takenColors(
   index: number,
 ): Set<number> {
   const taken = new Set<number>();
-  for (let i = 1; i < index; i++) taken.add(players[i].portrait);
+  for (let i = 1; i < index; i++) taken.add(at(players, i).portrait);
   return taken;
 }
 

@@ -1,3 +1,4 @@
+import { at } from "../lookup";
 // Game state. Mirrors the Atari COMMON block (KAISERB:110-130 etc.).
 //
 // `players[0]` is the Kaiser (only its trading-house count `hh` is used);
@@ -72,9 +73,18 @@ export interface GameState {
   turn: TurnState;
 }
 
+/** Player by index; throws instead of yielding `undefined` (noUncheckedIndexedAccess). */
+export function playerAt(state: GameState, i: number): PlayerState {
+  return at(state.players, i);
+}
+
 export type Rng = () => number;
 
+/** Production RNG: uniform in [0, 1), crypto-backed (Sonar S2245 bans `Math.random`). */
+export const defaultRng: Rng = () =>
+  at(crypto.getRandomValues(new Uint32Array(1)), 0) / 2 ** 32;
+
 /** Turbo-BASIC `RAND(n)`: integer in [0, n). */
-export function rand(n: number, rng: Rng = Math.random): number {
+export function rand(n: number, rng: Rng = defaultRng): number {
   return Math.floor(rng() * n);
 }

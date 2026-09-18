@@ -2,8 +2,10 @@ import type { GameObjects } from "phaser";
 import { playCoins } from "../audio/music";
 import { toChronicle } from "../flow";
 import { t } from "../i18n/i18n";
+import { at } from "../lookup";
 import { getState } from "../model/session";
 import type { GameState } from "../model/types";
+import { playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
 import {
   drawAcreIcon,
@@ -45,9 +47,8 @@ export class Land extends GameScene {
    * settles both trades at once.
    */
   private async play(state: GameState): Promise<void> {
-    const p = state.players[state.sp];
-    const seller = state.players[state.turn.han];
-    this.children.removeAll();
+    const p = playerAt(state, state.sp);
+    const seller = playerAt(state, state.turn.han);
     const group = new FocusGroup(this);
     const { content } = frame();
     statusBar(this, state, group);
@@ -243,7 +244,7 @@ export class Land extends GameScene {
     const pad = Math.max(1, cell * 0.08);
     const s = cell - pad * 2;
     for (let i = 0; i < total; i++) {
-      const { r, c } = cells[i];
+      const { r, c } = at(cells, i);
       const cx = ox + c * cell + pad;
       const cy = oy + r * cell + pad;
       const draw = isBuilding(i) ? drawBuildingIcon : drawAcreIcon;
@@ -257,8 +258,8 @@ export class Land extends GameScene {
     amount: number,
     price: number,
   ): void {
-    const p = state.players[state.sp];
-    const s = state.players[state.turn.han];
+    const p = playerAt(state, state.sp);
+    const s = playerAt(state, state.turn.han);
     const avail: "verBau" | "verAcker" =
       kind === "land" ? "verBau" : "verAcker";
     if (amount > 0) {

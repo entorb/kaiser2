@@ -1,5 +1,6 @@
 import { toTaxes } from "../flow";
 import { t } from "../i18n/i18n";
+import { at } from "../lookup";
 import { chronicle } from "../model/rules";
 import { getState } from "../model/session";
 import { FocusGroup } from "../ui/focus";
@@ -30,13 +31,14 @@ export class Chronicle extends GameScene {
     const state = getState(this);
     const c = chronicle(state, state.sp);
 
-    this.children.removeAll();
     const group = new FocusGroup(this);
     const { content } = frame();
     statusBar(this, state, group);
     screenTitle(this, t("chronicle.title"), content.y);
 
-    const [leftRect, rightRect] = columns(content, 2, SPACE.lg);
+    const cols = columns(content, 2, SPACE.lg);
+    const leftRect = at(cols, 0);
+    const rightRect = at(cols, 1);
     const top = content.y + 54;
     const h = content.h - 54;
     const left = new Panel(this, leftRect.x, top, leftRect.w, h);

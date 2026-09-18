@@ -4,7 +4,12 @@ import { t } from "../i18n/i18n";
 import { expropriate, taxDemotion } from "../model/events";
 import { tradeHouse } from "../model/rules";
 import { getState } from "../model/session";
-import { type GameState, type PlayerState, rand } from "../model/types";
+import {
+  type GameState,
+  type PlayerState,
+  playerAt,
+  rand,
+} from "../model/types";
 import { alert, sliderPrompt } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
 import { drawCoinsIcon } from "../ui/icon";
@@ -29,7 +34,7 @@ export class TradingHouse extends GameScene {
 
   async create() {
     const state = getState(this);
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
     // KAISERB:53 - a tax burden over 80% demotes and suspends at turn start.
     if (taxDemotion(p)) {
       await alert(this, t("business.demoted"), [t("business.demotedText")]);
@@ -57,7 +62,7 @@ export class TradingHouse extends GameScene {
         state.turn.neu = Math.max(0, v);
         state.turn.alt = Math.max(0, -v);
       } else if (choice === 1) {
-        const kaiser = state.players[0];
+        const kaiser = playerAt(state, 0);
         if (p.geld > 2500 && kaiser.hh > 0) {
           playCoins();
           p.hh += 1;
@@ -93,8 +98,8 @@ export class TradingHouse extends GameScene {
     gew: number,
     leased: boolean,
   ): Promise<number> {
-    const p = state.players[state.sp];
-    this.children.removeAll();
+    const p = playerAt(state, state.sp);
+    this.clearScreen();
     const group = new FocusGroup(this);
     const { content, action } = frame();
     statusBar(this, state, group);
@@ -145,7 +150,7 @@ export class TradingHouse extends GameScene {
     });
 
     // Only buy when the 5000 taler price is covered (grey otherwise).
-    const canLease = p.geld >= 5000 && state.players[0].hh > 0;
+    const canLease = p.geld >= 5000 && playerAt(state, 0).hh > 0;
     const options: ListItem[] = [
       { label: t("trade.servants"), value: `${staffNow}` },
     ];
@@ -193,7 +198,7 @@ export class TradingHouse extends GameScene {
 
   /** Tribute popup. Red marker on the demanded sum; 0 (refusal) allowed. */
   private async payTribute(state: GameState, zahl: number): Promise<void> {
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
     const budget = Math.max(0, Math.trunc(p.geld));
     const n = await sliderPrompt(this, {
       title: t("trade.tributeTitle", { zahl }),

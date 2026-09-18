@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../lookup";
 import { createGameState, createPlayer } from "./constants";
 import { depose, die, expropriate, heirName, taxDemotion } from "./events";
 import type { Rng } from "./types";
+import { playerAt } from "./types";
 
 /** RNG that returns a fixed sequence (cycling). */
 function seq(...values: number[]): Rng {
   let i = 0;
-  return () => values[i++ % values.length];
+  return () => at(values, i++ % values.length);
 }
 
 describe("taxDemotion", () => {
@@ -81,8 +83,8 @@ describe("die", () => {
 describe("expropriate", () => {
   it("confiscates a house when the ruler hoarded grain", () => {
     const state = createGameState(2);
-    const p = state.players[1];
-    const kaiser = state.players[0];
+    const p = playerAt(state, 1);
+    const kaiser = playerAt(state, 0);
     const before = kaiser.hh;
     p.hh = 2;
     p.verkorn = 0;
@@ -95,7 +97,7 @@ describe("expropriate", () => {
 
   it("takes no notice most of the time", () => {
     const state = createGameState(2);
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     p.hh = 2;
     p.lkorn = 100000;
     expect(expropriate(state, 1, seq(0))).toBe(false);
@@ -104,7 +106,7 @@ describe("expropriate", () => {
 
   it("cannot confiscate from a ruler without houses", () => {
     const state = createGameState(2);
-    state.players[1].hh = 0;
+    playerAt(state, 1).hh = 0;
     expect(expropriate(state, 1, seq(0.999, 0, 0))).toBe(false);
   });
 });

@@ -8,6 +8,7 @@ import {
 } from "../flow";
 import { t } from "../i18n/i18n";
 import type { StringKey } from "../i18n/strings";
+import { at } from "../lookup";
 import { MAX_BURG, MAX_DOM } from "../model/constants";
 import { applyInterest, depose, die, interest, pawn } from "../model/events";
 import { titleAdvance } from "../model/rules";
@@ -15,6 +16,7 @@ import { saveGame } from "../model/save";
 import { getState } from "../model/session";
 import { advancePlayer } from "../model/turn";
 import type { GameState } from "../model/types";
+import { playerAt } from "../model/types";
 import { alert } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
 import {
@@ -72,7 +74,7 @@ export class Business extends GameScene {
 
   async create() {
     const state = getState(this);
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
     let done = false;
     // Keep the highlight on the same row after a purchase rebuilds the menu.
     let selected = 0;
@@ -81,7 +83,7 @@ export class Business extends GameScene {
     let focusList = false;
 
     while (!done) {
-      this.children.removeAll();
+      this.clearScreen();
       const group = new FocusGroup(this);
       const { content, action } = frame();
       statusBar(this, state, group);
@@ -202,7 +204,7 @@ export class Business extends GameScene {
       group.destroy();
 
       if (choice >= 0 && choice < BUILDING_ORDER.length) {
-        await this.buyBuilding(state, BUILDING_ORDER[choice]);
+        await this.buyBuilding(state, at(BUILDING_ORDER, choice));
         focusList = true;
       } else if (choice === 4) {
         // KAISER4:3151 - entering the secret service in debt costs 0.5 points.
@@ -222,7 +224,7 @@ export class Business extends GameScene {
     state: GameState,
     kind: BuildingKind,
   ): Promise<void> {
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
     const b = BUILDINGS[kind];
     if (b.max !== undefined && p[kind] >= b.max) return;
     const required =
@@ -238,7 +240,7 @@ export class Business extends GameScene {
   }
 
   private async endOfTurn(state: GameState): Promise<void> {
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
 
     if (p.geld < -10000 - p.titel * 2000) {
       pawn(p);

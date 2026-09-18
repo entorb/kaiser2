@@ -35,7 +35,7 @@ describe("scene flow", () => {
     Flow.nextTurn(s);
     expect(s.calls.map((c) => c[1])).toEqual([
       "TradingHouse",
-      "Partner",
+      "TradePartner",
       "Grain",
       "Land",
       "Chronicle",

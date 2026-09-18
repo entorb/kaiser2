@@ -1,6 +1,7 @@
 import { toBusiness } from "../flow";
 import { t } from "../i18n/i18n";
 import { getState } from "../model/session";
+import { playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
 import {
   drawAcreIcon,
@@ -40,13 +41,12 @@ export class TradeData extends GameScene {
     }
     // KAISER4:765 - raze markets/mills the building land no longer covers.
     await applyLandShortage(this, state);
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
     // KAISER4:740-760 - refresh the offer on entry; must offer at least 10%.
     p.verkorn = p.lkorn;
     p.verAcker = Math.trunc(p.acker / 10);
     p.verBau = Math.trunc(p.land / 10);
 
-    this.children.removeAll();
     const group = new FocusGroup(this);
     const { content } = frame();
     statusBar(this, state, group);

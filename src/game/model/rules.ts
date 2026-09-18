@@ -1,3 +1,4 @@
+import { at } from "../lookup";
 // Pure port of the Atari game rules. Each function takes the game state plus an
 // injectable RNG (so tests are deterministic) and mutates the relevant player.
 //
@@ -5,7 +6,14 @@
 // deviation is noted inline and in rewrite.md ("Known issues").
 
 import { MAX_BURG, WIN_TITLE } from "./constants";
-import { type GameState, type PlayerState, type Rng, rand } from "./types";
+import {
+  defaultRng,
+  type GameState,
+  type PlayerState,
+  playerAt,
+  type Rng,
+  rand,
+} from "./types";
 
 // Turbo-BASIC `INT(x)` floors (rounds toward -infinity), not toward zero; the
 // difference matters for negative arguments (e.g. the trading-house profit).
@@ -27,9 +35,9 @@ export interface HarvestResult {
 export function harvest(
   state: GameState,
   sp: number,
-  rng: Rng = Math.random,
+  rng: Rng = defaultRng,
 ): HarvestResult {
-  const p = state.players[sp];
+  const p = playerAt(state, sp);
   // BACKER = min(ACKER, LEUTE/5)
   const backer = Math.min(p.acker, p.leute / 5);
   const faul = rand(50, rng) + 1;
@@ -60,7 +68,7 @@ export function grainBounds(p: PlayerState): { p20: number; p80: number } {
 
 /** Give `amount` grain to the people (KORNAUS). */
 export function giveGrain(state: GameState, sp: number, amount: number): void {
-  const p = state.players[sp];
+  const p = playerAt(state, sp);
   p.lkorn = int(p.lkorn - amount);
   state.turn.kaus = amount;
 }
@@ -94,7 +102,7 @@ export interface GuardLayout {
  */
 export function distributeGuards(
   target: PlayerState,
-  rng: Rng = Math.random,
+  rng: Rng = defaultRng,
 ): GuardLayout {
   const layout: GuardLayout = {
     muhl: new Array(Math.max(0, target.muhl)).fill(0),
@@ -108,8 +116,9 @@ export function distributeGuards(
   }
   if (slots.length === 0) return layout;
   for (let g = 0; g < Math.max(0, target.infant); g++) {
-    const [kind, i] = slots[Math.floor(rng() * slots.length)];
-    layout[kind][i] += 1;
+    const [kind, i] = at(slots, Math.floor(rng() * slots.length));
+    const row = layout[kind];
+    row[i] = (row[i] ?? 0) + 1;
   }
   return layout;
 }
@@ -155,9 +164,9 @@ export interface ChronicleResult {
 export function chronicle(
   state: GameState,
   sp: number,
-  rng: Rng = Math.random,
+  rng: Rng = defaultRng,
 ): ChronicleResult {
-  const p = state.players[sp];
+  const p = playerAt(state, sp);
   const { kaus, vkorn } = state.turn;
 
   const geb =
@@ -206,10 +215,10 @@ export interface TradeResult {
 export function tradeHouse(
   state: GameState,
   sp: number,
-  rng: Rng = Math.random,
+  rng: Rng = defaultRng,
 ): TradeResult {
-  const p = state.players[sp];
-  const kaiser = state.players[0];
+  const p = playerAt(state, sp);
+  const kaiser = playerAt(state, 0);
   if (state.jahr === 1700) kaiser.hh = rand(10, rng) + 10;
 
   let zahl =
@@ -247,9 +256,9 @@ export function tradeHouse(
 export function stateIncome(
   state: GameState,
   sp: number,
-  rng: Rng = Math.random,
+  rng: Rng = defaultRng,
 ): number {
-  const p = state.players[sp];
+  const p = playerAt(state, sp);
   const ra = rand(100, rng) * p.justiz;
   const se = int(
     ((state.mg1 + state.mg2) / 100) * (p.zoll + p.ein + p.mwst) + ra,
@@ -260,7 +269,7 @@ export function stateIncome(
 
 /** KAISER4 TITEL: promote when score and money allow; true on winning. */
 export function titleAdvance(state: GameState, sp: number): boolean {
-  const p = state.players[sp];
+  const p = playerAt(state, sp);
   const need = 15 + p.titel * 9 + (((p.titel + 1) * p.titel) / 2) * 4.5;
   if (p.punkte > need && p.geld > 0) {
     p.titel += 1;
@@ -303,7 +312,7 @@ export function resolveSabotage(
   defender: PlayerState,
   saboteurs: number,
   guards: number,
-  rng: Rng = Math.random,
+  rng: Rng = defaultRng,
 ): SabotageResult {
   const sabo =
     saboteurs * attacker.manov + rand(6, rng) * (saboteurs > 0 ? 1 : 0);
