@@ -30,7 +30,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: "index.html",
-        audio: "audio-list.html",
+        audio: "list-audio.html",
+        icons: "list-icon.html",
+        images: "list-image.html",
       },
       output: {
         manualChunks(id) {
