@@ -1,18 +1,24 @@
 import { playFanfare } from "../audio/music";
 import { nextTurn, toRanking } from "../flow";
 import { t } from "../i18n/i18n";
-import { playerColor } from "../model/constants";
 import { FocusGroup } from "../ui/focus";
 import { frame } from "../ui/layout";
-import { label } from "../ui/text";
-import { COLORS, FS } from "../ui/theme";
+import { drawPromotionArt } from "../ui/ruler";
 import { Panel } from "../ui/widgets";
 import { GameScene } from "./base";
 import { continueAction, screenTitle } from "./common";
 
+/** "zum Landgrafen": German counts these titles among the weak nouns. */
+function dative(title: string): string {
+  return /(graf|fürst)$/i.test(title) ? `${title}en` : title;
+}
+
 interface PromotionData {
   name: string;
   title: string;
+  kingdom: string;
+  /** Title rank 1..7; picks the headgear. */
+  rank: number;
   portrait: number;
   nextRanking: boolean;
 }
@@ -27,35 +33,25 @@ export class Promotion extends GameScene {
     playFanfare();
     const group = new FocusGroup(this);
     const { content } = frame();
-    screenTitle(this, t("promotion.title"), content.y);
+    screenTitle(
+      this,
+      t("promotion.title", {
+        name: data.name,
+        title: data.title,
+        titleDat: dative(data.title),
+        kingdom: data.kingdom,
+      }),
+      content.y,
+    );
 
     const panelH = content.h - 54;
     const panel = new Panel(this, content.x, content.y + 54, content.w, panelH);
     const cx = content.w / 2;
     const cy = panelH / 2;
 
-    panel.add(
-      label(this, cx, cy - 70, data.name, {
-        size: FS.heading,
-        color: COLORS.muted,
-        origin: 0.5,
-      }),
-    );
-    panel.add(
-      label(this, cx, cy - 18, t("promotion.text"), {
-        size: FS.body,
-        color: COLORS.muted,
-        origin: 0.5,
-      }),
-    );
-    panel.add(
-      label(this, cx, cy + 40, data.title, {
-        size: 56,
-        weight: "bold",
-        color: playerColor(data.portrait),
-        origin: 0.5,
-      }),
-    );
+    const art = this.add.graphics();
+    drawPromotionArt(art, cx, cy, cy - 8, data.rank, data.portrait);
+    panel.add(art);
 
     continueAction(this, group, () =>
       data.nextRanking ? toRanking(this.scene) : nextTurn(this.scene),

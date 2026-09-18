@@ -1,4 +1,4 @@
-import { AUTO, Game, type GameObjects, Scale, Scene } from "phaser";
+import { type Game, type GameObjects, Scene } from "phaser";
 import {
   drawAcreIcon,
   drawArrowIcon,
@@ -20,8 +20,9 @@ import {
 } from "../ui/icon";
 import { RENDER_SCALE } from "../ui/layout";
 import { panelFrame } from "../ui/ornament";
-import { label, loadFonts } from "../ui/text";
-import { COLORS, css, FS } from "../ui/theme";
+import { label } from "../ui/text";
+import { COLORS, FS } from "../ui/theme";
+import { bootGallery } from "./gallery";
 
 type DrawFn = (
   g: GameObjects.Graphics,
@@ -232,17 +233,7 @@ class IconGallery extends Scene {
   }
 }
 
-/** Boot the gallery into `parent`; waits for fonts so labels bake in the real ones. */
-export async function startGallery(parent: string): Promise<Game> {
-  await loadFonts();
-  return new Game({
-    type: AUTO,
-    parent,
-    width: WIDTH * RENDER_SCALE,
-    height: galleryHeight() * RENDER_SCALE,
-    backgroundColor: css(COLORS.bg),
-    pixelArt: false,
-    scale: { mode: Scale.NONE },
-    scene: IconGallery,
-  });
+/** Boot the gallery into `parent`. */
+export function startGallery(parent: string): Promise<Game> {
+  return bootGallery(parent, WIDTH, galleryHeight(), IconGallery);
 }

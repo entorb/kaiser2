@@ -24,7 +24,11 @@ export class FocusGroup {
   private isActive = true;
   private readonly handler: (event: KeyboardEvent) => void;
 
-  constructor(private readonly scene: Phaser.Scene) {
+  /** `horizontal`: Left/Right also move focus, for a single row of widgets. */
+  constructor(
+    private readonly scene: Phaser.Scene,
+    private readonly horizontal = false,
+  ) {
     this.handler = (event) => this.onKey(event);
     scene.input.keyboard?.on("keydown", this.handler);
     const groups = stack.get(scene) ?? [];
@@ -88,8 +92,13 @@ export class FocusGroup {
       blip(event.key === "Enter" || event.key === " " ? "click" : "move");
       return;
     }
-    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-      const next = this.index + (event.key === "ArrowDown" ? 1 : -1);
+    const forward =
+      event.key === "ArrowDown" ||
+      (this.horizontal && event.key === "ArrowRight");
+    const back =
+      event.key === "ArrowUp" || (this.horizontal && event.key === "ArrowLeft");
+    if (forward || back) {
+      const next = this.index + (forward ? 1 : -1);
       // No wrapping: ArrowDown on the bottom action (Next/Continue) is ignored.
       if (next < 0 || next >= n) return;
       event.preventDefault();

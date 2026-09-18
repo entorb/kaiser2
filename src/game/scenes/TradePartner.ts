@@ -3,7 +3,12 @@ import { t } from "../i18n/i18n";
 import { at } from "../lookup";
 import { playerColor } from "../model/constants";
 import { getState } from "../model/session";
-import { type GameState, playerAt, rand } from "../model/types";
+import {
+  refreshEmperorStock,
+  shownPrice,
+  updateEmperorPrices,
+} from "../model/trade";
+import { type GameState, playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
 import {
   drawAcreIcon,
@@ -24,8 +29,8 @@ export class TradePartner extends GameScene {
 
   async create() {
     const state = getState(this);
-    this.updateKaiserPrices();
-    this.refreshKaiserStock(state);
+    refreshEmperorStock(state);
+    updateEmperorPrices(state, state.sp);
 
     // Single player: the Emperor is the only counterparty (KAISER3 HANDEL).
     if (state.count <= 1) {
@@ -57,7 +62,12 @@ export class TradePartner extends GameScene {
       rule.lineStyle(1, COLORS.border, 0.5);
       rule.lineBetween(SPACE.lg, 56, SPACE.lg + tableW, 56);
       panel.add(rule);
-      const footer = actionFooter(this, t("partner.hint"));
+      const footer = actionFooter(
+        this,
+        state.rules === "remake"
+          ? `${t("partner.hint")} ${t("partner.bid")}`
+          : t("partner.hint"),
+      );
 
       const cellPair = (price: number, offer: number): ListCell[] => [
         { text: `${price}`, icon: drawCoinsIcon },
@@ -72,8 +82,8 @@ export class TradePartner extends GameScene {
           label: w === 0 ? "der Kaiser" : p.name,
           cells: [
             ...cellPair(p.kpreis, p.verkorn),
-            ...cellPair(p.apreis, p.verAcker),
-            ...cellPair(p.lpreis, p.verBau),
+            ...cellPair(shownPrice("acker", p.apreis), p.verAcker),
+            ...cellPair(shownPrice("land", p.lpreis), p.verBau),
           ],
           color: playerColor(p.portrait),
         });
@@ -104,43 +114,5 @@ export class TradePartner extends GameScene {
   private finish(state: GameState, chosen: number): void {
     state.turn.han = chosen;
     toGrain(this.scene);
-  }
-
-  /** The Emperor's stock for this round; his offer is shown on the table. */
-  private refreshKaiserStock(state: GameState): void {
-    const kaiser = playerAt(state, 0);
-    kaiser.verkorn = 8000 * state.wetter + rand(1000);
-    kaiser.lkorn = kaiser.verkorn;
-    kaiser.acker = 2000 * rand(10);
-    kaiser.verAcker = kaiser.acker;
-    kaiser.land = 2000 * rand(10);
-    kaiser.verBau = kaiser.land;
-  }
-
-  /** KAISER3:20970-21041 - the Emperor's prices track the players' average. */
-  private updateKaiserPrices(): void {
-    const state = getState(this);
-    const kaiser = playerAt(state, 0);
-    let kp = 0;
-    let ap = 0;
-    let lp = 0;
-    for (let u = 1; u <= state.count; u++) {
-      kp += playerAt(state, u).kpreis;
-      ap += playerAt(state, u).apreis;
-      lp += playerAt(state, u).lpreis;
-    }
-    const avgK = Math.trunc(kp / state.count);
-    const avgA = Math.trunc(ap / state.count);
-    const avgL = Math.trunc(lp / state.count);
-    kaiser.kpreis =
-      avgK + rand(Math.trunc(avgK / 5)) - rand(Math.trunc(avgK / 5));
-    if (kaiser.kpreis < 80) kaiser.kpreis = 80 + rand(10);
-    // Land prices are per 1000 ha, i.e. 100x the original per-10-ha figures.
-    kaiser.apreis =
-      avgA + rand(Math.trunc(avgA / 10)) - rand(Math.trunc(avgA / 10));
-    if (kaiser.apreis < 1600) kaiser.apreis = 1600 + rand(1000);
-    kaiser.lpreis =
-      avgL + rand(Math.trunc(avgL / 10)) - rand(Math.trunc(avgL / 10));
-    if (kaiser.lpreis < 1600) kaiser.lpreis = 1600 + rand(1000);
   }
 }

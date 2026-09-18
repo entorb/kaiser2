@@ -6,6 +6,8 @@ import { at } from "../lookup";
 // deviation is noted inline and in rewrite.md ("Known issues").
 
 import { MAX_BURG, WIN_TITLE } from "./constants";
+import { houseProfit, remakeTribute } from "./houses";
+import { taxBreakdown, unrest } from "./tax";
 import {
   defaultRng,
   type GameState,
@@ -31,6 +33,12 @@ export interface HarvestResult {
   klager: number;
 }
 
+/**
+ * Remake: acre land yields this many times the Atari grain per hectare. Tunable
+ * (`scripts/sim.mjs --tune=farming.acreYield=2`).
+ */
+export const FARMING = { acreYield: 2 };
+
 /** KAISER3 #KORN: weather, rot and the new grain stock. */
 export function harvest(
   state: GameState,
@@ -44,7 +52,8 @@ export function harvest(
   const zpsk = rand(2000, rng) + 1;
   const weather = rand(10, rng) + 1;
 
-  let korn = backer * 1.9 + (p.acker / 10) * weather + zpsk;
+  const yieldPerAcre = state.rules === "remake" ? FARMING.acreYield : 1;
+  let korn = backer * 1.9 + (p.acker / 10) * weather * yieldPerAcre + zpsk;
   korn = abs(korn - p.krieg * 1000);
 
   // Source keeps `lkorn*FAUL/100`, but FAUL is the *rotted* percentage per the
@@ -146,6 +155,23 @@ export function landShortage(p: PlayerState): LandShortage {
   return { markt, muhl };
 }
 
+/**
+ * Citizens who leave. Atari: a cliff above 60% tax or `JUSTIZ` 4 (the source
+ * tests the scalar JUSTIZ, always 0, instead of JUSTIZ(SP); fixed). Remake:
+ * 3-7% of the people per point of unrest.
+ */
+function emigrants(
+  state: GameState,
+  p: PlayerState,
+  u: number,
+  rng: Rng,
+): number {
+  if (state.rules === "remake")
+    return int((p.leute * u * (3 + rand(5, rng))) / 100);
+  const leaving = p.mwst + p.ein + p.zoll > 60 || p.justiz === 4;
+  return leaving ? int((rand(10, rng) * p.leute) / 100) : 0;
+}
+
 export interface ChronicleResult {
   geb: number;
   ges: number;
@@ -169,31 +195,36 @@ export function chronicle(
   const p = playerAt(state, sp);
   const { kaus, vkorn } = state.turn;
 
-  const geb =
-    abs(int(p.leute / 44 + (kaus - vkorn) / 150)) + rand(2, rng) * state.wetter;
+  // Remake: unrest (rules-remake.md §1.3) thins births and immigration; it is 0
+  // under the Atari rules, which leaves both untouched.
+  const u = state.rules === "remake" ? unrest(p) : 0;
+  const geb = int(
+    (abs(int(p.leute / 44 + (kaus - vkorn) / 150)) +
+      rand(2, rng) * state.wetter) *
+      (1 - Math.min(u, 1)),
+  );
   const ges =
     abs(int(p.leute / 42.55 + (vkorn - kaus) / 150)) +
     rand(5, rng) * (10 - state.wetter);
 
   let einw = int((kaus - vkorn) / 1300);
-  einw = (einw + rand(10, rng)) * (einw > 0 ? 1 : 0);
+  einw = int(
+    (einw + rand(10, rng)) * (einw > 0 ? 1 : 0) * Math.max(0, 1 - 2 * u),
+  );
   // Source adds points twice (KAISER3:11911 and 11941); kept, with EINW
   // computed before the first addition (source used last year's value).
   p.punkte += int(geb / 10 - ges / 10 + einw / 5);
 
-  p.leute += geb - ges;
+  // The realm can be emptied, never below zero (deaths have a flat floor).
+  p.leute = Math.max(0, p.leute + geb - ges);
 
-  // Source tests the scalar JUSTIZ (always 0) instead of JUSTIZ(SP); fixed.
-  const ausw =
-    p.mwst + p.ein + p.zoll > 60 || p.justiz === 4
-      ? int((rand(10, rng) * p.leute) / 100)
-      : 0;
+  const ausw = emigrants(state, p, u, rng);
 
   const maxKorn = Math.min(p.muhl, kaus / 1000);
   const mg1 = int((maxKorn * (280 + rand(50, rng)) * state.wetter) / 5);
   const maxMarkt = Math.min(p.markt, kaus / 333);
   const mg2 = int((maxMarkt * (100 + rand(50, rng)) * state.wetter) / 5);
-  p.leute += einw - ausw;
+  p.leute = Math.max(0, p.leute + einw - ausw);
 
   const sold = p.infant * (p.kavall + 1) + 60 + p.artell * 80 * (p.manov + 1);
 
@@ -211,6 +242,29 @@ export interface TradeResult {
   gew: number;
 }
 
+/** KAISERB:1150-1230: the Atari tribute before the wealth surcharge. */
+function atariTribute(p: PlayerState, rng: Rng): number {
+  return (
+    p.hh * 50 +
+    p.leute * 1.2 +
+    p.markt * 10 +
+    p.muhl * 15 +
+    p.burg * 80 +
+    p.dom * 110 +
+    rand(100, rng) +
+    p.titel * 150
+  );
+}
+
+/** KAISERB:1150-1210: profit of the effective houses (staffing cliff, `RAND(JAHR)` noise). */
+function atariHouseProfit(state: GameState, p: PlayerState, rng: Rng): number {
+  if (p.hh <= 0) return 0;
+  let ah = -int(p.hh - p.bd / 5);
+  if (ah > p.hh) ah = p.hh;
+  const active = ah > 0 ? 1 : 0;
+  return int(ah * (200 + rand(state.jahr, rng) + p.punkte * 5) * active) + 0;
+}
+
 /** KAISERB #HANDEL: yearly trading-house profit and tribute demand. */
 export function tradeHouse(
   state: GameState,
@@ -221,28 +275,19 @@ export function tradeHouse(
   const kaiser = playerAt(state, 0);
   if (state.jahr === 1700) kaiser.hh = rand(10, rng) + 10;
 
-  let zahl =
-    p.hh * 50 +
-    p.leute * 1.2 +
-    p.markt * 10 +
-    p.muhl * 15 +
-    p.burg * 80 +
-    p.dom * 110 +
-    rand(100, rng) +
-    p.titel * 150;
-  zahl = int(zahl);
+  const remake = state.rules === "remake";
+  const atariDue = remake ? 0 : int(atariTribute(p, rng));
 
-  let ah = -int(p.hh - p.bd / 5);
-  if (ah > p.hh) ah = p.hh;
-  const active = ah > 0 ? 1 : 0;
   const gew =
-    p.hh > 0
-      ? int(ah * (200 + rand(state.jahr, rng) + p.punkte * 5) * active) + 0
-      : 0;
+    state.rules === "remake"
+      ? houseProfit(state, p)
+      : atariHouseProfit(state, p, rng);
 
   p.geld = p.geld - p.bd * 50;
   p.geld = p.geld + gew;
-  zahl = zahl + int((p.geld * 14) / 100);
+  let zahl = remake
+    ? remakeTribute(p, gew)
+    : atariDue + int((p.geld * 14) / 100);
   if (zahl > p.geld) zahl = int(zahl - (zahl - p.geld) * 1.123);
   // The Emperor always asks for at least this much, however small the realm.
   zahl = Math.max(MIN_TRIBUTE, zahl);
@@ -252,13 +297,18 @@ export function tradeHouse(
   return { zahl, gew };
 }
 
-/** KAISER4 EINNAHM: state income from trade volume and taxes. */
+/** KAISER4 EINNAHM: state income (Atari: trade volume x rates; Remake: rules-remake.md §1.2). */
 export function stateIncome(
   state: GameState,
   sp: number,
   rng: Rng = defaultRng,
 ): number {
   const p = playerAt(state, sp);
+  if (state.rules === "remake") {
+    const { total } = taxBreakdown(state, p);
+    p.geld = int(p.geld + total);
+    return total;
+  }
   const ra = rand(100, rng) * p.justiz;
   const se = int(
     ((state.mg1 + state.mg2) / 100) * (p.zoll + p.ein + p.mwst) + ra,
@@ -278,6 +328,13 @@ export function titleAdvance(state: GameState, sp: number): boolean {
     if (p.titel === WIN_TITLE) p.titel = 7;
   }
   return false;
+}
+
+/** True once per rank: the first time a ruler reaches a title they never held before. */
+export function claimTitle(p: PlayerState): boolean {
+  if (p.titel <= (p.bestTitel ?? 0)) return false;
+  p.bestTitel = p.titel;
+  return true;
 }
 
 /** KAISER6 WERT: final score. */

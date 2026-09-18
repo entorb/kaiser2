@@ -1,15 +1,21 @@
 import { playCoins } from "../audio/music";
-import { toPartner } from "../flow";
+import { toCoronation, toPartner } from "../flow";
 import { t } from "../i18n/i18n";
+import { playComputerTurn } from "../model/ai";
+import type { BuildingKind } from "../model/constants";
 import { expropriate, taxDemotion } from "../model/events";
+import {
+  canLeaseHouse,
+  crewNeeded,
+  leaseHouse,
+  leasePrice,
+  STAFF_PER_HOUSE,
+  tributePoints,
+  tributeVerdict,
+} from "../model/houses";
 import { tradeHouse } from "../model/rules";
 import { getState } from "../model/session";
-import {
-  type GameState,
-  type PlayerState,
-  playerAt,
-  rand,
-} from "../model/types";
+import { type GameState, type PlayerState, playerAt } from "../model/types";
 import { alert, sliderPrompt } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
 import { drawCoinsIcon } from "../ui/icon";
@@ -25,7 +31,22 @@ import {
   type StatRowOptions,
 } from "../ui/widgets";
 import { GameScene } from "./base";
-import { continueAction, screenTitle, statusBar } from "./common";
+import {
+  BUILDING_LABEL,
+  closeTurn,
+  continueAction,
+  screenTitle,
+  statusBar,
+  titleName,
+} from "./common";
+
+/** The alert must fit the 576 px screen: 190 px of frame plus 30 px a line. */
+const MAX_NOTICES = 10;
+const GOOD_LABEL = {
+  grain: "grain.title",
+  acker: "land.acre",
+  land: "land.building",
+} as const;
 
 export class TradingHouse extends GameScene {
   constructor() {
@@ -35,8 +56,13 @@ export class TradingHouse extends GameScene {
   async create() {
     const state = getState(this);
     const p = playerAt(state, state.sp);
+    if (p.ai) {
+      await this.computerTurn(state, p);
+      return;
+    }
+    await this.showNotices(p);
     // KAISERB:53 - a tax burden over 80% demotes and suspends at turn start.
-    if (taxDemotion(p)) {
+    if (taxDemotion(p, state.rules)) {
       await alert(this, t("business.demoted"), [t("business.demotedText")]);
     }
     // Trading houses are only available from Landgraf up (KAISERB:54).
@@ -53,23 +79,23 @@ export class TradingHouse extends GameScene {
     // it has no menu entry (and can only be paid once per turn).
     await this.payTribute(state, zahl);
 
+    // Like every screen the focus starts on the next button; after buying a
+    // house it moves to the servants.
+    let focusServants = false;
     while (!done) {
-      const choice = await this.chooseAction(state, zahl, gew, leased);
+      const choice = await this.chooseAction(state, gew, leased, focusServants);
+      focusServants = false;
 
-      if (choice === 0) {
+      if (choice === "servants") {
         // One combined slider like grain/land: left = dismiss, right = hire.
-        const v = await this.servantPrompt(p);
+        const v = await this.servantPrompt(p, crewNeeded(p, state.rules));
         state.turn.neu = Math.max(0, v);
         state.turn.alt = Math.max(0, -v);
-      } else if (choice === 1) {
-        const kaiser = playerAt(state, 0);
-        if (p.geld > 2500 && kaiser.hh > 0) {
+      } else if (choice === "lease") {
+        if (leaseHouse(state, state.sp)) {
           playCoins();
-          p.hh += 1;
-          kaiser.hh -= 1;
-          p.geld -= 5000;
-          p.punkte += 1.3;
           leased = true;
+          focusServants = true;
         }
       } else {
         done = true;
@@ -77,27 +103,73 @@ export class TradingHouse extends GameScene {
     }
 
     p.bd += state.turn.neu - state.turn.alt;
-    if (state.turn.abg - 1000 + rand(2000) > zahl) {
-      p.punkte += Math.trunc(state.turn.abg / 2000);
-    } else {
-      p.punkte -= 1;
-    }
+    p.punkte += tributePoints(state, state.turn.abg, zahl);
     // KAISERB:620 EXEC ENT - the Emperor may confiscate a house.
     if (expropriate(state, state.sp)) {
       await alert(this, t("trade.expropriation"), [
-        t("trade.expropriationText"),
+        t(
+          state.rules === "remake"
+            ? "trade.expropriationTextRemake"
+            : "trade.expropriationText",
+        ),
       ]);
     }
     toPartner(this.scene);
   }
 
+  /** Remake: what other rulers traded with this one since their last turn. */
+  private async showNotices(p: PlayerState): Promise<void> {
+    const notices = p.notices ?? [];
+    delete p.notices;
+    if (notices.length === 0) return;
+    const lines = notices.slice(0, MAX_NOTICES).map((n) =>
+      t(n.sold ? "trade.noticeSold" : "trade.noticeBought", {
+        who: n.who,
+        units: Math.trunc(n.units),
+        good: t(GOOD_LABEL[n.good]),
+        money: Math.trunc(n.money),
+      }),
+    );
+    if (notices.length > MAX_NOTICES)
+      lines.push(t("trade.noticeMore", { n: notices.length - MAX_NOTICES }));
+    await alert(this, t("trade.noticeTitle"), lines);
+  }
+
+  /** A computer ruler plays the whole turn; the humans get a short report. */
+  private async computerTurn(state: GameState, p: PlayerState): Promise<void> {
+    const report = playComputerTurn(state, state.sp);
+    const group = new FocusGroup(this);
+    statusBar(this, state, group);
+    const name = { name: p.name };
+    const lines = [
+      t("ai.summary", {
+        pop: Math.trunc(p.leute),
+        geld: Math.trunc(p.geld),
+        rank: titleName(p.titel),
+      }),
+    ];
+    const built = (Object.keys(report.built) as BuildingKind[])
+      .filter((kind) => report.built[kind] > 0)
+      .map((kind) => `${report.built[kind]}× ${t(BUILDING_LABEL[kind])}`);
+    if (built.length > 0) lines.push(t("ai.built", { list: built.join(", ") }));
+    if (report.leased > 0) lines.push(t("ai.leased"));
+    for (const event of report.events) lines.push(t(`ai.${event}`, name));
+    await alert(this, `${p.name} (${t(`level.${p.ai ?? "medium"}`)})`, lines);
+    group.destroy();
+    if (report.won) {
+      toCoronation(this.scene, name);
+      return;
+    }
+    closeTurn(this, state, p, report.promoted);
+  }
+
   /** One menu pass: redraw the stats, let the player pick, return the choice. */
   private async chooseAction(
     state: GameState,
-    zahl: number,
     gew: number,
     leased: boolean,
-  ): Promise<number> {
+    focusServants: boolean,
+  ): Promise<"lease" | "servants" | "done"> {
     const p = playerAt(state, state.sp);
     this.clearScreen();
     const group = new FocusGroup(this);
@@ -105,9 +177,7 @@ export class TradingHouse extends GameScene {
     statusBar(this, state, group);
     screenTitle(this, t("trade.title"), content.y);
 
-    // Servants needed for the houses to turn a profit: `INT(HH - BD/5) < 0`
-    // is the source's profitability test (KAISERB:1170), i.e. BD > HH*5.
-    const needed = p.hh > 0 ? 5 * p.hh + 1 : 0;
+    const needed = crewNeeded(p, state.rules);
     const staffNow = p.bd + state.turn.neu - state.turn.alt;
     const understaffed = needed > 0 && staffNow < needed;
     // Annual wage bill: 50 taler per servant (KAISERB:1190).
@@ -123,17 +193,14 @@ export class TradingHouse extends GameScene {
     );
     const money: StatRowOptions = { icon: drawCoinsIcon };
     const rows: [string, string, StatRowOptions?][] = [
-      [t("trade.wages"), `${wages}`, money],
-      [t("trade.fortune"), `${Math.trunc(p.geld)}`, money],
-      [t("trade.profit"), `${gew}`, money],
-      [t("trade.demands"), `${zahl}`, { ...money, valueColor: COLORS.danger }],
-      [t("trade.give"), `${state.turn.abg}`, money],
       [t("trade.houses"), `${p.hh}`],
       [
         t("trade.servants"),
         `${staffNow}`,
         understaffed ? { valueColor: COLORS.danger } : undefined,
       ],
+      [t("trade.wages"), `${wages}`, money],
+      [t("trade.profit"), `${gew}`, money],
     ];
     rows.forEach(([labelText, value, opts], i) => {
       panel.add(
@@ -149,12 +216,27 @@ export class TradingHouse extends GameScene {
       );
     });
 
-    // Only buy when the 5000 taler price is covered (grey otherwise).
-    const canLease = p.geld >= 5000 && playerAt(state, 0).hh > 0;
-    const options: ListItem[] = [
-      { label: t("trade.servants"), value: `${staffNow}` },
-    ];
-    if (!leased) options.push({ label: t("trade.rent"), disabled: !canLease });
+    // Buying comes first, and only while the price is covered (grey otherwise).
+    // Servants are greyed while the houses are fully staffed (or none exist).
+    const price = leasePrice(p, state.rules);
+    const staffed = staffNow === needed;
+    const entries: { id: "lease" | "servants"; item: ListItem }[] = [];
+    if (!leased)
+      entries.push({
+        id: "lease",
+        item: {
+          label: t("trade.rent", { price }),
+          disabled: !canLeaseHouse(state, state.sp),
+        },
+      });
+    entries.push({
+      id: "servants",
+      item: {
+        label: t("trade.servants"),
+        value: `${staffNow}`,
+        disabled: staffed,
+      },
+    });
 
     // Footer: what the highlighted action does.
     const footer = label(this, action.x + 140, action.y + action.h / 2, "", {
@@ -162,29 +244,48 @@ export class TradingHouse extends GameScene {
     });
     footer.setOrigin(0, 0.5);
     const describe = (index: number): string => {
-      if (index === 0)
-        return needed > 0
-          ? t("trade.staffHint", { need: needed })
-          : t("trade.staffNoHouse");
-      if (index === 1) return t("trade.rentHint");
+      const id = entries[index]?.id;
+      if (id === "servants") return this.staffHint(state, p, needed, staffNow);
+      if (id === "lease") return t("trade.rentHint", { price });
       return "";
     };
     footer.setText(describe(0));
 
-    const choice = await this.choose(group, options, content, (i) =>
-      footer.setText(describe(i)),
+    const choice = await this.choose(
+      group,
+      entries.map((e) => e.item),
+      content,
+      (i) => footer.setText(describe(i)),
+      focusServants && !staffed,
     );
     group.destroy();
-    return choice;
+    return entries[choice]?.id ?? "done";
+  }
+
+  /** Footer text for the servants entry. */
+  private staffHint(
+    state: GameState,
+    p: PlayerState,
+    needed: number,
+    staffNow: number,
+  ): string {
+    if (needed === 0) return t("trade.staffNoHouse");
+    if (state.rules !== "remake") return t("trade.staffHint", { need: needed });
+    const staffed = Math.min(p.hh, staffNow / STAFF_PER_HOUSE);
+    return t("trade.staffHintRemake", {
+      per: STAFF_PER_HOUSE,
+      staffed: staffed.toFixed(1),
+      hh: p.hh,
+    });
   }
 
   /** Hire/fire slider: positive hires, negative fires. Returns the delta. */
-  private servantPrompt(p: PlayerState): Promise<number> {
-    const needed = p.hh > 0 ? 5 * p.hh + 1 : 0;
+  private servantPrompt(p: PlayerState, needed: number): Promise<number> {
     return sliderPrompt(this, {
       title: t("trade.servants"),
       min: -Math.trunc(p.bd),
-      max: 99,
+      // Hire at most what the houses still need.
+      max: Math.max(0, needed - p.bd),
       step: 1,
       initial: 0,
       minLabel: t("trade.fire"),
@@ -199,7 +300,9 @@ export class TradingHouse extends GameScene {
   /** Tribute popup. Red marker on the demanded sum; 0 (refusal) allowed. */
   private async payTribute(state: GameState, zahl: number): Promise<void> {
     const p = playerAt(state, state.sp);
-    const budget = Math.max(0, Math.trunc(p.geld));
+    // Remake: more than the demand earns nothing, so the slider stops there.
+    const cash = Math.max(0, Math.trunc(p.geld));
+    const budget = state.rules === "remake" ? Math.min(cash, zahl) : cash;
     const n = await sliderPrompt(this, {
       title: t("trade.tributeTitle", { zahl }),
       min: 0,
@@ -213,7 +316,9 @@ export class TradingHouse extends GameScene {
       valueIcon: drawCoinsIcon,
       cost: (v) => (v === 0 ? "" : moneyLabel(-v)),
       costColor: (v) => (v >= zahl ? COLORS.success : COLORS.danger),
-      markers: [{ value: zahl, color: COLORS.danger }],
+      ...(state.rules === "remake"
+        ? this.verdictOptions(zahl)
+        : { markers: [{ value: zahl, color: COLORS.danger }] }),
     });
     if (n > 0) {
       playCoins();
@@ -222,11 +327,42 @@ export class TradingHouse extends GameScene {
     }
   }
 
+  /** Remake tribute slider: guide lines where the verdict changes, and the verdict live. */
+  private verdictOptions(zahl: number) {
+    const color = {
+      pleased: COLORS.success,
+      tolerated: COLORS.muted,
+      displeased: COLORS.accent,
+      insulted: COLORS.danger,
+    };
+    const words = {
+      pleased: t("trade.verdictPleased"),
+      tolerated: t("trade.verdictTolerated"),
+      displeased: t("trade.verdictDispleased"),
+      insulted: t("trade.verdictInsulted"),
+    };
+    return {
+      markers: [
+        { value: zahl * 0.2, color: COLORS.danger },
+        { value: zahl * 0.5, color: COLORS.accent },
+        { value: zahl, color: COLORS.success },
+      ],
+      info: (v: number) => {
+        const { verdict, points } = tributeVerdict(v, zahl);
+        return points === 0
+          ? words[verdict]
+          : `${words[verdict]} (${points > 0 ? "+" : ""}${points})`;
+      },
+      infoColor: (v: number) => color[tributeVerdict(v, zahl).verdict],
+    };
+  }
+
   private choose(
     group: FocusGroup,
     options: ListItem[],
     content: { x: number; y: number; w: number },
     onChange: (index: number) => void,
+    focusMenu: boolean,
   ): Promise<number> {
     const menuW = 420;
     const x = content.x + content.w - menuW;
@@ -239,7 +375,8 @@ export class TradingHouse extends GameScene {
       });
       menu.bind(group);
       // The common next button lives in the shared bottom action bar.
-      continueAction(this, group, () => resolve(-1));
+      const next = continueAction(this, group, () => resolve(-1));
+      group.focus(focusMenu ? menu : next);
     });
   }
 }

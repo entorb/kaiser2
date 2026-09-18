@@ -5,12 +5,20 @@ import { t } from "../i18n/i18n";
 import type { StringKey } from "../i18n/strings";
 import { giveGrain, grainBounds, harvest } from "../model/rules";
 import { getState } from "../model/session";
+import {
+  buyCost,
+  dealPrice,
+  maxSale,
+  sellProceeds,
+  tradeGrain,
+} from "../model/trade";
 import type { GameState } from "../model/types";
 import { playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
-import { drawGrainIcon, drawWeatherIcon } from "../ui/icon";
+import { drawCoinsIcon, drawGrainIcon, drawWeatherIcon } from "../ui/icon";
 import { frame } from "../ui/layout";
-import { COLORS, RADIUS, SPACE } from "../ui/theme";
+import { label } from "../ui/text";
+import { COLORS, FS, RADIUS, SPACE } from "../ui/theme";
 import {
   moneyLabel,
   Panel,
@@ -54,11 +62,20 @@ export class Grain extends GameScene {
 
     // Required stock includes the 20% the ruler keeps (max give is 80%).
     const required = Math.trunc(state.turn.klager);
-    const maxSell = Math.trunc(p.lkorn);
+    const maxSell = Math.trunc(
+      maxSale(state, state.sp, state.turn.han, "grain"),
+    );
     const maxBuy = Math.trunc(seller.verkorn);
     const step = 500;
+    // Buying more raises the price, selling more lowers it (rules-remake.md §3.7).
     const total = (v: number) =>
-      Math.trunc((Math.abs(v) * seller.kpreis) / 500);
+      Math.trunc(
+        v > 0
+          ? buyCost(state, state.turn.han, "grain", v)
+          : sellProceeds(state, state.turn.han, "grain", -v),
+      );
+    const priceOf = (v: number) =>
+      `${dealPrice(state, state.turn.han, "grain", v)}`;
     // Distribution bounds for the stock that results from a given trade.
     const boundsFor = (traded: number) =>
       grainBounds({ ...p, lkorn: p.lkorn + traded });
@@ -83,7 +100,6 @@ export class Grain extends GameScene {
       ],
       [t("grain.reserve"), `${Math.trunc(p.lkorn)}`, grain],
       [t("grain.need"), `${required}`, grain],
-      [t("grain.price"), `${seller.kpreis}`, grain],
     ];
     rows.forEach(([labelText, value, opts], i) => {
       panel.add(
@@ -134,7 +150,19 @@ export class Grain extends GameScene {
         // Red while giving the people less than they need.
         valueColor: (v) =>
           v < neededFor(tradeAmount) ? COLORS.danger : COLORS.success,
+        // What the people need; the slider starts there.
+        markers: [{ value: vkorn, color: COLORS.danger }],
         onSubmit: finish,
+      });
+
+      // The price per unit under the trade slider's left end, like on `Land`;
+      // it follows the deal because a big deal moves the price.
+      const priceY = content.y + 70 + 62;
+      const coin = this.add.graphics();
+      drawCoinsIcon(coin, sliderX + 34, priceY + 11, 16);
+      const priceText = label(this, sliderX + 48, priceY, priceOf(0), {
+        mono: true,
+        size: FS.heading,
       });
 
       // Trade needed to bring the stock up to the required amount.
@@ -160,6 +188,7 @@ export class Grain extends GameScene {
           v > 0 && total(v) > p.geld ? COLORS.danger : COLORS.accent,
         onChange: (v) => {
           tradeAmount = v;
+          priceText.setText(priceOf(v));
           const b = boundsFor(v);
           dist.setRange(b.p20, b.p80, distStep(v));
           dist.setEndLabels(`${b.p20}`, `${b.p80}`);
@@ -262,28 +291,7 @@ export class Grain extends GameScene {
   }
 
   private applyTrade(state: GameState, amount: number): void {
-    const p = playerAt(state, state.sp);
-    const seller = playerAt(state, state.turn.han);
-    const price = seller.kpreis;
-    if (amount > 0) {
-      const a = Math.min(amount, seller.verkorn);
-      if (a <= 0) return;
-      playCoins();
-      p.lkorn += a;
-      if (a > 50000) p.punkte += 1;
-      seller.lkorn -= a;
-      seller.geld += (a * price) / 500;
-      seller.verkorn -= a;
-      p.geld -= (a * price) / 500;
-    } else if (amount < 0) {
-      const a = Math.min(-amount, p.lkorn);
-      p.lkorn -= a;
-      p.geld += (a * price) / 500;
-      // Source jumped away before crediting the partner (KAISER3:10585-10587
-      // was dead code). The intended partner update is applied here.
-      seller.verkorn += a;
-      seller.lkorn += a;
-      seller.geld -= (a * price) / 500;
-    }
+    const traded = tradeGrain(state, state.sp, state.turn.han, amount);
+    if (traded > 0 && amount > 0) playCoins();
   }
 }
