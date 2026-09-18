@@ -5,22 +5,35 @@ import { cities } from "../model/rules";
 import { getState } from "../model/session";
 import type { PlayerState } from "../model/types";
 import { FocusGroup } from "../ui/focus";
+import {
+  drawAcreIcon,
+  drawBuildingIcon,
+  drawCityIcon,
+  drawCoinsIcon,
+  drawCrowdIcon,
+  drawEventIcon,
+  drawPointsIcon,
+  type IconDraw,
+} from "../ui/icon";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
 import { COLORS, FS, RADIUS, SPACE } from "../ui/theme";
 import { Panel } from "../ui/widgets";
 import { GameScene } from "./base";
 import {
+  continueAction,
   gameMenuButton,
-  primaryAction,
   screenTitle,
   titleName,
 } from "./common";
 
 interface Column {
-  label: string;
+  /** Header pictogram, centered over the right-aligned values. */
+  icon: IconDraw;
   value: (p: PlayerState) => string;
 }
+
+const HEAD_ICON = 22;
 
 /** Ranking of the human rulers with their key possessions (replaces the map). */
 export class Ranking extends GameScene {
@@ -50,29 +63,20 @@ export class Ranking extends GameScene {
 
     // 7 data fields; land shown raw (not divided by 1000).
     const columns: Column[] = [
+      { icon: drawPointsIcon, value: (p) => `${Math.trunc(p.punkte)}` },
+      { icon: drawCoinsIcon, value: (p) => `${Math.trunc(p.geld)}` },
+      { icon: drawCrowdIcon, value: (p) => `${Math.trunc(p.leute)}` },
+      { icon: drawAcreIcon, value: (p) => `${Math.trunc(p.acker)}` },
+      { icon: drawBuildingIcon, value: (p) => `${Math.trunc(p.land)}` },
       {
-        label: t("ranking.points"),
-        value: (p) => `${Math.trunc(p.punkte)}`,
+        icon: (g, x, y, s) => drawEventIcon(g, x, y, s, "market"),
+        value: (p) => `${p.markt}`,
       },
       {
-        label: t("ranking.fortune"),
-        value: (p) => `${Math.trunc(p.geld)}`,
+        icon: (g, x, y, s) => drawEventIcon(g, x, y, s, "mill"),
+        value: (p) => `${p.muhl}`,
       },
-      {
-        label: t("ranking.population"),
-        value: (p) => `${Math.trunc(p.leute)}`,
-      },
-      {
-        label: t("ranking.acre"),
-        value: (p) => `${Math.trunc(p.acker)}`,
-      },
-      {
-        label: t("ranking.building"),
-        value: (p) => `${Math.trunc(p.land)}`,
-      },
-      { label: t("ranking.markets"), value: (p) => `${p.markt}` },
-      { label: t("ranking.mills"), value: (p) => `${p.muhl}` },
-      { label: t("ranking.cities"), value: (p) => `${cities(p)}` },
+      { icon: drawCityIcon, value: (p) => `${cities(p)}` },
     ];
 
     const rankW = 70;
@@ -112,16 +116,11 @@ export class Ranking extends GameScene {
         weight: "bold",
       }),
     );
+    const icons = this.add.graphics();
     columns.forEach((col, i) => {
-      const l = label(this, colX(i) + colW, headY, col.label, {
-        color: COLORS.muted,
-        size: FS.small,
-        weight: "bold",
-        origin: 1,
-      });
-      l.setOrigin(1, 0);
-      panel.add(l);
+      col.icon(icons, colX(i) + colW - HEAD_ICON / 2, headY + 11, HEAD_ICON);
     });
+    panel.add(icons);
 
     const sep = this.add.graphics();
     sep.lineStyle(1, COLORS.border, 1);
@@ -152,9 +151,7 @@ export class Ranking extends GameScene {
       });
     });
 
-    await new Promise<void>((resolve) =>
-      primaryAction(this, group, t("ui.continue"), resolve),
-    );
+    await new Promise<void>((resolve) => continueAction(this, group, resolve));
     group.destroy();
 
     nextTurn(this.scene);

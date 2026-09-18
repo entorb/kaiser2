@@ -31,6 +31,10 @@ export const COLORS = {
   woodDark: 0x2f1f0f,
   /** Text drawn directly on the dark wood backdrop (not on a panel). */
   onWood: 0xe6d6ae,
+  /** Plowed land on the Land map, legend and Ranking icon. */
+  acre: 0xd8b13a,
+  /** Building land (stone) on the Land map, legend and Ranking icon. */
+  building: 0x8d8d8d,
 } as const;
 
 /** Slight bevel, not a modern pill. */

@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import { GameObjects, Geom, type Scene } from "phaser";
 import type { Focusable, FocusGroup } from "./focus";
-import { drawTradeIcon } from "./icon";
+import { drawCoinsIcon, drawTradeIcon, type IconDraw } from "./icon";
 import { panelFrame, panelTitle } from "./ornament";
 import { label } from "./text";
 import { COLORS, css, FS, RADIUS, SPACE } from "./theme";
@@ -125,11 +125,17 @@ export interface ButtonOptions {
    * the Fullscreen API).
    */
   activateOn?: "down" | "up";
+  /** Decoration drawn to the left of the centered label; the label stays. */
+  icon?: IconDraw;
 }
+
+const BUTTON_ICON = 20;
+const BUTTON_ICON_GAP = 8;
 
 export class Button extends Widget {
   private readonly bg: GameObjects.Graphics;
   private readonly text: GameObjects.Text;
+  private readonly iconG?: GameObjects.Graphics;
 
   constructor(
     scene: Scene,
@@ -150,6 +156,11 @@ export class Button extends Widget {
     });
     this.text.setOrigin(0.5);
     this.add(this.text);
+    if (opts.icon) {
+      this.iconG = scene.add.graphics();
+      this.add(this.iconG);
+      this.layoutIcon(opts.icon);
+    }
     this.enablePointer(bw, bh);
     this.on("pointerdown", () => {
       if (this.disabled) return;
@@ -169,7 +180,22 @@ export class Button extends Widget {
 
   setText(text: string): this {
     this.text.setText(text);
+    if (this.opts.icon) this.layoutIcon(this.opts.icon);
     return this;
+  }
+
+  /** Center icon + gap + label as one block. */
+  private layoutIcon(draw: IconDraw): void {
+    if (!this.iconG) return;
+    const size = this.text.text
+      ? BUTTON_ICON
+      : Math.min(this.bh - 16, BUTTON_ICON * 2);
+    const gap = this.text.text ? BUTTON_ICON_GAP : 0;
+    const block = size + gap + this.text.width;
+    const left = (this.bw - block) / 2;
+    this.text.setX(left + size + gap + this.text.width / 2);
+    this.iconG.clear();
+    draw(this.iconG, left + size / 2, this.bh / 2, size);
   }
 
   handleKey(event: KeyboardEvent): boolean {
@@ -222,20 +248,44 @@ export class Button extends Widget {
       g.strokeRoundedRect(0.5, 0.5, this.bw - 1, this.bh - 1, RADIUS + 1);
     }
     this.text.setColor(css(textColor));
+    this.iconG?.setAlpha(this.disabled ? 0.45 : 1);
   }
+}
+
+/** One table cell of a list row: text, optionally led by a unit icon. */
+export interface ListCell {
+  text: string;
+  icon?: IconDraw;
+  /** Secondary figure: muted unless the row is highlighted. */
+  muted?: boolean;
 }
 
 export interface ListItem {
   label: string;
   value?: string;
+  /** Count shown before the icon, right-aligned in a shared lead column. */
+  lead?: string;
+  /** Unit icon drawn before `value`, e.g. `drawCoinsIcon` for a price. */
+  valueIcon?: IconDraw;
+  /** Table columns: centered on `ListMenuOptions.cellX`. */
+  cells?: ListCell[];
+  /** Pictogram drawn before the label, e.g. the building kind. */
+  icon?: IconDraw;
   disabled?: boolean;
   /** Optional accent color (e.g. the owning player's color). */
   color?: number;
 }
 
+const LIST_ICON = 20;
+const LIST_ICON_GAP = 10;
+const LIST_LEAD = 64;
+const LIST_VALUE_ICON = 18;
+
 export interface ListMenuOptions {
   rowH?: number;
   gap?: number;
+  /** Center of each `ListItem.cells` column, in row coordinates. */
+  cellX?: number[];
   onSelect?: (index: number) => void;
   /** Fired when the highlighted row changes (keyboard or pointer). */
   onChange?: (index: number) => void;
@@ -247,8 +297,20 @@ export class ListMenu extends Widget {
     bg: GameObjects.Graphics;
     label: GameObjects.Text;
     value?: GameObjects.Text;
+    lead?: GameObjects.Text;
+    /** Center x of the unit icon before the value. */
+    valueIconX?: number;
+    valueIcon?: GameObjects.Graphics;
+    cells: {
+      text: GameObjects.Text;
+      icon?: GameObjects.Graphics;
+      iconX?: number;
+      muted: boolean;
+    }[];
+    icon?: GameObjects.Graphics;
     item: ListItem;
   }[] = [];
+  private readonly leadW: number;
   private selected = 0;
   private hoverIndex = -1;
 
@@ -263,16 +325,35 @@ export class ListMenu extends Widget {
     super(scene, x, y);
     const rowH = opts.rowH ?? 40;
     const gap = opts.gap ?? 6;
+    this.leadW = items.some((item) => item.lead !== undefined) ? LIST_LEAD : 0;
+    const iconX = SPACE.lg + this.leadW;
     items.forEach((item, i) => {
       const rowY = i * (rowH + gap);
       const bg = scene.add.graphics();
       this.add(bg);
-      const lab = label(scene, SPACE.lg, rowY + rowH / 2, item.label, {
+      const labelX = iconX + (item.icon ? LIST_ICON + LIST_ICON_GAP : 0);
+      const lab = label(scene, labelX, rowY + rowH / 2, item.label, {
         origin: 0.5,
       });
       lab.setOrigin(0, 0.5);
       this.add(lab);
+      let lead: GameObjects.Text | undefined;
+      if (item.lead !== undefined) {
+        lead = label(scene, iconX - 14, rowY + rowH / 2, item.lead, {
+          mono: true,
+        });
+        lead.setOrigin(1, 0.5);
+        this.add(lead);
+      }
+      let icon: GameObjects.Graphics | undefined;
+      if (item.icon) {
+        icon = scene.add.graphics();
+        item.icon(icon, iconX + LIST_ICON / 2, rowY + rowH / 2, LIST_ICON);
+        this.add(icon);
+      }
       let val: GameObjects.Text | undefined;
+      let valueIcon: GameObjects.Graphics | undefined;
+      let valueIconX: number | undefined;
       if (item.value !== undefined) {
         val = label(scene, bw - SPACE.lg, rowY + rowH / 2, item.value, {
           mono: true,
@@ -280,8 +361,49 @@ export class ListMenu extends Widget {
         });
         val.setOrigin(1, 0.5);
         this.add(val);
+        if (item.valueIcon) {
+          valueIconX = bw - SPACE.lg - val.width - 8 - LIST_VALUE_ICON / 2;
+          valueIcon = scene.add.graphics();
+          item.valueIcon(
+            valueIcon,
+            valueIconX,
+            rowY + rowH / 2,
+            LIST_VALUE_ICON,
+          );
+          this.add(valueIcon);
+        }
       }
-      this.rows.push({ bg, label: lab, value: val, item });
+      const cells = (item.cells ?? []).map((cell, c) => {
+        const cx = opts.cellX?.[c] ?? bw / 2;
+        const cy = rowY + rowH / 2;
+        const text = label(scene, cx, cy, cell.text, { mono: true });
+        this.add(text);
+        if (!cell.icon) {
+          text.setOrigin(0.5);
+          return { text, muted: cell.muted === true };
+        }
+        // Icon and figure are centered on the column as one block.
+        const block = LIST_VALUE_ICON + 6 + text.width;
+        const left = cx - block / 2;
+        const iconX = left + LIST_VALUE_ICON / 2;
+        text.setOrigin(0, 0.5);
+        text.setX(left + LIST_VALUE_ICON + 6);
+        const icon = scene.add.graphics();
+        cell.icon(icon, iconX, cy, LIST_VALUE_ICON);
+        this.add(icon);
+        return { text, icon, iconX, muted: cell.muted === true };
+      });
+      this.rows.push({
+        bg,
+        label: lab,
+        value: val,
+        lead,
+        valueIcon,
+        valueIconX,
+        cells,
+        icon,
+        item,
+      });
       this.addRowZone(rowY, rowH, i);
     });
     this.redraw();
@@ -388,6 +510,28 @@ export class ListMenu extends Widget {
         rowH - inset * 2,
         RADIUS,
       );
+      if (highlight) {
+        // Gold pictograms vanish on the gold highlight: seat them on parchment.
+        const chips: [number, number][] = [];
+        if (row.item.icon)
+          chips.push([SPACE.lg + this.leadW + LIST_ICON / 2, LIST_ICON]);
+        if (row.valueIconX !== undefined)
+          chips.push([row.valueIconX, LIST_VALUE_ICON]);
+        for (const cell of row.cells)
+          if (cell.iconX !== undefined)
+            chips.push([cell.iconX, LIST_VALUE_ICON]);
+        row.bg.fillStyle(COLORS.surface, 1);
+        for (const [cx, size] of chips) {
+          const chip = size + 6;
+          row.bg.fillRoundedRect(
+            cx - chip / 2,
+            y + (rowH - chip) / 2,
+            chip,
+            chip,
+            RADIUS,
+          );
+        }
+      }
       if (row.item.color !== undefined && !disabled) {
         row.bg.fillStyle(row.item.color, 1);
         row.bg.fillRoundedRect(0, y + 6, 5, rowH - 12, 2.5);
@@ -398,19 +542,35 @@ export class ListMenu extends Widget {
         : (row.item.color ?? COLORS.text);
       const textColor = disabled ? COLORS.muted : active;
       row.label.setColor(css(textColor));
+      row.icon?.setAlpha(disabled ? 0.45 : 1);
+      row.valueIcon?.setAlpha(disabled ? 0.45 : 1);
+      row.lead?.setColor(
+        css(!disabled && highlight ? COLORS.accentText : COLORS.muted),
+      );
       row.value?.setColor(
         css(!disabled && highlight ? COLORS.accentText : COLORS.muted),
       );
+      for (const cell of row.cells) {
+        let color: number = cell.muted ? COLORS.muted : COLORS.text;
+        if (highlight) color = COLORS.accentText;
+        cell.text.setColor(css(color));
+        cell.icon?.setAlpha(disabled ? 0.45 : 1);
+      }
     });
   }
 }
 
 export interface StatRowOptions {
+  /** Unit icon drawn before the label, e.g. `drawCoinsIcon` for money rows. */
+  icon?: IconDraw;
   unit?: string;
   valueColor?: number;
   mono?: boolean;
   bold?: boolean;
 }
+
+const STAT_ICON = 18;
+const STAT_ICON_GAP = 10;
 
 /** A muted label on the left, a value (optionally monospace) on the right. */
 export class StatRow extends GameObjects.Container {
@@ -426,11 +586,17 @@ export class StatRow extends GameObjects.Container {
     super(scene, x, y);
     scene.add.existing(this);
     const weight = opts.bold ? "bold" : "normal";
-    const name = label(scene, 0, 0, labelText, {
+    const labelX = opts.icon ? STAT_ICON + STAT_ICON_GAP : 0;
+    const name = label(scene, labelX, 0, labelText, {
       color: COLORS.muted,
       weight,
     });
     this.add(name);
+    if (opts.icon) {
+      const ig = scene.add.graphics();
+      opts.icon(ig, STAT_ICON / 2, 9, STAT_ICON);
+      this.add(ig);
+    }
     const value = label(
       scene,
       w,
@@ -446,7 +612,7 @@ export class StatRow extends GameObjects.Container {
     this.add(value);
 
     // Ledger leader: dotted rule between the name and the value.
-    const startX = name.width + 10;
+    const startX = labelX + name.width + 10;
     const endX = w - value.width - 10;
     if (endX > startX) {
       const g = scene.add.graphics();
@@ -663,13 +829,13 @@ export interface SliderTick {
 /** Coin icon shown at a slider end (plus = gain, minus = give away). */
 export type SliderTradeIcon = "plus" | "minus";
 
-/** Signed money label for slider cost lines, e.g. "+123 Taler" / "-123 Taler". */
-export function moneyLabel(delta: number, taler: string): string {
+/** Signed amount for slider cost lines, e.g. "+123"; the Slider adds the taler icon. */
+export function moneyLabel(delta: number): string {
   const n = Math.trunc(Math.abs(delta));
   let sign = "";
   if (delta > 0) sign = "+";
   else if (delta < 0) sign = "-";
-  return `${sign}${n} ${taler}`;
+  return `${sign}${n}`;
 }
 
 export interface SliderOptions {
@@ -682,13 +848,15 @@ export interface SliderOptions {
   label?: string;
   /** Formats the value shown at the top. */
   format?: (value: number) => string;
+  /** Unit icon drawn just before the value at the top (e.g. a taler). */
+  valueIcon?: IconDraw;
   /** Color of the value shown at the top (e.g. below/above a target). */
   valueColor?: (value: number) => number;
   /** Live line under the track (e.g. the calculated total cost). */
   info?: (value: number) => string;
   /** Color of the live info line (e.g. red when it exceeds the budget). */
   infoColor?: (value: number) => number;
-  /** Live cost line right below the track, larger than `info` (e.g. "+123 Taler"). */
+  /** Live cost line below the track, larger than `info`, with a taler icon in front (e.g. "+123"). */
   cost?: (value: number) => string;
   /** Color of the cost line (e.g. red when it exceeds the budget). */
   costColor?: (value: number) => number;
@@ -751,12 +919,11 @@ export class Slider extends Widget {
     this.add(this.bg);
 
     if (opts.label) {
-      this.add(
-        label(scene, 0, 0, opts.label, {
-          size: FS.body,
-          color: COLORS.muted,
-        }),
-      );
+      const name = label(scene, 0, 0, opts.label, {
+        size: FS.body,
+        color: COLORS.muted,
+      });
+      this.add(name);
     }
     this.valueText = label(scene, opts.label ? bw : bw / 2, 0, "", {
       mono: true,
@@ -847,6 +1014,21 @@ export class Slider extends Widget {
 
     this.updateTexts();
     this.redraw();
+  }
+
+  /** Draw a unit icon just left of `text`, vertically centered on it. */
+  private drawBefore(
+    icon: IconDraw,
+    text: GameObjects.Text,
+    size: number,
+  ): void {
+    const left = text.x - text.width * text.originX;
+    icon(
+      this.bg,
+      left - size / 2 - 6,
+      text.y + text.height * (0.5 - text.originY),
+      size,
+    );
   }
 
   private ratio(value: number): number {
@@ -1014,6 +1196,9 @@ export class Slider extends Widget {
         14,
         this.opts.maxIcon === "plus" ? 1 : -1,
       );
+    if (this.costText?.text) this.drawBefore(drawCoinsIcon, this.costText, 14);
+    if (this.opts.valueIcon)
+      this.drawBefore(this.opts.valueIcon, this.valueText, 16);
     // Brass knob: shadow, body, ring and a highlight pip.
     const ky = this.trackY + 4;
     g.fillStyle(0x000000, 0.25);

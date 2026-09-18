@@ -1,6 +1,7 @@
 import type { GameObjects, Scene } from "phaser";
 import { t } from "../i18n/i18n";
 import { FocusGroup } from "./focus";
+import { drawArrowIcon } from "./icon";
 import { CANVAS_H, CANVAS_W } from "./layout";
 import { label } from "./text";
 import { COLORS, SPACE } from "./theme";
@@ -80,18 +81,11 @@ export function alert(
     };
     m = openModal(scene, title, w, h, finish);
     addLines(scene, m.panel, lines, w);
-    const btn = new Button(
-      scene,
-      w - SPACE.lg - 150,
-      h - 66,
-      150,
-      44,
-      t("ui.continue"),
-      {
-        variant: "primary",
-        onClick: finish,
-      },
-    );
+    const btn = new Button(scene, w - SPACE.lg - 150, h - 66, 150, 44, "", {
+      variant: "primary",
+      onClick: finish,
+      icon: drawArrowIcon,
+    });
     m.panel.add(btn);
     btn.bind(m.group);
   });
