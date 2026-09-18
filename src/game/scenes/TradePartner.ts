@@ -1,8 +1,9 @@
 import { toGrain } from "../flow";
 import { t } from "../i18n/i18n";
+import { at } from "../lookup";
 import { playerColor } from "../model/constants";
 import { getState } from "../model/session";
-import { type GameState, rand } from "../model/types";
+import { type GameState, playerAt, rand } from "../model/types";
 import { FocusGroup } from "../ui/focus";
 import {
   drawAcreIcon,
@@ -34,7 +35,7 @@ export class TradePartner extends GameScene {
 
     let chosen = -1;
     while (chosen < 0) {
-      this.children.removeAll();
+      this.clearScreen();
       const group = new FocusGroup(this);
       const { content } = frame();
       statusBar(this, state, group);
@@ -49,7 +50,7 @@ export class TradePartner extends GameScene {
       const cellX = groupX.flatMap((x) => [x - 45, x + 55]);
       const g = this.add.graphics();
       [drawGrainIcon, drawAcreIcon, drawBuildingIcon].forEach((draw, c) => {
-        draw(g, SPACE.lg + groupX[c], 32, 28);
+        draw(g, SPACE.lg + at(groupX, c), 32, 28);
       });
       panel.add(g);
       const rule = this.add.graphics();
@@ -66,7 +67,7 @@ export class TradePartner extends GameScene {
       const ids: number[] = [];
       for (let w = 0; w <= state.count; w++) {
         if (w === state.sp) continue;
-        const p = state.players[w];
+        const p = playerAt(state, w);
         items.push({
           label: w === 0 ? "der Kaiser" : p.name,
           cells: [
@@ -93,7 +94,7 @@ export class TradePartner extends GameScene {
       });
       footer.destroy();
       group.destroy();
-      chosen = ids[idx];
+      chosen = at(ids, idx);
     }
 
     this.finish(state, chosen);
@@ -107,7 +108,7 @@ export class TradePartner extends GameScene {
 
   /** The Emperor's stock for this round; his offer is shown on the table. */
   private refreshKaiserStock(state: GameState): void {
-    const kaiser = state.players[0];
+    const kaiser = playerAt(state, 0);
     kaiser.verkorn = 8000 * state.wetter + rand(1000);
     kaiser.lkorn = kaiser.verkorn;
     kaiser.acker = 2000 * rand(10);
@@ -119,14 +120,14 @@ export class TradePartner extends GameScene {
   /** KAISER3:20970-21041 - the Emperor's prices track the players' average. */
   private updateKaiserPrices(): void {
     const state = getState(this);
-    const kaiser = state.players[0];
+    const kaiser = playerAt(state, 0);
     let kp = 0;
     let ap = 0;
     let lp = 0;
     for (let u = 1; u <= state.count; u++) {
-      kp += state.players[u].kpreis;
-      ap += state.players[u].apreis;
-      lp += state.players[u].lpreis;
+      kp += playerAt(state, u).kpreis;
+      ap += playerAt(state, u).apreis;
+      lp += playerAt(state, u).lpreis;
     }
     const avgK = Math.trunc(kp / state.count);
     const avgA = Math.trunc(ap / state.count);

@@ -6,6 +6,7 @@ import { TITLES } from "../model/constants";
 import { landShortage } from "../model/rules";
 import { clearSave } from "../model/save";
 import type { GameState } from "../model/types";
+import { playerAt } from "../model/types";
 import { alert } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
 import { fullscreenButton } from "../ui/fullscreen";
@@ -65,7 +66,7 @@ export function statusBar(
   group: FocusGroup,
 ): Phaser.GameObjects.Container {
   const { header } = frame();
-  const p = state.players[state.sp];
+  const p = playerAt(state, state.sp);
   const c = scene.add.container(header.x, header.y);
 
   const bg = scene.add.graphics();
@@ -230,7 +231,7 @@ export async function applyLandShortage(
   scene: Phaser.Scene,
   state: GameState,
 ): Promise<void> {
-  const lost = landShortage(state.players[state.sp]);
+  const lost = landShortage(playerAt(state, state.sp));
   if (lost.markt === 0 && lost.muhl === 0) return;
   await alert(scene, t("land.shortageTitle"), [
     t("land.shortageText", { markt: lost.markt, muhl: lost.muhl }),

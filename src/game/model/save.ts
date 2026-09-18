@@ -19,10 +19,26 @@ export function serialize(state: GameState): string {
   return JSON.stringify(file);
 }
 
+/** Cheap structural check of the fields every scene dereferences at once. */
+function isGameState(s: GameState | undefined): s is GameState {
+  return (
+    Array.isArray(s?.players) &&
+    Number.isInteger(s.count) &&
+    s.count >= 1 &&
+    s.count < s.players.length &&
+    Number.isInteger(s.sp) &&
+    s.sp >= 1 &&
+    s.sp <= s.count &&
+    typeof s.jahr === "number" &&
+    typeof s.turn === "object" &&
+    s.turn !== null
+  );
+}
+
 export function deserialize(json: string): GameState | null {
   try {
     const file = JSON.parse(json) as SaveFile;
-    if (file.version !== SAVE_VERSION || !file.state?.players) return null;
+    if (file.version !== SAVE_VERSION || !isGameState(file.state)) return null;
     return file.state;
   } catch {
     return null;
