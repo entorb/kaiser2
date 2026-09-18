@@ -1,5 +1,6 @@
 import { playCoins } from "../audio/music";
 import { t } from "../i18n/i18n";
+import { at } from "../lookup";
 import {
   distributeGuards,
   type GuardKind,
@@ -7,7 +8,7 @@ import {
   resolveSabotage,
 } from "../model/rules";
 import { getState } from "../model/session";
-import { type GameState, rand } from "../model/types";
+import { type GameState, playerAt, rand } from "../model/types";
 import { alert, chooseList, numberPrompt } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
 import { drawCoinsIcon, drawEventIcon } from "../ui/icon";
@@ -27,7 +28,7 @@ export class SecretService extends GameScene {
 
   async create() {
     const state = getState(this);
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
     const infP = 500 + rand(100);
     const artP = 600 + rand(100);
     const kavP = 100 + rand(50);
@@ -35,7 +36,7 @@ export class SecretService extends GameScene {
 
     let done = false;
     while (!done) {
-      this.children.removeAll();
+      this.clearScreen();
       const group = new FocusGroup(this);
       const { content, action } = frame();
       statusBar(this, state, group);
@@ -113,7 +114,7 @@ export class SecretService extends GameScene {
         t("secret.trainSaboteursHint"),
         t("secret.operationsHint"),
       ];
-      footer.setText(hints[0]);
+      footer.setText(at(hints, 0));
 
       const menuW = 420;
       const choice = await new Promise<number>((resolve) => {
@@ -163,12 +164,12 @@ export class SecretService extends GameScene {
   }
 
   private async operate(state: GameState): Promise<void> {
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
     const names: ListItem[] = [];
     const indices: number[] = [];
     for (let i = 1; i <= state.count; i++) {
       if (i === state.sp) continue;
-      names.push({ label: state.players[i].name });
+      names.push({ label: playerAt(state, i).name });
       indices.push(i);
     }
     names.push({ label: t("secret.nobody") });
@@ -176,8 +177,9 @@ export class SecretService extends GameScene {
     const who = await chooseList(this, t("secret.target"), names, {
       cancel: true,
     });
-    if (who < 0 || who >= indices.length) return;
-    const target = state.players[indices[who]];
+    const targetIndex = indices[who];
+    if (targetIndex === undefined) return;
+    const target = playerAt(state, targetIndex);
 
     const kinds: Building[] = ["muhl", "markt", "hh", "burg"];
     const counts = [target.muhl, target.markt, target.hh, target.burg];
@@ -192,12 +194,12 @@ export class SecretService extends GameScene {
       t("secret.building"),
       labels.map((label, i) => ({
         label: `${label} (${counts[i]})`,
-        disabled: counts[i] <= 0,
+        disabled: (counts[i] ?? 0) <= 0,
       })),
       { cancel: true },
     );
     if (kind < 0) return;
-    const building = kinds[kind];
+    const building = at(kinds, kind);
 
     // KAISER5:1630 - inspecting a building costs SPPI = RAND(500)+TITEL*500.
     playCoins();
@@ -235,7 +237,7 @@ export class SecretService extends GameScene {
     building: Building,
     target: GameState["players"][number],
   ): void {
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
     let lg = 0;
     let gg = 0;
     let kg = 0;

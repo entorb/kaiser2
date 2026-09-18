@@ -6,6 +6,7 @@ import type { StringKey } from "../i18n/strings";
 import { giveGrain, grainBounds, harvest } from "../model/rules";
 import { getState } from "../model/session";
 import type { GameState } from "../model/types";
+import { playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
 import { drawGrainIcon, drawWeatherIcon } from "../ui/icon";
 import { frame } from "../ui/layout";
@@ -42,9 +43,8 @@ export class Grain extends GameScene {
    * chosen amount to the people, then leaves for land.
    */
   private async play(state: GameState, vkorn: number): Promise<void> {
-    const p = state.players[state.sp];
-    const seller = state.players[state.turn.han];
-    this.children.removeAll();
+    const p = playerAt(state, state.sp);
+    const seller = playerAt(state, state.turn.han);
     this.granary = undefined;
     const group = new FocusGroup(this);
     const { content } = frame();
@@ -262,8 +262,8 @@ export class Grain extends GameScene {
   }
 
   private applyTrade(state: GameState, amount: number): void {
-    const p = state.players[state.sp];
-    const seller = state.players[state.turn.han];
+    const p = playerAt(state, state.sp);
+    const seller = playerAt(state, state.turn.han);
     const price = seller.kpreis;
     if (amount > 0) {
       const a = Math.min(amount, seller.verkorn);

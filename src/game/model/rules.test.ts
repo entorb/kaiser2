@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { at } from "../lookup";
 import { createGameState, createPlayer } from "./constants";
 import {
   chronicle,
@@ -15,18 +16,19 @@ import {
   tradeHouse,
 } from "./rules";
 import type { Rng } from "./types";
+import { playerAt } from "./types";
 
 /** RNG that returns a fixed sequence (cycling). */
 function seq(...values: number[]): Rng {
   let i = 0;
-  return () => values[i++ % values.length];
+  return () => at(values, i++ % values.length);
 }
 
 describe("harvest", () => {
   it("computes stock, rot and the people's need", () => {
     const state = createGameState(1);
     const r = harvest(state, 1, seq(0, 0, 0, 0));
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     expect(r.faul).toBe(1);
     expect(r.weather).toBe(1);
     // backer = min(10000, 500/5) = 100
@@ -107,7 +109,7 @@ describe("chronicle", () => {
     const state = createGameState(1);
     state.turn.kaus = 10000;
     state.turn.vkorn = 10000;
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     const before = p.leute;
     const r = chronicle(state, 1, seq(0, 0, 0, 0, 0, 0));
     expect(r.einw).toBe(0); // (kaus-vkorn)/1300 = 0
@@ -118,7 +120,7 @@ describe("chronicle", () => {
 describe("tradeHouse", () => {
   it("demands tribute and only profits when overstaffed", () => {
     const state = createGameState(1);
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     p.hh = 10;
     p.bd = 60; // > hh*5 -> profit
     p.leute = 500;
@@ -129,7 +131,7 @@ describe("tradeHouse", () => {
 
   it("never demands less than 500 tribute", () => {
     const state = createGameState(1);
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     p.titel = 0;
     p.leute = 0;
     p.hh = 0;
@@ -139,7 +141,7 @@ describe("tradeHouse", () => {
 
   it("gives no profit when understaffed", () => {
     const state = createGameState(1);
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     p.hh = 10;
     p.bd = 20; // < hh*5
     const r = tradeHouse(state, 1, seq(0, 0));
@@ -148,7 +150,7 @@ describe("tradeHouse", () => {
 
   it("profits with a single house at the manual's ~6 servants", () => {
     const state = createGameState(1);
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     p.hh = 1;
     p.bd = 6; // INT(1 - 6/5) = -1 -> one staffed house
     const r = tradeHouse(state, 1, seq(0, 0, 0));
@@ -161,7 +163,7 @@ describe("stateIncome", () => {
     const state = createGameState(1);
     state.mg1 = 1000;
     state.mg2 = 1000;
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     p.zoll = 25;
     p.ein = 5;
     p.mwst = 10;
@@ -174,7 +176,7 @@ describe("stateIncome", () => {
 describe("titleAdvance", () => {
   it("promotes when score and money allow", () => {
     const state = createGameState(1);
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     p.punkte = 1000;
     p.geld = 1;
     expect(titleAdvance(state, 1)).toBe(false);
@@ -183,7 +185,7 @@ describe("titleAdvance", () => {
 
   it("wins at rank 8 with full castle and cathedral", () => {
     const state = createGameState(1);
-    const p = state.players[1];
+    const p = playerAt(state, 1);
     p.titel = 7;
     p.punkte = 100000;
     p.geld = 1;

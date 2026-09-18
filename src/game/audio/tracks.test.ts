@@ -33,7 +33,7 @@ describe("trackForScene", () => {
   it("uses the gameplay theme during a turn", () => {
     for (const key of [
       "TradingHouse",
-      "Partner",
+      "TradePartner",
       "Grain",
       "Land",
       "Chronicle",

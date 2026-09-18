@@ -17,9 +17,9 @@ describe("columns", () => {
     const rect = { x: 0, y: 0, w: 300, h: 100 };
     const cols = columns(rect, 3, 30);
     expect(cols).toHaveLength(3);
-    expect(cols[0].w).toBe(80);
-    expect(cols[1].x).toBe(110);
-    expect(cols[2].x).toBe(220);
-    expect(cols[2].x + cols[2].w).toBe(300);
+    expect(cols[0]?.w).toBe(80);
+    expect(cols[1]?.x).toBe(110);
+    expect(cols[2]?.x).toBe(220);
+    expect((cols[2]?.x ?? 0) + (cols[2]?.w ?? 0)).toBe(300);
   });
 });

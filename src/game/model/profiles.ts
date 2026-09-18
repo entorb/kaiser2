@@ -1,3 +1,4 @@
+import { at } from "../lookup";
 // Player profiles: name, kingdom and coat of arms of rulers 1..6 are kept in
 // localStorage so the next new game starts with the same setup prefilled.
 
@@ -49,7 +50,7 @@ export function loadProfiles(): (Profile | null)[] {
 export function saveProfiles(players: PlayerState[], count: number): void {
   const profiles = loadProfiles();
   for (let i = 1; i <= count; i++) {
-    const { name, kingdom, portrait } = players[i];
+    const { name, kingdom, portrait } = at(players, i);
     profiles[i - 1] = { name, kingdom, portrait };
   }
   storage()?.setItem(PROFILES_KEY, JSON.stringify(profiles));

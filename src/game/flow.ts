@@ -5,7 +5,7 @@ export type SceneName =
   | "Menu"
   | "NewGame"
   | "TradingHouse"
-  | "Partner"
+  | "TradePartner"
   | "Grain"
   | "Land"
   | "Chronicle"
@@ -39,7 +39,7 @@ export function startTurn(switcher: SceneSwitcher): void {
 
 /** Trading houses → pick a trading partner. */
 export function toPartner(switcher: SceneSwitcher): void {
-  switcher.start("Partner");
+  switcher.start("TradePartner");
 }
 
 /** Partner → grain (harvest, buy/sell, distribution). */
