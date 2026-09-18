@@ -16,6 +16,7 @@ import { setState } from "../model/session";
 import { reportGameStart } from "../model/stats";
 import { startRuler } from "../model/turn";
 import type { GameState } from "../model/types";
+import { playerAt } from "../model/types";
 import { type Focusable, FocusGroup } from "../ui/focus";
 import { drawShield } from "../ui/icon";
 import { frame } from "../ui/layout";
@@ -38,7 +39,7 @@ export class NewGame extends GameScene {
     // Last game's rulers come back prefilled (name, kingdom, coat of arms).
     const profiles = loadProfiles();
     for (let i = 1; i <= state.count; i++)
-      await this.setupPlayer(state, i, profiles[i - 1]);
+      await this.setupPlayer(state, i, profiles[i - 1] ?? null);
     saveProfiles(state.players, state.count);
     state.sp = 1;
     reportGameStart();
@@ -50,8 +51,7 @@ export class NewGame extends GameScene {
   }
 
   /** How many rulers play: a 1..N slider, confirmed with OK. */
-  private askPlayerCount(): Promise<number> {
-    this.children.removeAll();
+  private async askPlayerCount(): Promise<number> {
     const group = new FocusGroup(this);
     const { content } = frame();
     screenTitle(this, t("newGame.prompt"), content.y);
@@ -78,11 +78,13 @@ export class NewGame extends GameScene {
     });
     control.bind(group);
 
-    return new Promise((resolve) => {
+    const count = await new Promise<number>((resolve) => {
       finish = () => resolve(control.value);
       primaryAction(this, group, t("ui.ok"), finish);
       group.focus(control);
     });
+    group.destroy();
+    return count;
   }
 
   /**
@@ -95,10 +97,10 @@ export class NewGame extends GameScene {
     index: number,
     profile: Profile | null,
   ): Promise<void> {
-    this.children.removeAll();
+    this.clearScreen();
     const group = new FocusGroup(this);
     const { content } = frame();
-    const p = state.players[index];
+    const p = playerAt(state, index);
     p.portrait = freeColor(
       state.players,
       index,

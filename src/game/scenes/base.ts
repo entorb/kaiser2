@@ -18,4 +18,13 @@ export class GameScene extends Scene {
     camera.centerOn(CANVAS_W / 2, CANVAS_H / 2);
     attachSceneMusic(this);
   }
+
+  /**
+   * Destroy every object on screen before a rebuild. `children.removeAll()` only
+   * detaches them (its argument is `skipCallback`, not `destroyChild`), which
+   * leaves each label's `scale` resize listener registered forever.
+   */
+  protected clearScreen(): void {
+    for (const child of [...this.children.list]) child.destroy();
+  }
 }

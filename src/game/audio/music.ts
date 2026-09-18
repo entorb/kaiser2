@@ -1,3 +1,4 @@
+import { at } from "../lookup";
 // Procedural music and UI blips, generated with Web Audio oscillators — no
 // audio files. We reuse Phaser's AudioContext (`game.sound.context`), which
 // already handles the browser autoplay unlock; when the game runs without Web
@@ -214,14 +215,14 @@ function tick(): void {
 
   let guard = 0;
   while (nextTime < horizon && guard < 256) {
-    scheduleNote(notes[noteIndex], nextTime, secondsPerBeat);
+    scheduleNote(at(notes, noteIndex), nextTime, secondsPerBeat);
     noteIndex += 1;
     if (noteIndex >= notes.length) {
       noteIndex = 0;
       loopStart += loopBeats * secondsPerBeat;
       nextTime = loopStart;
     } else {
-      nextTime = loopStart + notes[noteIndex].beat * secondsPerBeat;
+      nextTime = loopStart + at(notes, noteIndex).beat * secondsPerBeat;
     }
     guard += 1;
   }
@@ -380,9 +381,9 @@ function coinNoise(ctx: AudioContext): AudioBuffer {
   const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
   const data = buffer.getChannelData(0);
   const noise = crypto.getRandomValues(new Uint32Array(len));
-  for (let i = 0; i < len; i++) {
+  for (const [i, n] of noise.entries()) {
     const decay = 1 - i / len;
-    data[i] = (noise[i] / 2 ** 31 - 1) * decay * decay;
+    data[i] = (n / 2 ** 31 - 1) * decay * decay;
   }
   noiseBuffer = buffer;
   return buffer;

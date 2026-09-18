@@ -244,7 +244,7 @@ const SCENE_TRACKS: Record<string, TrackName> = {
   NewGame: "menu",
   Highscore: "menu",
   TradingHouse: "game",
-  Partner: "game",
+  TradePartner: "game",
   Grain: "game",
   Land: "game",
   Chronicle: "game",

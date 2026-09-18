@@ -4,6 +4,7 @@ import { t } from "../i18n/i18n";
 import { TITLES } from "../model/constants";
 import { highscoreValue } from "../model/rules";
 import { getState } from "../model/session";
+import { playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
@@ -22,7 +23,7 @@ export class Highscore extends GameScene {
     const state = getState(this);
     const entries = [];
     for (let i = 1; i <= state.count; i++) {
-      const p = state.players[i];
+      const p = playerAt(state, i);
       entries.push({
         name: p.name,
         title: TITLES[Math.min(p.titel, TITLES.length - 1)] ?? "",
@@ -32,7 +33,6 @@ export class Highscore extends GameScene {
     }
     entries.sort((a, b) => b.score - a.score);
 
-    this.children.removeAll();
     const group = new FocusGroup(this);
     const { content } = frame();
     screenTitle(this, t("highscore.title"), content.y);

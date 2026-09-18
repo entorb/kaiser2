@@ -1,4 +1,5 @@
 import type { GameState, PlayerState } from "./types";
+import { playerAt } from "./types";
 
 /** Fresh per-turn scratch values (locals in KAISERB/KAISER3). */
 export function resetTurn(state: GameState): void {
@@ -32,7 +33,8 @@ export function advancePlayer(state: GameState): void {
     }
   };
   step();
-  while (state.count > 1 && consumeDeposition(state.players[state.sp])) step();
+  while (state.count > 1 && consumeDeposition(playerAt(state, state.sp)))
+    step();
   startRuler(state);
   resetTurn(state);
 }
@@ -42,7 +44,7 @@ export function advancePlayer(state: GameState): void {
  * point. Deposed rulers who are skipped do not age or score.
  */
 export function startRuler(state: GameState): void {
-  const p = state.players[state.sp];
+  const p = playerAt(state, state.sp);
   p.tod -= 1;
   p.punkte += 1;
 }

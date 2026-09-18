@@ -1,10 +1,17 @@
 // End-of-turn events from KAISER4: pawn, deposition and death. Pure functions
 // with an injectable RNG so they can be tested.
 
-import { type GameState, type PlayerState, type Rng, rand } from "./types";
+import {
+  defaultRng,
+  type GameState,
+  type PlayerState,
+  playerAt,
+  type Rng,
+  rand,
+} from "./types";
 
 /** KAISER4 PFAND: creditors seize mills, markets and land. */
-export function pawn(p: PlayerState, rng: Rng = Math.random): void {
+export function pawn(p: PlayerState, rng: Rng = defaultRng): void {
   p.geld = p.muhl * 200 + p.markt * 100 + p.burg * 500 + p.dom * 900;
   p.muhl = 0;
   p.markt = 0;
@@ -51,17 +58,17 @@ export function taxDemotion(p: PlayerState): boolean {
 export function expropriate(
   state: GameState,
   sp: number,
-  rng: Rng = Math.random,
+  rng: Rng = defaultRng,
 ): boolean {
   // 5/6 of the time the Emperor takes no notice (RAND(6)<5).
   if (rand(6, rng) < 5) return false;
-  const p = state.players[sp];
+  const p = playerAt(state, sp);
   if (p.hh <= 0) return false;
   const hoarded = p.verkorn + rand(5000, rng) < p.lkorn;
   const underpaid = state.turn.abg + rand(5000, rng) < state.turn.zahl;
   if (!hoarded && !underpaid) return false;
   p.hh -= 1;
-  state.players[0].hh += 1;
+  playerAt(state, 0).hh += 1;
   return true;
 }
 
@@ -89,7 +96,7 @@ export function heirName(name: string): string {
 }
 
 /** KAISER4 TOD: the ruler dies; the heir inherits the rank (source behaviour). */
-export function die(p: PlayerState, rng: Rng = Math.random): void {
+export function die(p: PlayerState, rng: Rng = defaultRng): void {
   p.tod = rand(10, rng) + 35;
   p.titel = Math.max(0, p.titel - 1);
   p.punkte =

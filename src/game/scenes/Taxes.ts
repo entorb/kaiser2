@@ -1,8 +1,10 @@
 import { toTradeData } from "../flow";
 import { t } from "../i18n/i18n";
+import { at } from "../lookup";
 import { JUSTICE } from "../model/constants";
 import { stateIncome } from "../model/rules";
 import { getState } from "../model/session";
+import { playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
 import { drawCoinsIcon } from "../ui/icon";
 import { frame } from "../ui/layout";
@@ -28,10 +30,9 @@ export class Taxes extends GameScene {
 
   async create() {
     const state = getState(this);
-    const p = state.players[state.sp];
+    const p = playerAt(state, state.sp);
     const se = stateIncome(state, state.sp);
 
-    this.children.removeAll();
     const group = new FocusGroup(this);
     const { content } = frame();
     statusBar(this, state, group);
@@ -74,7 +75,7 @@ export class Taxes extends GameScene {
       `${t("tax.incomeTaxHint")} ${limits}`,
       t("tax.justiceHint"),
     ];
-    const footer = actionFooter(this, hints[0]);
+    const footer = actionFooter(this, at(hints, 0));
 
     const fields: [string, number, (v: number) => void][] = [
       [t("tax.customs"), p.zoll, (v) => (p.zoll = v)],
@@ -93,7 +94,7 @@ export class Taxes extends GameScene {
         onSubmit: finish,
       });
       panel.add(field);
-      field.onFocus(() => footer.setText(hints[i]));
+      field.onFocus(() => footer.setText(at(hints, i)));
       field.bind(group);
     });
 
@@ -117,7 +118,7 @@ export class Taxes extends GameScene {
       },
     );
     panel.add(justice);
-    justice.onFocus(() => footer.setText(hints[3]));
+    justice.onFocus(() => footer.setText(at(hints, 3)));
     justice.bind(group);
 
     continueAction(this, group, finish);

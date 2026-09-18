@@ -252,7 +252,7 @@ export function panelFrame(
     [w - 10, 10],
     [10, h - 10],
     [w - 10, h - 10],
-  ]) {
+  ] as const) {
     g.fillCircle(x + dx, y + dy, 2.5);
   }
 }
