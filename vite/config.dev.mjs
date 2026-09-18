@@ -8,7 +8,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: "index.html",
-        audio: "audio-list.html",
+        audio: "list-audio.html",
+        icons: "list-icon.html",
+        images: "list-image.html",
       },
       output: {
         manualChunks(id) {
@@ -18,6 +20,8 @@ export default defineConfig({
     },
   },
   server: {
+    // support running in container
+    host: true,
     port: 8080,
   },
 });

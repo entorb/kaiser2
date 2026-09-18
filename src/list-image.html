@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kaiser II — Image overview</title>
+    <style>
+      @font-face {
+        font-family: "Cinzel";
+        font-style: normal;
+        font-weight: 400 700;
+        font-display: swap;
+        src: url("./assets/fonts/cinzel-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "EB Garamond";
+        font-style: normal;
+        font-weight: 400 600;
+        font-display: swap;
+        src: url("./assets/fonts/ebgaramond-latin.woff2") format("woff2");
+      }
+      :root {
+        --wood: #241810;
+        --parchment: #f3e6c8;
+        --gold: #c08a1e;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 2rem clamp(1rem, 4vw, 3rem);
+        background: var(--wood);
+        color: var(--parchment);
+        font-family: "EB Garamond", Georgia, serif;
+      }
+      h1 {
+        margin: 0;
+        font-family: "Cinzel", Georgia, serif;
+        color: var(--gold);
+      }
+      p {
+        margin: 0.5rem 0 1.5rem;
+        max-width: 60ch;
+      }
+      #gallery canvas {
+        display: block;
+        width: 100% !important;
+        height: auto !important;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Image overview</h1>
+    <p>
+      The full-screen pictures the game draws. The promotion pictures are shown
+      for each title, without the header; the coronation is animated and only
+      visible in the game.
+    </p>
+    <div id="gallery"></div>
+    <script type="module">
+      import { startImageGallery } from "./game/debug/image-gallery";
+
+      startImageGallery("gallery");
+    </script>
+  </body>
+</html>
