@@ -8,7 +8,7 @@ import { label } from "../ui/text";
 import { COLORS, FS } from "../ui/theme";
 import { Panel } from "../ui/widgets";
 import { GameScene } from "./base";
-import { primaryAction, screenTitle } from "./common";
+import { continueAction, screenTitle } from "./common";
 
 interface PromotionData {
   name: string;
@@ -57,7 +57,7 @@ export class Promotion extends GameScene {
       }),
     );
 
-    primaryAction(this, group, t("ui.continue"), () =>
+    continueAction(this, group, () =>
       data.nextRanking ? toRanking(this.scene) : nextTurn(this.scene),
     );
   }

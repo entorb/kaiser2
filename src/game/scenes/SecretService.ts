@@ -10,6 +10,7 @@ import { getState } from "../model/session";
 import { type GameState, rand } from "../model/types";
 import { alert, chooseList, numberPrompt } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
+import { drawCoinsIcon, drawEventIcon } from "../ui/icon";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
 import { COLORS, SPACE } from "../ui/theme";
@@ -48,14 +49,11 @@ export class SecretService extends GameScene {
         panelW,
         content.h - 54,
       );
-      const rows: [string, string, number?][] = [
+      const rows: [string, string][] = [
         [t("secret.guards"), `${p.infant}`],
-        [t("secret.priceGuards"), `${infP}`],
         [t("secret.saboteurs"), `${p.artell}`],
-        [t("secret.priceSaboteurs"), `${artP}`],
-        [t("business.fortune"), `${Math.trunc(p.geld)}`, COLORS.accent],
       ];
-      rows.forEach(([labelText, value, color], i) => {
+      rows.forEach(([labelText, value], i) => {
         panel.add(
           new StatRow(
             this,
@@ -64,7 +62,6 @@ export class SecretService extends GameScene {
             panelW - SPACE.lg * 2,
             labelText,
             value,
-            { valueColor: color ?? COLORS.text },
           ),
         );
       });
@@ -73,22 +70,34 @@ export class SecretService extends GameScene {
       const trainS = manP * p.artell;
       const options: ListItem[] = [
         {
-          label: `${t("secret.hireGuards")} (${infP})`,
+          label: t("secret.hireGuards"),
+          value: `${infP}`,
+          valueIcon: drawCoinsIcon,
           disabled: p.geld < infP,
         },
         {
-          label: `${t("secret.hireSaboteurs")} (${artP})`,
+          label: t("secret.hireSaboteurs"),
+          value: `${artP}`,
+          valueIcon: drawCoinsIcon,
           disabled: p.geld < artP,
         },
         {
-          label: `${t("secret.trainGuards")} (${trainG})`,
+          label: t("secret.trainGuards"),
+          value: `${trainG}`,
+          valueIcon: drawCoinsIcon,
           disabled: p.infant <= 0 || p.geld < trainG,
         },
         {
-          label: `${t("secret.trainSaboteurs")} (${trainS})`,
+          label: t("secret.trainSaboteurs"),
+          value: `${trainS}`,
+          valueIcon: drawCoinsIcon,
           disabled: p.artell <= 0 || p.geld < trainS,
         },
-        { label: t("secret.operations"), disabled: p.artell <= 0 },
+        {
+          label: t("secret.operations"),
+          icon: (g, x, y, size) => drawEventIcon(g, x, y, size, "spy"),
+          disabled: p.artell <= 0,
+        },
       ];
 
       // Footer: what the highlighted action does (training raises the strength

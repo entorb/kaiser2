@@ -10,7 +10,7 @@ import { label } from "../ui/text";
 import { COLORS, FS, SPACE } from "../ui/theme";
 import { Panel } from "../ui/widgets";
 import { GameScene } from "./base";
-import { primaryAction, screenTitle } from "./common";
+import { continueAction, screenTitle } from "./common";
 
 export class Highscore extends GameScene {
   constructor() {
@@ -63,9 +63,7 @@ export class Highscore extends GameScene {
       );
     });
 
-    await new Promise<void>((resolve) =>
-      primaryAction(this, group, t("ui.continue"), resolve),
-    );
+    await new Promise<void>((resolve) => continueAction(this, group, resolve));
     group.destroy();
 
     toMenu(this.scene);

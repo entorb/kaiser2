@@ -6,6 +6,8 @@
 
 export interface PlayerState {
   name: string;
+  /** Kingdom name chosen at name entry. */
+  kingdom: string;
   /** Portrait index 0..7 chosen at name entry. */
   portrait: number;
   /** Joystick/controller slot chosen at name entry. */
@@ -20,8 +22,8 @@ export interface PlayerState {
   muhl: number; // MUHL - mills
   markt: number; // MARKT - markets
   geld: number; // GELD - money (taler)
-  lpreis: number; // LPREIS - building-land price
-  apreis: number; // APREIS - acre-land price
+  lpreis: number; // LPREIS - building-land price per 1000 ha (original: per 10 ha)
+  apreis: number; // APREIS - acre-land price per 1000 ha
   verAcker: number; // VERALAND - acre land offered for trade
   punkte: number; // PUNKTE - score
   verBau: number; // VERBLAND - building land offered for trade

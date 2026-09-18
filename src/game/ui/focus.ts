@@ -37,10 +37,15 @@ export class FocusGroup {
   add<T extends Focusable>(item: T, focus = true): T {
     this.items.push(item);
     if (focus && this.index < 0 && this.isActive) {
-      this.index = 0;
+      this.index = this.items.length - 1;
       item.setFocused(true);
     }
     return item;
+  }
+
+  /** True while this is the top group, i.e. no dialog or menu is open over it. */
+  get active(): boolean {
+    return this.isActive;
   }
 
   /** Drop all items (widgets were destroyed by the scene) but keep listening. */

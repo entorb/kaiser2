@@ -4,7 +4,9 @@
 
 import type { GameState } from "./types";
 
-export const SAVE_VERSION = 1;
+// v2: land prices are per 1000 ha (v1 stored them per 10 ha).
+// v3: players carry a `kingdom` name.
+export const SAVE_VERSION = 3;
 export const SAVE_KEY = "kaiser2.save";
 
 interface SaveFile {
@@ -27,7 +29,7 @@ export function deserialize(json: string): GameState | null {
   }
 }
 
-function storage(): Storage | null {
+export function storage(): Storage | null {
   try {
     return typeof localStorage === "undefined" ? null : localStorage;
   } catch {
