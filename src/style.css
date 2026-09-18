@@ -21,12 +21,23 @@ body {
   height: 100%;
   background: #241810;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
+/* iOS Safari's 100vh is the large viewport (browser chrome hidden), so the FIT
+   canvas overflows behind the address/tool bar. Use the small viewport unit:
+   it assumes the toolbars are always expanded, so the game always fits the
+   visible area instead of jumping as the chrome hides/shows. 100vh is the
+   fallback for browsers without svh. No flexbox here — Phaser's autoCenter
+   CENTER_BOTH does the centering (see main.ts). */
 #app {
   position: relative;
   width: 100vw;
   height: 100vh;
+  /* biome-ignore lint/suspicious/noDuplicateProperties: 100svh fallback overrides 100vh on browsers that support it */
+  height: 100svh;
+  overflow: hidden;
+  touch-action: none;
 }
 
 #game-container {
