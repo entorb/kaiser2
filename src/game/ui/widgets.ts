@@ -302,25 +302,27 @@ export interface ListMenuOptions {
   onChange?: (index: number) => void;
 }
 
+interface ListRow {
+  bg: GameObjects.Graphics;
+  label: GameObjects.Text;
+  value?: GameObjects.Text;
+  lead?: GameObjects.Text;
+  /** Center x of the unit icon before the value. */
+  valueIconX?: number;
+  valueIcon?: GameObjects.Graphics;
+  cells: {
+    text: GameObjects.Text;
+    icon?: GameObjects.Graphics;
+    iconX?: number;
+    muted: boolean;
+  }[];
+  icon?: GameObjects.Graphics;
+  item: ListItem;
+}
+
 /** Clickable, keyboard-navigable list. Selected row is highlighted. */
 export class ListMenu extends Widget {
-  private readonly rows: {
-    bg: GameObjects.Graphics;
-    label: GameObjects.Text;
-    value?: GameObjects.Text;
-    lead?: GameObjects.Text;
-    /** Center x of the unit icon before the value. */
-    valueIconX?: number;
-    valueIcon?: GameObjects.Graphics;
-    cells: {
-      text: GameObjects.Text;
-      icon?: GameObjects.Graphics;
-      iconX?: number;
-      muted: boolean;
-    }[];
-    icon?: GameObjects.Graphics;
-    item: ListItem;
-  }[] = [];
+  private readonly rows: ListRow[] = [];
   private readonly leadW: number;
   private selected = 0;
   private hoverIndex = -1;
@@ -496,78 +498,100 @@ export class ListMenu extends Widget {
     const rowH = this.opts.rowH ?? 40;
     const gap = this.opts.gap ?? 6;
     this.rows.forEach((row, i) => {
-      const y = i * (rowH + gap);
-      const selected = i === this.selected;
-      const highlight = selected && this.focused;
-      const disabled = row.item.disabled === true;
-      let fill: number = COLORS.surfaceAlt;
-      if (disabled) fill = COLORS.surface;
-      else if (highlight) fill = COLORS.accent;
-      else if (selected || i === this.hoverIndex) fill = COLORS.hover;
+      this.drawRow(row, i, rowH, gap);
+    });
+  }
 
-      const inset = highlight ? 1 : 0.5;
-      row.bg.clear();
-      row.bg.fillStyle(fill, 1);
-      row.bg.fillRoundedRect(0, y, this.bw, rowH, RADIUS);
-      row.bg.lineStyle(
-        highlight ? 2 : 1,
-        highlight ? COLORS.accent : COLORS.border,
-        1,
-      );
-      row.bg.strokeRoundedRect(
-        inset,
-        y + inset,
-        this.bw - inset * 2,
-        rowH - inset * 2,
+  private drawRow(row: ListRow, i: number, rowH: number, gap: number): void {
+    const y = i * (rowH + gap);
+    const selected = i === this.selected;
+    const highlight = selected && this.focused;
+    const disabled = row.item.disabled === true;
+    let fill: number = COLORS.surfaceAlt;
+    if (disabled) fill = COLORS.surface;
+    else if (highlight) fill = COLORS.accent;
+    else if (selected || i === this.hoverIndex) fill = COLORS.hover;
+    const inset = highlight ? 1 : 0.5;
+    this.drawRowBackground(row, y, rowH, highlight, disabled, fill, inset);
+    this.drawRowText(row, highlight, disabled);
+  }
+
+  private drawRowBackground(
+    row: ListRow,
+    y: number,
+    rowH: number,
+    highlight: boolean,
+    disabled: boolean,
+    fill: number,
+    inset: number,
+  ): void {
+    row.bg.clear();
+    row.bg.fillStyle(fill, 1);
+    row.bg.fillRoundedRect(0, y, this.bw, rowH, RADIUS);
+    row.bg.lineStyle(
+      highlight ? 2 : 1,
+      highlight ? COLORS.accent : COLORS.border,
+      1,
+    );
+    row.bg.strokeRoundedRect(
+      inset,
+      y + inset,
+      this.bw - inset * 2,
+      rowH - inset * 2,
+      RADIUS,
+    );
+    if (highlight) this.drawRowChips(row, y, rowH);
+    if (row.item.color !== undefined && !disabled) {
+      row.bg.fillStyle(row.item.color, 1);
+      row.bg.fillRoundedRect(0, y + 6, 5, rowH - 12, 2.5);
+    }
+  }
+
+  private drawRowChips(row: ListRow, y: number, rowH: number): void {
+    // Gold pictograms vanish on the gold highlight: seat them on parchment.
+    const chips: [number, number][] = [];
+    if (row.item.icon)
+      chips.push([SPACE.lg + this.leadW + LIST_ICON / 2, LIST_ICON]);
+    if (row.valueIconX !== undefined)
+      chips.push([row.valueIconX, LIST_VALUE_ICON]);
+    for (const cell of row.cells)
+      if (cell.iconX !== undefined) chips.push([cell.iconX, LIST_VALUE_ICON]);
+    row.bg.fillStyle(COLORS.surface, 1);
+    for (const [cx, size] of chips) {
+      const chip = size + 6;
+      row.bg.fillRoundedRect(
+        cx - chip / 2,
+        y + (rowH - chip) / 2,
+        chip,
+        chip,
         RADIUS,
       );
-      if (highlight) {
-        // Gold pictograms vanish on the gold highlight: seat them on parchment.
-        const chips: [number, number][] = [];
-        if (row.item.icon)
-          chips.push([SPACE.lg + this.leadW + LIST_ICON / 2, LIST_ICON]);
-        if (row.valueIconX !== undefined)
-          chips.push([row.valueIconX, LIST_VALUE_ICON]);
-        for (const cell of row.cells)
-          if (cell.iconX !== undefined)
-            chips.push([cell.iconX, LIST_VALUE_ICON]);
-        row.bg.fillStyle(COLORS.surface, 1);
-        for (const [cx, size] of chips) {
-          const chip = size + 6;
-          row.bg.fillRoundedRect(
-            cx - chip / 2,
-            y + (rowH - chip) / 2,
-            chip,
-            chip,
-            RADIUS,
-          );
-        }
-      }
-      if (row.item.color !== undefined && !disabled) {
-        row.bg.fillStyle(row.item.color, 1);
-        row.bg.fillRoundedRect(0, y + 6, 5, rowH - 12, 2.5);
-      }
+    }
+  }
 
-      const active = highlight
-        ? COLORS.accentText
-        : (row.item.color ?? COLORS.text);
-      const textColor = disabled ? COLORS.muted : active;
-      row.label.setColor(css(textColor));
-      row.icon?.setAlpha(disabled ? 0.45 : 1);
-      row.valueIcon?.setAlpha(disabled ? 0.45 : 1);
-      row.lead?.setColor(
-        css(!disabled && highlight ? COLORS.accentText : COLORS.muted),
-      );
-      row.value?.setColor(
-        css(!disabled && highlight ? COLORS.accentText : COLORS.muted),
-      );
-      for (const cell of row.cells) {
-        let color: number = cell.muted ? COLORS.muted : COLORS.text;
-        if (highlight) color = COLORS.accentText;
-        cell.text.setColor(css(color));
-        cell.icon?.setAlpha(disabled ? 0.45 : 1);
-      }
-    });
+  private drawRowText(
+    row: ListRow,
+    highlight: boolean,
+    disabled: boolean,
+  ): void {
+    const accent = highlight
+      ? COLORS.accentText
+      : (row.item.color ?? COLORS.text);
+    const textColor = disabled ? COLORS.muted : accent;
+    row.label.setColor(css(textColor));
+    row.icon?.setAlpha(disabled ? 0.45 : 1);
+    row.valueIcon?.setAlpha(disabled ? 0.45 : 1);
+    const accentMuted = css(
+      !disabled && highlight ? COLORS.accentText : COLORS.muted,
+    );
+    row.lead?.setColor(accentMuted);
+    row.value?.setColor(accentMuted);
+    for (const cell of row.cells) {
+      let color: number = cell.muted ? COLORS.muted : COLORS.text;
+      if (highlight) color = COLORS.accentText;
+      cell.text.setColor(css(color));
+      cell.icon?.setAlpha(disabled ? 0.45 : 1);
+    }
   }
 }
 
@@ -1168,45 +1192,9 @@ export class Slider extends Widget {
       8,
       4,
     );
-    if (this.min < 0 && this.max > 0) {
-      const zx = this.tickX(0);
-      g.lineStyle(2, COLORS.muted, 1);
-      g.lineBetween(zx, this.trackY - 8, zx, this.trackY + 16);
-    }
-    for (const marker of this.opts.markers ?? []) {
-      if (marker.value < this.min || marker.value > this.max) continue;
-      const mx = this.tickX(marker.value);
-      g.lineStyle(2, marker.color ?? COLORS.muted, 1);
-      g.lineBetween(mx, this.trackY - 8, mx, this.trackY + 16);
-    }
-    for (const tick of this.opts.ticks ?? []) {
-      if (tick.value < this.min || tick.value > this.max) continue;
-      g.lineStyle(1, COLORS.border, 1);
-      g.lineBetween(
-        this.tickX(tick.value),
-        this.trackY + 8,
-        this.tickX(tick.value),
-        this.trackY + 14,
-      );
-    }
-    // Buy/sell coin icons sit just inside the track ends, so the track keeps
-    // its full width and the knob never overlaps them.
-    if (this.opts.minIcon)
-      drawTradeIcon(
-        g,
-        9,
-        this.trackY + 4,
-        14,
-        this.opts.minIcon === "plus" ? 1 : -1,
-      );
-    if (this.opts.maxIcon)
-      drawTradeIcon(
-        g,
-        this.trackW + this.trackX * 2 - 9,
-        this.trackY + 4,
-        14,
-        this.opts.maxIcon === "plus" ? 1 : -1,
-      );
+    this.drawZero();
+    this.drawMarkers();
+    this.drawSideIcons();
     if (this.costText?.text) this.drawBefore(drawCoinsIcon, this.costText, 14);
     if (this.opts.valueIcon)
       this.drawBefore(this.opts.valueIcon, this.valueText, 16);
@@ -1224,6 +1212,53 @@ export class Slider extends Widget {
       g.lineStyle(2, COLORS.accentHover, 1);
       g.strokeCircle(tx, ky, 13);
     }
+  }
+
+  private drawZero(): void {
+    if (!(this.min < 0 && this.max > 0)) return;
+    const zx = this.tickX(0);
+    this.bg.lineStyle(2, COLORS.muted, 1);
+    this.bg.lineBetween(zx, this.trackY - 8, zx, this.trackY + 16);
+  }
+
+  private drawMarkers(): void {
+    for (const marker of this.opts.markers ?? []) {
+      if (marker.value < this.min || marker.value > this.max) continue;
+      const mx = this.tickX(marker.value);
+      this.bg.lineStyle(2, marker.color ?? COLORS.muted, 1);
+      this.bg.lineBetween(mx, this.trackY - 8, mx, this.trackY + 16);
+    }
+    for (const tick of this.opts.ticks ?? []) {
+      if (tick.value < this.min || tick.value > this.max) continue;
+      this.bg.lineStyle(1, COLORS.border, 1);
+      this.bg.lineBetween(
+        this.tickX(tick.value),
+        this.trackY + 8,
+        this.tickX(tick.value),
+        this.trackY + 14,
+      );
+    }
+  }
+
+  private drawSideIcons(): void {
+    // Buy/sell coin icons sit just inside the track ends, so the track keeps
+    // its full width and the knob never overlaps them.
+    if (this.opts.minIcon)
+      drawTradeIcon(
+        this.bg,
+        9,
+        this.trackY + 4,
+        14,
+        this.opts.minIcon === "plus" ? 1 : -1,
+      );
+    if (this.opts.maxIcon)
+      drawTradeIcon(
+        this.bg,
+        this.trackW + this.trackX * 2 - 9,
+        this.trackY + 4,
+        14,
+        this.opts.maxIcon === "plus" ? 1 : -1,
+      );
   }
 }
 
