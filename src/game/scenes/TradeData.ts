@@ -17,7 +17,6 @@ import { COLORS, FS, SPACE } from "../ui/theme";
 import { Panel, Slider } from "../ui/widgets";
 import { GameScene } from "./base";
 import {
-  actionFooter,
   applyLandShortage,
   continueAction,
   screenTitle,
@@ -116,13 +115,6 @@ export class TradeData extends GameScene {
     panel.add(label(this, priceX, 8, t("tradeData.price"), head));
     panel.add(label(this, amountX, 8, t("tradeData.amount"), head));
 
-    const priceHint = t(
-      remake ? "tradeData.priceHintRemake" : "tradeData.priceHint",
-    );
-    const amountHint = t(
-      remake ? "tradeData.amountHintRemake" : "tradeData.amountHint",
-    );
-    const footer = actionFooter(this, priceHint);
     let finish: () => void = () => {};
     let first: Slider | undefined;
     rows.forEach((row, i) => {
@@ -167,8 +159,6 @@ export class TradeData extends GameScene {
       p[row.amount] = amount.value;
       panel.add(price);
       panel.add(amount);
-      price.onFocus(() => footer.setText(priceHint));
-      amount.onFocus(() => footer.setText(amountHint));
       price.bind(group);
       amount.bind(group);
       first ??= price;
