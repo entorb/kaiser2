@@ -28,7 +28,7 @@ import {
 } from "./common";
 
 interface Column {
-  /** Header pictogram, centered over the right-aligned values. */
+  /** Header pictogram, centered over the centered values. */
   icon: IconDraw;
   value: (p: PlayerState) => string;
 }
@@ -83,6 +83,7 @@ export class Ranking extends GameScene {
     const nameW = 190;
     const colW = (content.w - SPACE.lg * 2 - rankW - nameW) / columns.length;
     const colX = (i: number) => SPACE.lg + rankW + nameW + i * colW;
+    const colCx = (i: number) => colX(i) + colW / 2;
     const headY = 56;
     const rowY0 = 100;
     const rowH = 42;
@@ -118,7 +119,7 @@ export class Ranking extends GameScene {
     );
     const icons = this.add.graphics();
     columns.forEach((col, i) => {
-      col.icon(icons, colX(i) + colW - HEAD_ICON / 2, headY + 11, HEAD_ICON);
+      col.icon(icons, colCx(i), headY + 11, HEAD_ICON);
     });
     panel.add(icons);
 
@@ -143,10 +144,10 @@ export class Ranking extends GameScene {
         }),
       );
       columns.forEach((col, c) => {
-        const l = label(this, colX(c) + colW, y, col.value(p), {
+        const l = label(this, colCx(c), y, col.value(p), {
           mono: true,
         });
-        l.setOrigin(1, 0);
+        l.setOrigin(0.5, 0);
         panel.add(l);
       });
     });

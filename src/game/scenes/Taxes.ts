@@ -6,13 +6,10 @@ import { stateIncome } from "../model/rules";
 import { getState } from "../model/session";
 import {
   fedFactor,
-  MARKT_VALUE,
-  MILL_VALUE,
   taxBreakdown,
   UNREST_LIMIT,
   unrest,
   unrestLevel,
-  WAGE,
 } from "../model/tax";
 import { type GameState, type PlayerState, playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
@@ -22,13 +19,7 @@ import { label } from "../ui/text";
 import { COLORS, css, SPACE } from "../ui/theme";
 import { Panel, SegmentedControl, Slider, StatRow } from "../ui/widgets";
 import { GameScene } from "./base";
-import {
-  actionFooter,
-  continueAction,
-  panelFigure,
-  screenTitle,
-  statusBar,
-} from "./common";
+import { continueAction, panelFigure, screenTitle, statusBar } from "./common";
 
 /** Gauge and mood-word color per `unrestLevel`. */
 const MOOD_COLORS = [
@@ -87,23 +78,6 @@ export class Taxes extends GameScene {
       finish = resolve;
     });
 
-    // Footer: the effect of whichever option is focused. The three tax rates
-    // share one formula (and one set of limits), so their hints share a note.
-    const limits = t(remake ? "tax.limitsRemake" : "tax.limits");
-    const hints = remake
-      ? [
-          `${t("tax.headHint", { wage: WAGE })} ${limits}`,
-          `${t("tax.buildingHint", { mill: MILL_VALUE, market: MARKT_VALUE })} ${limits}`,
-          t("tax.justiceHintRemake"),
-        ]
-      : [
-          `${t("tax.customsHint")} ${limits}`,
-          `${t("tax.vatHint")} ${limits}`,
-          `${t("tax.incomeTaxHint")} ${limits}`,
-          t("tax.justiceHint"),
-        ];
-    const footer = actionFooter(this, at(hints, 0));
-
     // Remake taxes people (EIN) and buildings (MWST); customs are unused.
     const fields: [string, number, (v: number) => void][] = remake
       ? [
@@ -134,7 +108,6 @@ export class Taxes extends GameScene {
         onSubmit: finish,
       });
       panel.add(field);
-      field.onFocus(() => footer.setText(at(hints, i)));
       field.bind(group);
     });
 
@@ -160,7 +133,6 @@ export class Taxes extends GameScene {
       },
     );
     panel.add(justice);
-    justice.onFocus(() => footer.setText(at(hints, fields.length)));
     justice.bind(group);
 
     refresh();

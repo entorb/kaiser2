@@ -57,11 +57,6 @@ export const STRINGS = {
   },
   "newGame.player": { de: "Spieler", en: "Player" },
   "newGame.computers": { de: "Computergegner", en: "Computer opponents" },
-  "newGame.computersHint": {
-    de: "Keinen, einen oder mehrere wählen. Sie spielen ganze Züge selbst und handeln mit dem Kaiser.",
-    en: "Pick none, one or several. They play whole turns themselves and trade with the Emperor.",
-  },
-  "newGame.none": { de: "Keiner", en: "None" },
   "newGame.computersFull": {
     de: "Mehr Plätze gibt es nicht.",
     en: "There are no more seats.",
@@ -113,14 +108,6 @@ export const STRINGS = {
   "ai.death": {
     de: "{name} starb, der Erbe übernimmt.",
     en: "{name} died, the heir takes over.",
-  },
-  "newGame.nameHint": {
-    de: "Name (max. 10 Zeichen)",
-    en: "Name (max 10 characters)",
-  },
-  "newGame.kingdomHint": {
-    de: "Name des Reiches (max. 12 Zeichen)",
-    en: "Kingdom name (max 12 characters)",
   },
   "newGame.kingdomEmpty": {
     de: "Bitte Reichsnamen eingeben",
@@ -193,10 +180,6 @@ export const STRINGS = {
     de: "Noch kein Handelshaus gepachtet.",
     en: "No trading house leased yet.",
   },
-  "trade.rentHint": {
-    de: "Handelshaus für {price} Taler kaufen, +1.3 Punkte.",
-    en: "Buy a trading house for {price} taler, +1.3 points.",
-  },
   "trade.verdictPleased": {
     de: "Der Kaiser ist erfreut",
     en: "The Emperor is pleased",
@@ -227,10 +210,6 @@ export const STRINGS = {
   "grain.trade": { de: "Kornhandel", en: "Grain Trade" },
   "partner.title": { de: "Handelspartner", en: "Trading partner" },
   "partner.max": { de: "max", en: "max" },
-  "partner.hint": {
-    de: "Sie kaufen und verkaufen Korn und Land zu den Preisen und Angeboten des gewählten Partners.",
-    en: "You buy and sell grain and land at the chosen partner's prices and offers.",
-  },
   "partner.bid": {
     de: "Ein Preis je 500 Einheiten. Große Käufe treiben ihn hoch, große Verkäufe drücken ihn. Der Kaiser verlangt mehr, wenn sein Vorrat knapp ist.",
     en: "One price per 500 units. Big purchases raise it, big sales lower it. The Emperor charges more when his stock is short.",
@@ -259,10 +238,6 @@ export const STRINGS = {
   "grain.need": { de: "Nötiges Korn", en: "Needed grain" },
   "grain.exhausted": { de: "Vorräte erschöpft", en: "Out of stock" },
   "grain.distribution": { de: "Kornausgabe", en: "Grain Issue" },
-  "grain.distributionHint": {
-    de: "20%=Minimum  80%=Maximum  Benötigt=Bedarf  eigene Menge",
-    en: "20%=minimum  80%=maximum  needed=demand  custom",
-  },
   "grain.tooLittle": { de: "Das ist zuwenig", en: "That is too little" },
   "grain.tooMuch": { de: "Das ist zuviel", en: "That is too much" },
   "grain.buyPrice": { de: "Preis / 500", en: "Price / 500" },
@@ -318,10 +293,6 @@ export const STRINGS = {
   "land.acre": { de: "Ackerland", en: "Acre land" },
   "land.buy": { de: "Kaufen", en: "Buy" },
   "land.sell": { de: "Verkaufen", en: "Sell" },
-  "land.tradeHint": {
-    de: "Links verkaufen, rechts kaufen",
-    en: "Left to sell, right to buy",
-  },
   "land.shortageTitle": { de: "Landmangel", en: "Land shortage" },
   "land.shortageText": {
     de: "Wegen Landmangels haben Sie {muhl} Mühle(n) und {markt} Markt/Märkte verloren.",
@@ -358,56 +329,20 @@ export const STRINGS = {
   "tax.vat": { de: "Mehrwertsteuer", en: "VAT" },
   "tax.incomeTax": { de: "Einkommensteuer", en: "Income tax" },
   "tax.justice": { de: "Justiz", en: "Justice" },
-  "tax.customsHint": {
-    de: "Einfuhrzoll: zählt mit Mehrwert- und Einkommensteuer; Grundlage ist der Mühlen- und Marktgewinn.",
-    en: "Customs: counts with VAT and income tax; based on mill and market profit.",
-  },
-  "tax.vatHint": {
-    de: "Mehrwertsteuer: zählt mit Zoll und Einkommensteuer; Grundlage ist der Mühlen- und Marktgewinn.",
-    en: "VAT: counts with customs and income tax; based on mill and market profit.",
-  },
-  "tax.incomeTaxHint": {
-    de: "Einkommensteuer: zählt mit Zoll und Mehrwertsteuer; Grundlage ist der Mühlen- und Marktgewinn.",
-    en: "Income tax: counts with customs and VAT; based on mill and market profit.",
-  },
-  "tax.justiceHint": {
-    de: "Justiz: Zuschlag von 0–99 Talern je Stufe, unabhängig vom Gewinn; 'Gierig' vertreibt Bürger.",
-    en: "Justice: bonus of 0–99 talers per level, independent of profit; 'Greedy' drives citizens away.",
-  },
-  "tax.limits": {
-    de: "Alle drei zusammen: über 60 % wandern Bürger aus, über 80 % verlieren Sie einen Rang, unter 20 % werden Sie ein Jahr enthoben.",
-    en: "All three combined: above 60% citizens emigrate, above 80% you lose a rank, below 20% you are suspended for a year.",
-  },
   "tax.headTax": { de: "Kopfsteuer", en: "Head tax" },
   "tax.buildingTax": { de: "Gebäudesteuer", en: "Building tax" },
   "tax.fines": { de: "Gerichtsgebühren", en: "Court fines" },
   "tax.fed": { de: "Ernährung", en: "Nutrition" },
-  "tax.forecast": { de: "Erwartet pro Jahr", en: "Expected per year" },
+  "tax.forecast": { de: "Erwartet nächstes Jahr", en: "Expected next year" },
   "tax.mood": { de: "Stimmung", en: "Mood" },
   "tax.mood0": { de: "Zufrieden", en: "Content" },
   "tax.mood1": { de: "Das Volk murrt", en: "The people grumble" },
   "tax.mood2": { de: "Bürger wandern ab", en: "Citizens leave" },
   "tax.mood3": { de: "Aufruhr: Rangverlust", en: "Revolt: rank lost" },
-  "tax.headHint": {
-    de: "Kopfsteuer: Anteil am Verdienst von {wage} Talern je Bürger; hungernde Bürger zahlen bis zur Hälfte weniger.",
-    en: "Head tax: share of the {wage} talers each citizen earns; starving citizens pay up to half less.",
-  },
-  "tax.buildingHint": {
-    de: "Gebäudesteuer: Anteil am geschätzten Jahresertrag von Mühlen ({mill}) und Märkten ({market}); Palast, Dom und Handelshäuser sind frei.",
-    en: "Building tax: share of the assessed yearly yield of mills ({mill}) and markets ({market}); palace, cathedral and trading houses are exempt.",
-  },
-  "tax.justiceHintRemake": {
-    de: "Justiz: Gebühren von 0 bis 3 Talern je Bürger; Härte erhöht die Belastung, Milde senkt sie.",
-    en: "Justice: fines of 0 to 3 talers per citizen; severity raises the burden, mildness lowers it.",
-  },
-  "tax.limitsRemake": {
-    de: "Ab 30 Belastungspunkten (beide Steuern plus Justiz) sinken Geburten und Zuzug und mehr Bürger wandern ab; über 70 verlieren Sie einen Rang, unter 20 (nur Steuern) werden Sie ein Jahr enthoben.",
-    en: "Above 30 burden points (both taxes plus justice) births and immigration fall and more citizens leave; above 70 you lose a rank, below 20 (taxes only) you are suspended for a year.",
-  },
-  "tax.changeCustoms": { de: "Zoll ändern", en: "Change customs" },
-  "tax.changeVat": { de: "Mehrwertsteuer ändern", en: "Change VAT" },
-  "tax.changeIncome": { de: "Einkommensteuer ändern", en: "Change income tax" },
-  "tax.changeJustice": { de: "Justiz ändern", en: "Change justice" },
+  "tax.changeCustoms": { de: "Zoll", en: "Customs" },
+  "tax.changeVat": { de: "Mehrwertsteuer", en: "VAT" },
+  "tax.changeIncome": { de: "Einkommensteuer", en: "Income tax" },
+  "tax.changeJustice": { de: "Justiz", en: "Justice" },
 
   "tradeData.title": {
     de: "Handel mit Mitspielern: Ihre Angebote",
@@ -415,22 +350,6 @@ export const STRINGS = {
   },
   "tradeData.price": { de: "Preis", en: "Price" },
   "tradeData.amount": { de: "Menge", en: "Amount" },
-  "tradeData.priceHint": {
-    de: "Preis je Einheit, zu dem Mitspieler bei Ihnen kaufen und Sie bei Mitspielern kaufen.",
-    en: "Price per unit at which rivals buy from you and you buy from rivals.",
-  },
-  "tradeData.priceHintRemake": {
-    de: "Preis je Einheit, zu dem Mitspieler und Computer bei Ihnen kaufen und Sie bei Mitspielern kaufen. Käufer wählen den Billigsten, auch den Kaiser.",
-    en: "Price per unit at which rivals and computers buy from you and you buy from rivals. Buyers pick the cheapest seller, the Emperor included.",
-  },
-  "tradeData.amountHintRemake": {
-    de: "Menge, die Sie diese Runde anbieten; auch 0 ist erlaubt. Land nur, soweit Mühlen, Märkte und 10 ha je Einwohner gedeckt bleiben.",
-    en: "Amount you offer this round; 0 is allowed. Land only as far as mills, markets and 10 ha per head stay covered.",
-  },
-  "tradeData.amountHint": {
-    de: "Menge, die Sie diese Runde anbieten. Mindestens 10 % der Güter müssen angeboten werden.",
-    en: "Amount you offer this round. At least 10% of goods must be offered.",
-  },
 
   "business.title": { de: "Staatseinkäufe", en: "State purchases" },
   "business.fortune": { de: "Taler", en: "Taler" },

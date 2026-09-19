@@ -4,6 +4,8 @@ export interface SnapshotText {
   x: number;
   y: number;
   text: string;
+  /** Font size in canvas pixels (from Phaser's TextStyle). */
+  size?: number;
   /** True when the text lives inside the keyboard-focused widget. */
   focused?: boolean;
 }
@@ -21,6 +23,8 @@ export interface SceneNode {
   text?: string;
   focused?: boolean;
   list?: SceneNode[];
+  /** Phaser TextStyle of a text object (containers have none). */
+  style?: { fontSize?: string | number };
 }
 
 /**
@@ -40,10 +44,14 @@ export function collectText(
   const y = oy + node.y;
   const isFocused = focused || node.focused === true;
   if (typeof node.text === "string" && node.text.length > 0) {
+    const raw = node.style?.fontSize;
+    const size =
+      raw == null ? undefined : Math.round(Number.parseFloat(String(raw)));
     out.push({
       x: Math.round(x),
       y: Math.round(y),
       text: node.text,
+      size,
       focused: isFocused || undefined,
     });
   }
