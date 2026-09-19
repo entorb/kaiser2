@@ -64,9 +64,7 @@ export class TradePartner extends GameScene {
       panel.add(rule);
       const footer = actionFooter(
         this,
-        state.rules === "remake"
-          ? `${t("partner.hint")} ${t("partner.bid")}`
-          : t("partner.hint"),
+        state.rules === "remake" ? t("partner.bid") : "",
       );
 
       const cellPair = (price: number, offer: number): ListCell[] => [

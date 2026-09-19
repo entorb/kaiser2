@@ -71,22 +71,6 @@ export class Land extends GameScene {
 
     const landG = this.add.graphics();
     left.add(landG);
-    const buildingY = h - 26;
-    const acreY = buildingY - 22;
-    const legend = this.add.graphics();
-    drawAcreIcon(legend, SPACE.lg + 8, acreY + 8, 20);
-    drawBuildingIcon(legend, SPACE.lg + 8, buildingY + 8, 20);
-    left.add(legend);
-    const acreLabel = label(this, SPACE.lg + 22, acreY, "", {
-      size: FS.small,
-      color: COLORS.muted,
-    });
-    left.add(acreLabel);
-    const buildingLabel = label(this, SPACE.lg + 22, buildingY, "", {
-      size: FS.small,
-      color: COLORS.muted,
-    });
-    left.add(buildingLabel);
 
     let buildingAmount = 0;
     let acreAmount = 0;
@@ -98,12 +82,10 @@ export class Land extends GameScene {
         SPACE.lg,
         24,
         leftW - SPACE.lg * 2,
-        h - 100,
+        h - 24,
         building,
         acre,
       );
-      acreLabel.setText(`${t("land.acre")}: ${acre}`);
-      buildingLabel.setText(`${t("land.building")}: ${building}`);
     };
     redraw();
 

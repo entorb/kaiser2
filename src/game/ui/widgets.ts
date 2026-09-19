@@ -926,8 +926,6 @@ export class Slider extends Widget {
   private max: number;
   private step: number;
   private readonly initial: number;
-  private readonly minLabelText?: GameObjects.Text;
-  private readonly maxLabelText?: GameObjects.Text;
   private readonly trackX = 26;
   private readonly trackY = 32;
   private readonly trackW: number;
@@ -975,7 +973,6 @@ export class Slider extends Widget {
       });
       l.setOrigin(0, 0);
       this.add(l);
-      this.minLabelText = l;
     }
     if (opts.maxLabel) {
       const l = label(
@@ -987,7 +984,6 @@ export class Slider extends Widget {
       );
       l.setOrigin(1, 0);
       this.add(l);
-      this.maxLabelText = l;
     }
     for (const tick of opts.ticks ?? []) {
       if (tick.value < this.min || tick.value > this.max) continue;
@@ -1108,12 +1104,6 @@ export class Slider extends Widget {
     this.value = clamp(this.snap(this.value), min, max);
     this.updateTexts();
     this.redraw();
-  }
-
-  /** Replace the end captions (e.g. show new 20%/80% amounts after a trade). */
-  setEndLabels(min: string, max: string): void {
-    this.minLabelText?.setText(min);
-    this.maxLabelText?.setText(max);
   }
 
   private updateTexts(): void {
