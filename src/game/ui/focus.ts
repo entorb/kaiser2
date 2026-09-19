@@ -89,22 +89,30 @@ export class FocusGroup {
       return;
     }
     if (this.items[this.index]?.handleKey(event)) {
-      blip(event.key === "Enter" || event.key === " " ? "click" : "move");
+      this.blipFor(event);
       return;
     }
+    this.navigate(event);
+  }
+
+  private navigate(event: KeyboardEvent): void {
     const forward =
       event.key === "ArrowDown" ||
       (this.horizontal && event.key === "ArrowRight");
     const back =
       event.key === "ArrowUp" || (this.horizontal && event.key === "ArrowLeft");
-    if (forward || back) {
-      const next = this.index + (forward ? 1 : -1);
-      // No wrapping: ArrowDown on the bottom action (Next/Continue) is ignored.
-      if (next < 0 || next >= n) return;
-      event.preventDefault();
-      this.setIndex(next);
-      blip("move");
-    }
+    if (!forward && !back) return;
+    const n = this.items.length;
+    const next = this.index + (forward ? 1 : -1);
+    // No wrapping: ArrowDown on the bottom action (Next/Continue) is ignored.
+    if (next < 0 || next >= n) return;
+    event.preventDefault();
+    this.setIndex(next);
+    blip("move");
+  }
+
+  private blipFor(event: KeyboardEvent): void {
+    blip(event.key === "Enter" || event.key === " " ? "click" : "move");
   }
 
   private deactivate(): void {

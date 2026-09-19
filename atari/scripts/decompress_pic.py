@@ -131,7 +131,7 @@ def main() -> None:
         sys.exit(1)
     src = repo_path(sys.argv[1])
     mode = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    # NOSONAR: `src` is constrained to the repo by repo_path() above.
+    # src is constrained to the repo by repo_path() above.
     scr = Loader(src.read_bytes(), mode=mode, end_on_bit7=False).run()
     print(f"{src}: nonzero={sum(1 for b in scr if b)} checksum={kaiser0_checksum(scr)}")
     if len(sys.argv) > 2:
