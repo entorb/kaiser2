@@ -26,7 +26,7 @@ import { label } from "../ui/text";
 import { COLORS, css, FONT_UI, FS, RADIUS, SPACE } from "../ui/theme";
 import { Button, Slider } from "../ui/widgets";
 import { GameScene } from "./base";
-import { primaryAction, screenTitle } from "./common";
+import { continueAction, screenTitle } from "./common";
 
 export class NewGame extends GameScene {
   constructor() {
@@ -92,7 +92,7 @@ export class NewGame extends GameScene {
 
     const count = await new Promise<number>((resolve) => {
       finish = () => resolve(control.value);
-      primaryAction(this, group, t("ui.ok"), finish);
+      continueAction(this, group, finish);
       group.focus(control);
     });
     group.destroy();
@@ -114,34 +114,24 @@ export class NewGame extends GameScene {
       color: COLORS.accent,
       weight: "bold",
     });
-    const note = label(
-      this,
-      content.x,
-      content.y + 84,
-      t("newGame.computersHint"),
-      {
-        color: COLORS.onWood,
-        size: FS.small,
-        wrap: content.w,
-      },
-    );
+    const note = label(this, content.x, content.y + 84, "", {
+      color: COLORS.onWood,
+      size: FS.small,
+      wrap: content.w,
+    });
 
     const chosen = new Set<Difficulty>();
     const gap = SPACE.lg;
-    const cols = DIFFICULTIES.length + 1;
+    const cols = DIFFICULTIES.length;
     const w = (content.w - gap * (cols - 1)) / cols;
     const y = content.y + 132;
 
     const picked = await new Promise<Difficulty[]>((resolve) => {
       const finish = () =>
         resolve(DIFFICULTIES.filter((level) => chosen.has(level)));
-      const proceed = new Button(this, content.x, y, w, 80, t("newGame.none"), {
-        variant: "primary",
-        onClick: finish,
-      });
-      proceed.bind(group);
+      let first: Button | undefined;
       for (const [i, level] of DIFFICULTIES.entries()) {
-        const x = content.x + (i + 1) * (w + gap);
+        const x = content.x + i * (w + gap);
         const levelLabel = t(`level.${level}`);
         const button = new Button(
           this,
@@ -152,27 +142,23 @@ export class NewGame extends GameScene {
           `${AI_PROFILES[level].name} (${levelLabel})`,
           {
             onClick: () => {
-              if (chosen.delete(level))
-                note.setText(t("newGame.computersHint"));
+              if (chosen.delete(level)) note.setText("");
               else if (chosen.size < seats) chosen.add(level);
               else note.setText(t("newGame.computersFull"));
               button.setVariant(chosen.has(level) ? "primary" : "secondary");
-              proceed.setText(t(chosen.size ? "ui.continue" : "newGame.none"));
-            },
-            // Enter picks the focused opponent (if a seat is free) and starts.
-            onSubmit: () => {
-              if (chosen.size < seats) chosen.add(level);
-              finish();
             },
           },
         );
         button.bind(group);
+        first ??= button;
         label(this, x, y + 92, t(`level.${level}Text`), {
           color: COLORS.onWood,
           size: FS.small,
           wrap: w,
         });
       }
+      continueAction(this, group, finish);
+      if (first) group.focus(first);
     });
     group.destroy();
     return picked;
@@ -180,8 +166,8 @@ export class NewGame extends GameScene {
 
   /**
    * Per ruler: enter a name and a kingdom and pick a coat of arms on one
-   * screen. All stay editable until OK. The confirm button sits inline next to
-   * the inputs so the on-screen keyboard cannot cover it.
+   * screen. All stay editable until OK. The arrow advance button sits in the
+   * bottom action bar like on every other screen.
    */
   private setupPlayer(
     state: GameState,
@@ -265,13 +251,6 @@ export class NewGame extends GameScene {
     // the camera.
     const inputW = 300;
     const kingdomX = content.x + inputW + 30;
-    const heading = {
-      size: FS.heading,
-      color: COLORS.accent,
-      weight: "bold",
-    } as const;
-    label(this, content.x, content.y + 212, t("newGame.nameHint"), heading);
-    label(this, kingdomX, content.y + 212, t("newGame.kingdomHint"), heading);
     const [nameInput, nameField] = this.textInput(
       content.x,
       content.y + 240,
@@ -367,16 +346,8 @@ export class NewGame extends GameScene {
         resolve();
       };
 
-      const ok = new Button(
-        this,
-        content.x + content.w - 240,
-        content.y + 240,
-        240,
-        80,
-        t("ui.ok"),
-        { variant: "primary", onClick: confirm },
-      );
-      ok.bind(group);
+      continueAction(this, group, confirm);
+      group.focus(iconFocus);
 
       // Isolate typing from game keys (Phaser listens on window), so arrows do
       // not move the shield and Enter does not double-fire through the group.

@@ -247,7 +247,6 @@ export class TradingHouse extends GameScene {
     const describe = (index: number): string => {
       const id = entries[index]?.id;
       if (id === "servants") return this.staffHint(state, p, needed, staffNow);
-      if (id === "lease") return t("trade.rentHint", { price });
       return "";
     };
     footer.setText(describe(0));

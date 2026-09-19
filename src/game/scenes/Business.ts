@@ -28,8 +28,8 @@ import {
 } from "../ui/icon";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
-import { COLORS, css, SPACE } from "../ui/theme";
-import { type ListItem, ListMenu, Panel, StatRow } from "../ui/widgets";
+import { COLORS, css } from "../ui/theme";
+import { type ListItem, ListMenu } from "../ui/widgets";
 import { GameScene } from "./base";
 import {
   BUILDING_LABEL,
@@ -93,6 +93,14 @@ export class Business extends GameScene {
         label: t("secret.title"),
         icon: (g, x, y, size) => drawEventIcon(g, x, y, size, "spy"),
       });
+      const zins = Math.trunc(interest(p.geld));
+      options.push({
+        label: t("business.interest"),
+        icon: drawCoinsIcon,
+        value: `${zins}`,
+        valueIcon: drawCoinsIcon,
+        disabled: true,
+      });
 
       // Footer: requirements and benefit of the highlighted building. Cost and
       // land turn red when the ruler cannot afford / does not own enough.
@@ -146,26 +154,6 @@ export class Business extends GameScene {
       const rowH = 40;
       const gap = 6;
       const listY = content.y + 54;
-      const listH = options.length * (rowH + gap) - gap;
-      const zins = Math.trunc(interest(p.geld));
-      const interestPanel = new Panel(
-        this,
-        content.x,
-        listY + listH + 16,
-        content.w,
-        52,
-      );
-      interestPanel.add(
-        new StatRow(
-          this,
-          SPACE.lg,
-          14,
-          content.w - SPACE.lg * 2,
-          t("business.interest"),
-          `${zins > 0 ? "+" : ""}${zins}`,
-          { icon: drawCoinsIcon },
-        ),
-      );
       const choice = await new Promise<number>((resolve) => {
         const menu = new ListMenu(this, content.x, listY, content.w, options, {
           rowH,

@@ -145,8 +145,6 @@ export class Grain extends GameScene {
         step: distStep(0),
         initial: neededFor(0),
         format: (v) => `${v}`,
-        minLabel: `${b0.p20}`,
-        maxLabel: `${b0.p80}`,
         // Red while giving the people less than they need.
         valueColor: (v) =>
           v < neededFor(tradeAmount) ? COLORS.danger : COLORS.success,
@@ -191,7 +189,6 @@ export class Grain extends GameScene {
           priceText.setText(priceOf(v));
           const b = boundsFor(v);
           dist.setRange(b.p20, b.p80, distStep(v));
-          dist.setEndLabels(`${b.p20}`, `${b.p80}`);
           // Reset distribution default: the need, rounded up to the step so a
           // sufficient stock never shows red just from rounding down.
           const need = neededFor(v);
