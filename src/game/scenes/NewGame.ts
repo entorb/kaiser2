@@ -142,13 +142,14 @@ export class NewGame extends GameScene {
       proceed.bind(group);
       for (const [i, level] of DIFFICULTIES.entries()) {
         const x = content.x + (i + 1) * (w + gap);
+        const levelLabel = t(`level.${level}`);
         const button = new Button(
           this,
           x,
           y,
           w,
           80,
-          `${AI_PROFILES[level].name} (${t(`level.${level}`)})`,
+          `${AI_PROFILES[level].name} (${levelLabel})`,
           {
             onClick: () => {
               if (chosen.delete(level))
