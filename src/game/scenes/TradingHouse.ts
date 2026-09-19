@@ -154,7 +154,8 @@ export class TradingHouse extends GameScene {
     if (built.length > 0) lines.push(t("ai.built", { list: built.join(", ") }));
     if (report.leased > 0) lines.push(t("ai.leased"));
     for (const event of report.events) lines.push(t(`ai.${event}`, name));
-    await alert(this, `${p.name} (${t(`level.${p.ai ?? "medium"}`)})`, lines);
+    const levelLabel = t(`level.${p.ai ?? "medium"}`);
+    await alert(this, `${p.name} (${levelLabel})`, lines);
     group.destroy();
     if (report.won) {
       toCoronation(this.scene, name);
@@ -349,9 +350,9 @@ export class TradingHouse extends GameScene {
       ],
       info: (v: number) => {
         const { verdict, points } = tributeVerdict(v, zahl);
-        return points === 0
-          ? words[verdict]
-          : `${words[verdict]} (${points > 0 ? "+" : ""}${points})`;
+        if (points === 0) return words[verdict];
+        const sign = points > 0 ? "+" : "";
+        return `${words[verdict]} (${sign}${points})`;
       },
       infoColor: (v: number) => color[tributeVerdict(v, zahl).verdict],
     };

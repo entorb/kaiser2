@@ -369,6 +369,19 @@ export function tradeLand(
  * rules the Emperor is the only partner. A partner whose quoted price is above
  * `maxPrice` is skipped. Returns the units bought.
  */
+
+/** True when computer `c` is a better deal than the current `best`. */
+function beatsBest(
+  c: { han: number; units: number; unit: number },
+  best: { han: number; units: number; unit: number },
+  want: number,
+): boolean {
+  const fills = c.units >= want;
+  const bestFills = best.units >= want;
+  if (fills !== bestFills) return fills;
+  return fills ? c.unit < best.unit : c.units > best.units;
+}
+
 export function buyCheapest(
   state: GameState,
   sp: number,
@@ -388,15 +401,7 @@ export function buyCheapest(
     );
     if (units <= 0) continue;
     const c = { han, units, unit: buyCost(state, han, good, units) / units };
-    const fills = c.units >= want;
-    const bestFills = best.units >= want;
-    const better =
-      fills === bestFills
-        ? fills
-          ? c.unit < best.unit
-          : c.units > best.units
-        : fills;
-    if (better) best = c;
+    if (beatsBest(c, best, want)) best = c;
   }
   if (best.han < 0) return 0;
   return good === "grain"

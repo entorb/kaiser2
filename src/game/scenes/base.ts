@@ -22,9 +22,11 @@ export class GameScene extends Scene {
   /**
    * Destroy every object on screen before a rebuild. `children.removeAll()` only
    * detaches them (its argument is `skipCallback`, not `destroyChild`), which
-   * leaves each label's `scale` resize listener registered forever.
+   * leaves each label's `scale` resize listener registered forever. The loop
+   * destroys the head each pass: `destroy()` splices the object out of the list,
+   * so stepping by index (or a snapshot) is not needed.
    */
   protected clearScreen(): void {
-    for (const child of [...this.children.list]) child.destroy();
+    while (this.children.list.length > 0) this.children.list[0]?.destroy();
   }
 }
