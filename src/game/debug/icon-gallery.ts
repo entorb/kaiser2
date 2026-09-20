@@ -1,4 +1,4 @@
-import { type Game, type GameObjects, Scene } from "phaser";
+import { type Game, type GameObjects, Scene } from "phaser"
 import {
   drawAcreIcon,
   drawArrowIcon,
@@ -24,36 +24,31 @@ import {
   drawWeatherIcon,
   EVENT_ICONS,
   ICON_COUNT,
-} from "../ui/icon";
-import { RENDER_SCALE } from "../ui/layout";
-import { panelFrame } from "../ui/ornament";
-import { label } from "../ui/text";
-import { COLORS, FS } from "../ui/theme";
-import { bootGallery } from "./gallery";
+} from "../ui/icon"
+import { RENDER_SCALE } from "../ui/layout"
+import { panelFrame } from "../ui/ornament"
+import { label } from "../ui/text"
+import { COLORS, FS } from "../ui/theme"
+import { bootGallery } from "./gallery"
 
-type DrawFn = (
-  g: GameObjects.Graphics,
-  cx: number,
-  cy: number,
-  size: number,
-) => void;
+type DrawFn = (g: GameObjects.Graphics, cx: number, cy: number, size: number) => void
 
 export interface IconSpec {
   /** Export name, shown as the card title. */
-  name: string;
+  name: string
   /** Where it is used, shown under the card. */
-  note: string;
-  draw: DrawFn;
+  note: string
+  draw: DrawFn
   /** Variant for the wood swatch, when the default ink would vanish there. */
-  drawOnWood?: DrawFn;
+  drawOnWood?: DrawFn
 }
 
 export interface IconSection {
-  title: string;
-  icons: IconSpec[];
+  title: string
+  icons: IconSpec[]
 }
 
-const WEATHER_LEVELS = 10;
+const WEATHER_LEVELS = 10
 
 export const ICON_SECTIONS: IconSection[] = [
   {
@@ -192,90 +187,82 @@ export const ICON_SECTIONS: IconSection[] = [
       draw: (g, x, y, s) => drawShield(g, x, y, s, i),
     })),
   },
-];
+]
 
-const PER_ROW = 5;
-const CARD_W = 180;
-const CARD_H = 132;
-const TILE_H = 76;
-const GAP = 16;
-const PAD = 24;
-const SECTION_H = 44;
-const SIZES = [44, 24, 16, 12];
-const SWATCH = 32;
+const PER_ROW = 5
+const CARD_W = 180
+const CARD_H = 132
+const TILE_H = 76
+const GAP = 16
+const PAD = 24
+const SECTION_H = 44
+const SIZES = [44, 24, 16, 12]
+const SWATCH = 32
 
-const WIDTH = PAD * 2 + PER_ROW * CARD_W + (PER_ROW - 1) * GAP;
+const WIDTH = PAD * 2 + PER_ROW * CARD_W + (PER_ROW - 1) * GAP
 
 function rows(section: IconSection): number {
-  return Math.ceil(section.icons.length / PER_ROW);
+  return Math.ceil(section.icons.length / PER_ROW)
 }
 
 function galleryHeight(): number {
-  return ICON_SECTIONS.reduce(
-    (h, s) => h + SECTION_H + rows(s) * (CARD_H + GAP),
-    PAD * 2,
-  );
+  return ICON_SECTIONS.reduce((h, s) => h + SECTION_H + rows(s) * (CARD_H + GAP), PAD * 2)
 }
 
 class IconGallery extends Scene {
   constructor() {
-    super("IconGallery");
+    super("IconGallery")
   }
 
   create(): void {
     // Same RENDER_SCALE trick as GameScene: design units in, crisp canvas out.
-    const camera = this.cameras.main;
-    camera.setZoom(RENDER_SCALE);
-    camera.centerOn(WIDTH / 2, galleryHeight() / 2);
-    const g = this.add.graphics();
-    let y = PAD;
+    const camera = this.cameras.main
+    camera.setZoom(RENDER_SCALE)
+    camera.centerOn(WIDTH / 2, galleryHeight() / 2)
+    const g = this.add.graphics()
+    let y = PAD
     for (const section of ICON_SECTIONS) {
       label(this, PAD, y, section.title, {
         size: FS.heading,
         weight: "bold",
         display: true,
         color: COLORS.accent,
-      });
-      y += SECTION_H;
+      })
+      y += SECTION_H
       section.icons.forEach((spec, i) => {
-        const x = PAD + (i % PER_ROW) * (CARD_W + GAP);
-        this.card(g, spec, x, y + Math.floor(i / PER_ROW) * (CARD_H + GAP));
-      });
-      y += rows(section) * (CARD_H + GAP);
+        const x = PAD + (i % PER_ROW) * (CARD_W + GAP)
+        this.card(g, spec, x, y + Math.floor(i / PER_ROW) * (CARD_H + GAP))
+      })
+      y += rows(section) * (CARD_H + GAP)
     }
   }
 
-  private card(
-    g: GameObjects.Graphics,
-    spec: IconSpec,
-    x: number,
-    y: number,
-  ): void {
-    panelFrame(g, x, y, CARD_W, TILE_H);
-    const cy = y + TILE_H / 2;
-    let cx = x + 10;
+  private card(g: GameObjects.Graphics, spec: IconSpec, x: number, y: number): void {
+    panelFrame(g, x, y, CARD_W, TILE_H)
+    const cy = y + TILE_H / 2
+    let cx = x + 10
     for (const size of SIZES) {
-      spec.draw(g, cx + size / 2, cy, size);
-      cx += size + 8;
+      spec.draw(g, cx + size / 2, cy, size)
+      cx += size + 8
     }
-    const swatchX = x + CARD_W - 12 - SWATCH;
-    g.fillStyle(COLORS.woodDark, 1);
-    g.fillRect(swatchX, cy - SWATCH / 2, SWATCH, SWATCH);
-    (spec.drawOnWood ?? spec.draw)(g, swatchX + SWATCH / 2, cy, 24);
+    const swatchX = x + CARD_W - 12 - SWATCH
+    g.fillStyle(COLORS.woodDark, 1)
+    g.fillRect(swatchX, cy - SWATCH / 2, SWATCH, SWATCH)
+    ;(spec.drawOnWood ?? spec.draw)(g, swatchX + SWATCH / 2, cy, 24)
     label(this, x, y + TILE_H + 6, spec.name, {
       size: FS.small,
       weight: "bold",
       color: COLORS.accent,
-    });
+    })
     label(this, x, y + TILE_H + 22, spec.note, {
       size: FS.small,
       color: COLORS.muted,
       wrap: CARD_W,
-    });
+    })
   }
 }
 
 /** Boot the gallery into `parent`. */
 export function startGallery(parent: string): Promise<Game> {
-  return bootGallery(parent, WIDTH, galleryHeight(), IconGallery);
+  return bootGallery(parent, WIDTH, galleryHeight(), IconGallery)
 }

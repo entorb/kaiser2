@@ -1,24 +1,24 @@
-import { AUTO, Game, Scale, type Types } from "phaser";
-import { Backdrop } from "./scenes/Backdrop";
-import { Boot } from "./scenes/Boot";
-import { Business } from "./scenes/Business";
-import { Chronicle } from "./scenes/Chronicle";
-import { Coronation } from "./scenes/Coronation";
-import { Grain } from "./scenes/Grain";
-import { Highscore } from "./scenes/Highscore";
-import { Land } from "./scenes/Land";
-import { Menu } from "./scenes/Menu";
-import { Monument } from "./scenes/Monument";
-import { NewGame } from "./scenes/NewGame";
-import { Promotion } from "./scenes/Promotion";
-import { Ranking } from "./scenes/Ranking";
-import { SecretService } from "./scenes/SecretService";
-import { Taxes } from "./scenes/Taxes";
-import { TradeData } from "./scenes/TradeData";
-import { TradePartner } from "./scenes/TradePartner";
-import { TradingHouse } from "./scenes/TradingHouse";
-import { fitCanvas, GAME_H, GAME_W, landscapeAspect } from "./ui/layout";
-import { COLORS, css } from "./ui/theme";
+import { AUTO, Game, Scale, type Types } from "phaser"
+import { Backdrop } from "./scenes/Backdrop"
+import { Boot } from "./scenes/Boot"
+import { Business } from "./scenes/Business"
+import { Chronicle } from "./scenes/Chronicle"
+import { Coronation } from "./scenes/Coronation"
+import { Grain } from "./scenes/Grain"
+import { Highscore } from "./scenes/Highscore"
+import { Land } from "./scenes/Land"
+import { Menu } from "./scenes/Menu"
+import { Monument } from "./scenes/Monument"
+import { NewGame } from "./scenes/NewGame"
+import { Promotion } from "./scenes/Promotion"
+import { Ranking } from "./scenes/Ranking"
+import { SecretService } from "./scenes/SecretService"
+import { Taxes } from "./scenes/Taxes"
+import { TradeData } from "./scenes/TradeData"
+import { TradePartner } from "./scenes/TradePartner"
+import { TradingHouse } from "./scenes/TradingHouse"
+import { fitCanvas, GAME_H, GAME_W, landscapeAspect } from "./ui/layout"
+import { COLORS, css } from "./ui/theme"
 
 // The layout uses a 576-high design space at least 960 wide (the original
 // 320x192 at SCALE 3), widened to the window's aspect and rendered at
@@ -60,11 +60,11 @@ const config: Types.Core.GameConfig = {
     SecretService,
     Highscore,
   ],
-};
+}
 
 const StartGame = (parent: string) => {
-  fitCanvas(landscapeAspect(window.innerWidth, window.innerHeight));
-  return new Game({ ...config, parent, width: GAME_W, height: GAME_H });
-};
+  fitCanvas(landscapeAspect(window.innerWidth, window.innerHeight))
+  return new Game({ ...config, parent, width: GAME_W, height: GAME_H })
+}
 
-export default StartGame;
+export default StartGame

@@ -1,5 +1,5 @@
-import type { GameState, PlayerState } from "./types";
-import { playerAt } from "./types";
+import type { GameState, PlayerState } from "./types"
+import { playerAt } from "./types"
 
 /** Fresh per-turn scratch values (locals in KAISERB/KAISER3). */
 export function resetTurn(state: GameState): void {
@@ -14,7 +14,7 @@ export function resetTurn(state: GameState): void {
     neu: 0,
     alt: 0,
     faul: 0,
-  };
+  }
 }
 
 /**
@@ -26,17 +26,16 @@ export function resetTurn(state: GameState): void {
  */
 export function advancePlayer(state: GameState): void {
   const step = () => {
-    state.sp += 1;
+    state.sp += 1
     if (state.sp > state.count) {
-      state.sp = 1;
-      state.jahr += 1;
+      state.sp = 1
+      state.jahr += 1
     }
-  };
-  step();
-  while (state.count > 1 && consumeDeposition(playerAt(state, state.sp)))
-    step();
-  startRuler(state);
-  resetTurn(state);
+  }
+  step()
+  while (state.count > 1 && consumeDeposition(playerAt(state, state.sp))) step()
+  startRuler(state)
+  resetTurn(state)
 }
 
 /**
@@ -44,14 +43,14 @@ export function advancePlayer(state: GameState): void {
  * point. Deposed rulers who are skipped do not age or score.
  */
 export function startRuler(state: GameState): void {
-  const p = playerAt(state, state.sp);
-  p.tod -= 1;
-  p.punkte += 1;
+  const p = playerAt(state, state.sp)
+  p.tod -= 1
+  p.punkte += 1
 }
 
 /** KAISERB:2370 - consume one year of a deposition; true while suspended. */
 function consumeDeposition(p: PlayerState): boolean {
-  if (p.entHob <= 0) return false;
-  p.entHob -= 1;
-  return true;
+  if (p.entHob <= 0) return false
+  p.entHob -= 1
+  return true
 }

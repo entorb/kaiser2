@@ -2,71 +2,60 @@
 // the scene mapping and the SFX specs are unit-testable. `music.ts` turns
 // these numbers into oscillators. All tunes are original — no Atari audio.
 
-export type Voice = "harp" | "flute" | "brass";
-export type TrackName =
-  | "menu"
-  | "game"
-  | "fanfare"
-  | "coronation"
-  | "palace"
-  | "cathedral";
-export type BlipName = "click" | "move";
+export type Voice = "harp" | "flute" | "brass"
+export type TrackName = "menu" | "game" | "fanfare" | "coronation" | "palace" | "cathedral"
+export type BlipName = "click" | "move"
 
 export interface Note {
   /** Start, in beats from the top of the loop. */
-  beat: number;
+  beat: number
   /** Length, in beats. */
-  dur: number;
+  dur: number
   /** MIDI note number (69 = A4). */
-  midi: number;
-  voice: Voice;
-  gain?: number;
+  midi: number
+  voice: Voice
+  gain?: number
 }
 
 export interface DroneSpec {
   /** MIDI root; the fifth is added an octave and a half above. */
-  midi: number;
-  gain?: number;
+  midi: number
+  gain?: number
 }
 
 export interface Track {
-  bpm: number;
-  loopBeats: number;
+  bpm: number
+  loopBeats: number
   /** Sorted by `beat`; the scheduler walks them in order. */
-  notes: Note[];
-  drone?: DroneSpec;
+  notes: Note[]
+  drone?: DroneSpec
 }
 
 export interface BlipSpec {
-  freq: number;
-  dur: number;
-  gain: number;
-  wave: OscillatorType;
+  freq: number
+  dur: number
+  gain: number
+  wave: OscillatorType
 }
 
 /** `[beat, duration in beats, MIDI note]`. */
-type Row = [beat: number, dur: number, midi: number];
+type Row = [beat: number, dur: number, midi: number]
 
 const harp = (rows: Row[]): Note[] =>
-  rows.map(([beat, dur, midi]) => ({ beat, dur, midi, voice: "harp" }));
+  rows.map(([beat, dur, midi]) => ({ beat, dur, midi, voice: "harp" }))
 const flute = (rows: Row[]): Note[] =>
-  rows.map(([beat, dur, midi]) => ({ beat, dur, midi, voice: "flute" }));
+  rows.map(([beat, dur, midi]) => ({ beat, dur, midi, voice: "flute" }))
 
 const brass = (rows: Row[]): Note[] =>
-  rows.map(([beat, dur, midi]) => ({ beat, dur, midi, voice: "brass" }));
+  rows.map(([beat, dur, midi]) => ({ beat, dur, midi, voice: "brass" }))
 
-function track(
-  bpm: number,
-  loopBeats: number,
-  notes: Note[],
-  drone?: DroneSpec,
-): Track {
+function track(bpm: number, loopBeats: number, notes: Note[], drone?: DroneSpec): Track {
   return {
     bpm,
     loopBeats,
     notes: [...notes].sort((a, b) => a.beat - b.beat),
     drone,
-  };
+  }
 }
 
 // G major, brisk 4/4 bard dance: a bouncy harp jig in the first half hands the
@@ -153,7 +142,7 @@ const MENU = track(120, 32, [
     [30, 1, 43],
     [31, 1, 50],
   ]),
-]);
+])
 
 // A Aeolian, calm and sparse so it does not fight the play loop: a flute lead
 // over a slow harp arpeggio (Am / F / C / G shapes) and an A/E drone. ~20 s.
@@ -198,7 +187,7 @@ const GAME = track(
     ]),
   ],
   { midi: 45, gain: 0.07 },
-);
+)
 
 // D Ionian flourish for a promotion or a coronation. One-shot, not looped.
 const FANFARE = track(132, 8, [
@@ -219,7 +208,7 @@ const FANFARE = track(132, 8, [
     [4, 2, 86], // D6
     [7, 1, 81], // A5
   ]),
-]);
+])
 
 // Coronation processional in D major, 4/4 at 84 BPM (~23 s loop). Brass states a
 // stately dotted theme over a rolling harp arpeggio and a D drone (D Bm G A, then
@@ -234,8 +223,8 @@ const CHORDS: [number, number[]][] = [
   [20, [43, 50, 55, 59]], // G
   [24, [45, 52, 57, 61]], // A
   [28, [45, 52, 57, 61]], // A
-];
-const ARP = [0, 1, 2, 3, 2, 1, 2, 1];
+]
+const ARP = [0, 1, 2, 3, 2, 1, 2, 1]
 
 const THEME_A: Row[] = [
   [0, 1.5, 74], // D5
@@ -250,7 +239,7 @@ const THEME_A: Row[] = [
   [12, 1.5, 78], // F#5
   [13.5, 0.5, 76], // E5
   [14, 2, 73], // C#5
-];
+]
 const THEME_B: Row[] = [
   [16, 1.5, 74], // D5
   [17.5, 0.5, 78], // F#5
@@ -264,7 +253,7 @@ const THEME_B: Row[] = [
   [28, 1.5, 78], // F#5
   [29.5, 0.5, 76], // E5
   [30, 2, 73], // C#5 (leading tone into the loop's D)
-];
+]
 
 const CORONATION = track(
   84,
@@ -279,7 +268,7 @@ const CORONATION = track(
     ),
   ],
   { midi: 38, gain: 0.06 },
-);
+)
 
 // Palace: a courtly march in F major, 4/4 at 100 BPM (~19 s loop). Brass calls
 // the theme in dotted heraldic rhythm (F Dm Bb C, then F Bb C F) over a lute-like
@@ -294,7 +283,7 @@ const PALACE_CHORDS: [number, number, number[]][] = [
   [20, 46, [58, 62, 65]], // Bb
   [24, 48, [55, 60, 64]], // C
   [28, 41, [57, 60, 65]], // F
-];
+]
 
 const PALACE_A: Row[] = [
   [0, 0.75, 65], // F4
@@ -314,7 +303,7 @@ const PALACE_A: Row[] = [
   [12.75, 0.25, 72], // C5
   [13, 1, 76], // E5
   [14, 2, 79], // G5
-];
+]
 const PALACE_B: Row[] = [
   [16, 0.75, 77], // F5
   [16.75, 0.25, 77], // F5
@@ -334,7 +323,7 @@ const PALACE_B: Row[] = [
   [28, 1, 79], // G5
   [29, 1, 77], // F5
   [30, 2, 72], // C5 (dominant, back into the F call)
-];
+]
 
 const PALACE = track(
   100,
@@ -352,7 +341,7 @@ const PALACE = track(
     ),
   ],
   { midi: 41, gain: 0.05 },
-);
+)
 
 // Cathedral: a slow chorale in D minor, 4/4 at 56 BPM (~34 s loop), like an
 // organ in a nave. Brass holds whole-note chords (Dm Bb Gm A, then Dm F Gm A),
@@ -368,7 +357,7 @@ const CATHEDRAL_CHORDS: [number, number[]][] = [
   [20, [41, 48, 57]], // F
   [24, [43, 50, 58]], // Gm
   [28, [45, 52, 61]], // A
-];
+]
 
 const CHANT: Row[] = [
   [0, 2, 74], // D5
@@ -393,7 +382,7 @@ const CHANT: Row[] = [
   [26, 2, 74], // D5
   [28, 2, 73], // C#5
   [30, 2, 76], // E5 (leading into the D)
-];
+]
 
 const CATHEDRAL = track(
   56,
@@ -413,7 +402,7 @@ const CATHEDRAL = track(
     ),
   ],
   { midi: 38, gain: 0.07 },
-);
+)
 
 export const TRACKS: Record<TrackName, Track> = {
   menu: MENU,
@@ -422,16 +411,16 @@ export const TRACKS: Record<TrackName, Track> = {
   coronation: CORONATION,
   palace: PALACE,
   cathedral: CATHEDRAL,
-};
+}
 
 export const BLIPS: Record<BlipName, BlipSpec> = {
   click: { freq: 880, dur: 0.07, gain: 0.22, wave: "sine" },
   move: { freq: 1320, dur: 0.04, gain: 0.1, wave: "triangle" },
-};
+}
 
 /** One partial of the coin-clink SFX, started `delay` seconds into the clink. */
 export interface CoinPart extends BlipSpec {
-  delay: number;
+  delay: number
 }
 
 // Metallic and slightly inharmonic: a bright cluster of short partials that ring
@@ -443,7 +432,7 @@ export const COINS: CoinPart[] = [
   { freq: 3136, dur: 0.17, gain: 0.11, wave: "sine", delay: 0.045 },
   { freq: 3951, dur: 0.14, gain: 0.08, wave: "sine", delay: 0.07 },
   { freq: 1760, dur: 0.24, gain: 0.09, wave: "triangle", delay: 0.1 },
-];
+]
 
 const SCENE_TRACKS: Record<string, TrackName> = {
   Menu: "menu",
@@ -461,9 +450,9 @@ const SCENE_TRACKS: Record<string, TrackName> = {
   Ranking: "game",
   SecretService: "game",
   Coronation: "coronation",
-};
+}
 
 /** Music for a scene key, or `null` for screens that stay silent (Boot). */
 export function trackForScene(key: string): TrackName | null {
-  return SCENE_TRACKS[key] ?? null;
+  return SCENE_TRACKS[key] ?? null
 }

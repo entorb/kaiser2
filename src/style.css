@@ -39,8 +39,8 @@ body {
   height: 100svh;
   /* Notched phones: keep the game (and its frame) out from under the cutout;
      #game-container fills the padding box's content, which Phaser's FIT reads. */
-  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
-    env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0)
+    env(safe-area-inset-left, 0);
   overflow: hidden;
   touch-action: none;
 }

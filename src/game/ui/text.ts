@@ -1,21 +1,21 @@
-import type Phaser from "phaser";
-import { RENDER_SCALE } from "./layout";
-import { COLORS, css, FONT_DISPLAY, FONT_MONO, FONT_UI, FS } from "./theme";
+import type Phaser from "phaser"
+import { RENDER_SCALE } from "./layout"
+import { COLORS, css, FONT_DISPLAY, FONT_MONO, FONT_UI, FS } from "./theme"
 
 export interface LabelOptions {
   /** Font size in canvas pixels. */
-  size?: number;
-  color?: number;
-  weight?: "normal" | "bold";
-  mono?: boolean;
+  size?: number
+  color?: number
+  weight?: "normal" | "bold"
+  mono?: boolean
   /** Use the display/inscriptional font (titles, buttons). */
-  display?: boolean;
-  wrap?: number;
-  origin?: number;
-  align?: "left" | "center" | "right";
+  display?: boolean
+  wrap?: number
+  origin?: number
+  align?: "left" | "center" | "right"
 }
 
-const MAX_RESOLUTION = 4;
+const MAX_RESOLUTION = 4
 
 /**
  * Wait for the self-hosted display fonts before any text is rasterised. Phaser
@@ -23,15 +23,11 @@ const MAX_RESOLUTION = 4;
  * the fallback. Safe to call where the FontFaceSet API is missing.
  */
 export async function loadFonts(): Promise<void> {
-  if (typeof document === "undefined" || !document.fonts) return;
-  const faces = [
-    '400 16px "Cinzel"',
-    '700 64px "Cinzel"',
-    '400 16px "EB Garamond"',
-  ];
+  if (typeof document === "undefined" || !document.fonts) return
+  const faces = ['400 16px "Cinzel"', '700 64px "Cinzel"', '400 16px "EB Garamond"']
   try {
-    await Promise.all(faces.map((face) => document.fonts.load(face)));
-    await document.fonts.ready;
+    await Promise.all(faces.map((face) => document.fonts.load(face)))
+    await document.fonts.ready
   } catch {
     // Fall back to the serif stack rather than blocking the game.
   }
@@ -44,12 +40,9 @@ export async function loadFonts(): Promise<void> {
  * texture needs roughly `displayScale * dpr * RENDER_SCALE` times the font size.
  */
 function textResolution(scene: Phaser.Scene): number {
-  const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
-  const fit = scene.scale?.displayScale?.x || 1;
-  return Math.min(
-    MAX_RESOLUTION,
-    Math.max(1, Math.round(fit * dpr * RENDER_SCALE)),
-  );
+  const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1
+  const fit = scene.scale?.displayScale?.x || 1
+  return Math.min(MAX_RESOLUTION, Math.max(1, Math.round(fit * dpr * RENDER_SCALE)))
 }
 
 /** Add a text object. `mono` uses the numeric/table font. */
@@ -60,9 +53,9 @@ export function label(
   text: string,
   opts: LabelOptions = {},
 ): Phaser.GameObjects.Text {
-  let fontFamily = FONT_UI;
-  if (opts.mono) fontFamily = FONT_MONO;
-  else if (opts.display) fontFamily = FONT_DISPLAY;
+  let fontFamily = FONT_UI
+  if (opts.mono) fontFamily = FONT_MONO
+  else if (opts.display) fontFamily = FONT_DISPLAY
   const obj = scene.add.text(x, y, text, {
     fontFamily,
     fontSize: `${opts.size ?? FS.body}px`,
@@ -71,11 +64,11 @@ export function label(
     align: opts.align,
     wordWrap: opts.wrap ? { width: opts.wrap } : undefined,
     resolution: textResolution(scene),
-  });
-  if (opts.origin !== undefined) obj.setOrigin(opts.origin);
+  })
+  if (opts.origin !== undefined) obj.setOrigin(opts.origin)
   // Keep sharp when the window (and thus the fit scale) changes.
-  const refresh = () => obj.setResolution(textResolution(scene));
-  scene.scale?.on("resize", refresh);
-  obj.once("destroy", () => scene.scale?.off("resize", refresh));
-  return obj;
+  const refresh = () => obj.setResolution(textResolution(scene))
+  scene.scale?.on("resize", refresh)
+  obj.once("destroy", () => scene.scale?.off("resize", refresh))
+  return obj
 }

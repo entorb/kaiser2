@@ -1,4 +1,4 @@
-import type { BuildingKind } from "./model/constants";
+import type { BuildingKind } from "./model/constants"
 
 // The slice of Phaser's ScenePlugin the flow needs. Scenes pass `this.scene`;
 // tests pass a recorder, so the transitions are testable without Phaser.
@@ -19,112 +19,106 @@ export type SceneName =
   | "Monument"
   | "Ranking"
   | "SecretService"
-  | "Highscore";
+  | "Highscore"
 
 export interface SceneSwitcher {
-  start(scene: SceneName, data?: object): void;
-  stop(scene: SceneName): void;
+  start(scene: SceneName, data?: object): void
+  stop(scene: SceneName): void
 }
 
 /** Any scene → title/menu. */
 export function toMenu(switcher: SceneSwitcher): void {
-  switcher.start("Menu", { pause: false });
+  switcher.start("Menu", { pause: false })
 }
 
 /** Menu → new game setup. */
 export function toNewGame(switcher: SceneSwitcher): void {
-  switcher.start("NewGame");
+  switcher.start("NewGame")
 }
 
 /** Start a ruler's turn at the trading houses. */
 export function startTurn(switcher: SceneSwitcher): void {
-  switcher.start("TradingHouse");
+  switcher.start("TradingHouse")
 }
 
 /** Trading houses → pick a trading partner. */
 export function toPartner(switcher: SceneSwitcher): void {
-  switcher.start("TradePartner");
+  switcher.start("TradePartner")
 }
 
 /** Partner → grain (harvest, buy/sell, distribution). */
 export function toGrain(switcher: SceneSwitcher): void {
-  switcher.start("Grain");
+  switcher.start("Grain")
 }
 
 /** Grain → land trading. */
 export function toLand(switcher: SceneSwitcher): void {
-  switcher.start("Land");
+  switcher.start("Land")
 }
 
 /** Land → year chronicle. */
 export function toChronicle(switcher: SceneSwitcher): void {
-  switcher.start("Chronicle");
+  switcher.start("Chronicle")
 }
 
 /** Chronicle → state income / taxes (KAISER4 EINNAHM). */
 export function toTaxes(switcher: SceneSwitcher): void {
-  switcher.start("Taxes");
+  switcher.start("Taxes")
 }
 
 /** Taxes → own trade offers (KAISER4 HA). */
 export function toTradeData(switcher: SceneSwitcher): void {
-  switcher.start("TradeData");
+  switcher.start("TradeData")
 }
 
 /** Trade data → map / purchases / title (KAISER4 KARTE + GESCHAFT). */
 export function toBusiness(switcher: SceneSwitcher): void {
-  switcher.start("Business");
+  switcher.start("Business")
 }
 
 /** Business → promotion screen when a ruler gains a new title. */
 export function toPromotion(
   switcher: SceneSwitcher,
   data: {
-    name: string;
-    title: string;
-    kingdom: string;
+    name: string
+    title: string
+    kingdom: string
     /** Title rank 1..7; picks the picture. */
-    rank: number;
-    portrait: number;
+    rank: number
+    portrait: number
     /** True when the year rolled over, so the ranking page follows. */
-    nextRanking: boolean;
+    nextRanking: boolean
   },
 ): void {
-  switcher.start("Promotion", data);
+  switcher.start("Promotion", data)
 }
 
 /** Business → coronation animation when a ruler wins the game. */
-export function toCoronation(
-  switcher: SceneSwitcher,
-  data: { name: string },
-): void {
-  switcher.start("Coronation", data);
+export function toCoronation(switcher: SceneSwitcher, data: { name: string }): void {
+  switcher.start("Coronation", data)
 }
 
 /** Business → picture of the finished palace or cathedral, then back. */
-export function toMonument(
-  switcher: SceneSwitcher,
-  data: { kind: BuildingKind },
-): void {
-  switcher.start("Monument", data);
+export function toMonument(switcher: SceneSwitcher, data: { kind: BuildingKind }): void {
+  switcher.start("Monument", data)
 }
 
 /** Business → player ranking. */
 export function toRanking(switcher: SceneSwitcher): void {
-  switcher.start("Ranking");
+  switcher.start("Ranking")
 }
 
 /** Business → secret service (KAISER5). */
 export function toSecretService(switcher: SceneSwitcher): void {
-  switcher.start("SecretService");
+  switcher.start("SecretService")
 }
 
 /** Business/SecretService → next ruler (player/year advanced beforehand). */
 export function nextTurn(switcher: SceneSwitcher): void {
-  switcher.start("TradingHouse");
+  switcher.start("TradingHouse")
 }
 
 /** End of game (or coronation) → highscore. */
 export function toHighscore(switcher: SceneSwitcher): void {
-  switcher.start("Highscore");
+  switcher.start("Highscore")
 }

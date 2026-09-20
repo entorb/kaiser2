@@ -11,22 +11,9 @@ import {
   buildingCost,
   landRequired,
   MAX_DOM,
-} from "./constants";
-import {
-  applyInterest,
-  depose,
-  die,
-  expropriate,
-  pawn,
-  taxDemotion,
-} from "./events";
-import {
-  canLeaseHouse,
-  crewNeeded,
-  leaseHouse,
-  leasePrice,
-  tributePoints,
-} from "./houses";
+} from "./constants"
+import { applyInterest, depose, die, expropriate, pawn, taxDemotion } from "./events"
+import { canLeaseHouse, crewNeeded, leaseHouse, leasePrice, tributePoints } from "./houses"
 import {
   chronicle,
   FARMING,
@@ -37,14 +24,14 @@ import {
   stateIncome,
   titleAdvance,
   tradeHouse,
-} from "./rules";
+} from "./rules"
 import {
   buyCheapest,
   GRAIN_PRICE_UNIT,
   LAND_PRICE_UNIT,
   refreshEmperorStock,
   updateEmperorPrices,
-} from "./trade";
+} from "./trade"
 import {
   type Difficulty,
   defaultRng,
@@ -54,31 +41,31 @@ import {
   type Rng,
   type Ruleset,
   rand,
-} from "./types";
+} from "./types"
 
 export interface AiProfile {
   /** Fixed ruler name (at most 10 characters) and kingdom (at most 12). */
-  name: string;
-  kingdom: string;
+  name: string
+  kingdom: string
   /** Target `EIN + MWST` in the Remake; scaled up for the three Atari rates. */
-  burden: number;
+  burden: number
   /** Justice level 1..4. */
-  justice: number;
+  justice: number
   /** Grain per head handed out above the need; 3.5 is the growth peak. */
-  surplus: number;
+  surplus: number
   /** Cash kept back for grain: base plus per head. */
-  reserveBase: number;
-  reservePerHead: number;
+  reserveBase: number
+  reservePerHead: number
   /** Share of the tribute demand paid; 0.5 is "tolerated" in the Remake. */
-  tribute: number;
+  tribute: number
   /** Leases and staffs trading houses. */
-  houses: boolean;
+  houses: boolean
   /** Rank from which land for palace and cathedral is prepared. */
-  prestigeFrom: number;
+  prestigeFrom: number
   /** Chance per year that nothing is bought (land or buildings). */
-  idle: number;
+  idle: number
   /** Remake: share of the grain handed out that he wants to grow himself. */
-  farm: number;
+  farm: number
 }
 
 export const AI_PROFILES: Record<Difficulty, AiProfile> = {
@@ -124,34 +111,34 @@ export const AI_PROFILES: Record<Difficulty, AiProfile> = {
     idle: 0,
     farm: 1,
   },
-};
+}
 
-export const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];
+export const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"]
 
 /**
  * The Atari rates sum to this multiple of the Remake burden (25/10/5 = 40 is a
  * slow game). The hard ruler lands at 67 points, past the emigration cliff at
  * 60: in the simulation that is still the fastest way to win under Atari rules.
  */
-const ATARI_SCALE = 1.45;
+const ATARI_SCALE = 1.45
 
 function profileOf(p: PlayerState): AiProfile {
-  if (!p.ai) throw new Error(`${p.name} is not a computer ruler`);
-  return AI_PROFILES[p.ai];
+  if (!p.ai) throw new Error(`${p.name} is not a computer ruler`)
+  return AI_PROFILES[p.ai]
 }
 
 /**
  * How far a computer's habits wander from turn to turn (a share of the value),
  * so that two games with the same opponent do not play alike.
  */
-const WANDER = { surplus: 0.15, reserve: 0.2, tribute: 0.2 };
+const WANDER = { surplus: 0.15, reserve: 0.2, tribute: 0.2 }
 /** Tax rate points the burden wanders up or down. */
-const BURDEN_WANDER = 2;
+const BURDEN_WANDER = 2
 
 /** This turn's profile: the fixed one with its numbers nudged at random. */
 function moodOf(ai: AiProfile, rng: Rng): AiProfile {
-  const wander = (spread: number) => 1 + (rand(2001, rng) / 1000 - 1) * spread;
-  const reserve = wander(WANDER.reserve);
+  const wander = (spread: number) => 1 + (rand(2001, rng) / 1000 - 1) * spread
+  const reserve = wander(WANDER.reserve)
   return {
     ...ai,
     burden: ai.burden + rand(2 * BURDEN_WANDER + 1, rng) - BURDEN_WANDER,
@@ -160,56 +147,45 @@ function moodOf(ai: AiProfile, rng: Rng): AiProfile {
     reservePerHead: ai.reservePerHead * reserve,
     // Never under the share the Emperor tolerates: only paying more varies.
     tribute: ai.tribute * (1 + (rand(1001, rng) / 1000) * WANDER.tribute),
-  };
+  }
 }
 
 /** Make `p` the computer ruler of the given skill, with its opening taxes. */
-export function setupComputer(
-  p: PlayerState,
-  level: Difficulty,
-  rules: Ruleset,
-): void {
-  const ai = AI_PROFILES[level];
-  p.name = ai.name;
-  p.kingdom = ai.kingdom;
-  p.ai = level;
-  setTaxes(p, ai, rules);
+export function setupComputer(p: PlayerState, level: Difficulty, rules: Ruleset): void {
+  const ai = AI_PROFILES[level]
+  p.name = ai.name
+  p.kingdom = ai.kingdom
+  p.ai = level
+  setTaxes(p, ai, rules)
 }
 
 function setTaxes(p: PlayerState, ai: AiProfile, rules: Ruleset): void {
-  p.justiz = ai.justice;
+  p.justiz = ai.justice
   if (rules === "remake") {
-    p.ein = Math.round(ai.burden / 2);
-    p.mwst = ai.burden - p.ein;
-    p.zoll = 0;
-    return;
+    p.ein = Math.round(ai.burden / 2)
+    p.mwst = ai.burden - p.ein
+    p.zoll = 0
+    return
   }
-  const total = Math.round(ai.burden * ATARI_SCALE);
-  p.zoll = Math.round(total * 0.625);
-  p.mwst = Math.round(total * 0.25);
-  p.ein = total - p.zoll - p.mwst;
+  const total = Math.round(ai.burden * ATARI_SCALE)
+  p.zoll = Math.round(total * 0.625)
+  p.mwst = Math.round(total * 0.25)
+  p.ein = total - p.zoll - p.mwst
 }
 
-export type ComputerEvent =
-  | "demoted"
-  | "seized"
-  | "pawn"
-  | "deposedLand"
-  | "deposedTax"
-  | "death";
+export type ComputerEvent = "demoted" | "seized" | "pawn" | "deposedLand" | "deposedTax" | "death"
 
 /** What happened in a computer turn, for the summary shown to the humans. */
 export interface ComputerReport {
-  won: boolean;
+  won: boolean
   /** Advanced a rank at the end of the turn. */
-  promoted: boolean;
-  built: Record<BuildingKind, number>;
-  leased: number;
-  events: ComputerEvent[];
+  promoted: boolean
+  built: Record<BuildingKind, number>
+  leased: number
+  events: ComputerEvent[]
 }
 
-const reserveOf = (ai: AiProfile, p: PlayerState) =>
-  ai.reserveBase + ai.reservePerHead * p.leute;
+const reserveOf = (ai: AiProfile, p: PlayerState) => ai.reserveBase + ai.reservePerHead * p.leute
 
 /** The Emperor's tribute, staffing and (Landgraf and up) new houses. */
 function tradingHouses(
@@ -219,88 +195,66 @@ function tradingHouses(
   rng: Rng,
   report: ComputerReport,
 ): void {
-  const p = playerAt(state, sp);
-  const { zahl } = tradeHouse(state, sp, rng);
+  const p = playerAt(state, sp)
+  const { zahl } = tradeHouse(state, sp, rng)
   // Under Atari rules the tribute is a coin flip that never paid off in the
   // simulation; the Remake ladder rewards paying the share the profile picks.
-  const share = state.rules === "remake" ? ai.tribute : 0;
-  const paid = Math.min(
-    Math.max(0, Math.trunc(p.geld)),
-    Math.round(zahl * share),
-  );
-  p.geld -= paid;
-  state.turn.abg += paid;
+  const share = state.rules === "remake" ? ai.tribute : 0
+  const paid = Math.min(Math.max(0, Math.trunc(p.geld)), Math.round(zahl * share))
+  p.geld -= paid
+  state.turn.abg += paid
   if (ai.houses) {
-    const price = leasePrice(p, state.rules);
-    if (
-      canLeaseHouse(state, sp) &&
-      p.geld >= price + reserveOf(ai, p) &&
-      leaseHouse(state, sp)
-    )
-      report.leased += 1;
+    const price = leasePrice(p, state.rules)
+    if (canLeaseHouse(state, sp) && p.geld >= price + reserveOf(ai, p) && leaseHouse(state, sp))
+      report.leased += 1
     // The source runs every house at 10*HH-4 servants; the Remake wants a crew.
-    const crew =
-      state.rules === "remake"
-        ? crewNeeded(p, "remake")
-        : Math.max(0, 10 * p.hh - 4);
-    state.turn.neu = Math.max(0, crew - p.bd);
-    state.turn.alt = Math.max(0, p.bd - crew);
+    const crew = state.rules === "remake" ? crewNeeded(p, "remake") : Math.max(0, 10 * p.hh - 4)
+    state.turn.neu = Math.max(0, crew - p.bd)
+    state.turn.alt = Math.max(0, p.bd - crew)
   }
-  p.bd += state.turn.neu - state.turn.alt;
-  p.punkte += tributePoints(state, state.turn.abg, zahl, rng);
-  if (expropriate(state, sp, rng)) report.events.push("seized");
+  p.bd += state.turn.neu - state.turn.alt
+  p.punkte += tributePoints(state, state.turn.abg, zahl, rng)
+  if (expropriate(state, sp, rng)) report.events.push("seized")
 }
 
 /** Harvest, buy the grain to feed the people a surplus, and hand it out. */
-function feedPeople(
-  state: GameState,
-  sp: number,
-  ai: AiProfile,
-  rng: Rng,
-): void {
-  const p = playerAt(state, sp);
-  const h = harvest(state, sp, rng);
+function feedPeople(state: GameState, sp: number, ai: AiProfile, rng: Rng): void {
+  const p = playerAt(state, sp)
+  const h = harvest(state, sp, rng)
   // Growth peaks at a surplus of ~3.5 grain per head: births rise with
   // (KAUS-VKORN)/150 while deaths fall until |LEUTE/42.55 - surplus/150| = 0.
-  const give = h.vkorn + ai.surplus * p.leute;
-  const need = Math.max(0, Math.trunc(give / 0.8 - p.lkorn));
-  buyCheapest(state, sp, "grain", need, Math.max(0, p.geld));
-  const { p20, p80 } = grainBounds(p);
-  giveGrain(state, sp, Math.max(p20, Math.min(p80, give)));
+  const give = h.vkorn + ai.surplus * p.leute
+  const need = Math.max(0, Math.trunc(give / 0.8 - p.lkorn))
+  buyCheapest(state, sp, "grain", need, Math.max(0, p.geld))
+  const { p20, p80 } = grainBounds(p)
+  giveGrain(state, sp, Math.max(p20, Math.min(p80, give)))
 }
 
 /** Building land the ruler wants before the next purchases. */
 function landGoal(state: GameState, p: PlayerState, ai: AiProfile): number {
-  const { kaus } = state.turn;
-  let goal = 0;
-  if (p.muhl < Math.trunc(kaus / 1000))
-    goal = Math.max(goal, landRequired(p, "muhl"));
-  if (p.markt < Math.trunc(kaus / 333))
-    goal = Math.max(goal, landRequired(p, "markt"));
+  const { kaus } = state.turn
+  let goal = 0
+  if (p.muhl < Math.trunc(kaus / 1000)) goal = Math.max(goal, landRequired(p, "muhl"))
+  if (p.markt < Math.trunc(kaus / 333)) goal = Math.max(goal, landRequired(p, "markt"))
   if (p.titel >= ai.prestigeFrom)
-    goal = Math.max(goal, BUILDINGS[p.dom < MAX_DOM ? "dom" : "burg"].land);
-  return goal;
+    goal = Math.max(goal, BUILDINGS[p.dom < MAX_DOM ? "dom" : "burg"].land)
+  return goal
 }
 
 /** Keep 10 ha per head (or be deposed) and room for the planned buildings. */
-function buyLand(
-  state: GameState,
-  sp: number,
-  ai: AiProfile,
-  idle: boolean,
-): void {
-  const p = playerAt(state, sp);
-  const cash = () => Math.max(0, p.geld - reserveOf(ai, p));
-  const deficit = Math.trunc(p.leute * 11 - p.land - p.acker);
-  if (deficit > 0) buyCheapest(state, sp, "acker", deficit, cash());
-  const wanted = landGoal(state, p, ai) - p.land;
-  if (wanted > 0 && !idle) buyCheapest(state, sp, "land", wanted, cash());
+function buyLand(state: GameState, sp: number, ai: AiProfile, idle: boolean): void {
+  const p = playerAt(state, sp)
+  const cash = () => Math.max(0, p.geld - reserveOf(ai, p))
+  const deficit = Math.trunc(p.leute * 11 - p.land - p.acker)
+  if (deficit > 0) buyCheapest(state, sp, "acker", deficit, cash())
+  const wanted = landGoal(state, p, ai) - p.land
+  if (wanted > 0 && !idle) buyCheapest(state, sp, "land", wanted, cash())
 }
 
 /** Most acre land a computer buys in one turn (big deals cost more, §3.7). */
-const FARM_BUY_MAX = 5000;
+const FARM_BUY_MAX = 5000
 /** Years in which the grain an acre grows must pay back its price. */
-const FARM_PAYBACK = 10;
+const FARM_PAYBACK = 10
 
 /**
  * Remake: idle cash goes into acre land while it pays back, until the ruler
@@ -310,75 +264,59 @@ const FARM_PAYBACK = 10;
  * within `FARM_PAYBACK` years, so he waits out an expensive turn.
  */
 function buyFarmland(state: GameState, sp: number, ai: AiProfile): void {
-  if (state.rules !== "remake") return;
-  const p = playerAt(state, sp);
-  const perHa = 0.55 * FARMING.acreYield;
-  const give = state.turn.vkorn + ai.surplus * p.leute;
-  const wanted = Math.min(FARM_BUY_MAX, (ai.farm * give) / perHa - p.acker);
-  const cash = Math.max(0, p.geld - reserveOf(ai, p));
-  const grain = playerAt(state, 0).kpreis / GRAIN_PRICE_UNIT;
-  const maxPrice = LAND_PRICE_UNIT * perHa * grain * FARM_PAYBACK;
-  if (wanted > 0) buyCheapest(state, sp, "acker", wanted, cash, maxPrice);
+  if (state.rules !== "remake") return
+  const p = playerAt(state, sp)
+  const perHa = 0.55 * FARMING.acreYield
+  const give = state.turn.vkorn + ai.surplus * p.leute
+  const wanted = Math.min(FARM_BUY_MAX, (ai.farm * give) / perHa - p.acker)
+  const cash = Math.max(0, p.geld - reserveOf(ai, p))
+  const grain = playerAt(state, 0).kpreis / GRAIN_PRICE_UNIT
+  const maxPrice = LAND_PRICE_UNIT * perHa * grain * FARM_PAYBACK
+  if (wanted > 0) buyCheapest(state, sp, "acker", wanted, cash, maxPrice)
 }
 
-function canBuild(
-  state: GameState,
-  p: PlayerState,
-  kind: BuildingKind,
-  cash: number,
-): boolean {
+function canBuild(state: GameState, p: PlayerState, kind: BuildingKind, cash: number): boolean {
   return (
     !atMaxBuildings(p, kind) &&
     p.land >= landRequired(p, kind) &&
     p.geld >= buildingCost(p, kind, state.rules) + cash
-  );
+  )
 }
 
 /** Productive buildings first (as many as the fed people support), then prestige. */
-function nextBuilding(
-  state: GameState,
-  p: PlayerState,
-  ai: AiProfile,
-): BuildingKind | null {
-  const { kaus } = state.turn;
-  const cash = reserveOf(ai, p);
-  if (p.muhl < Math.trunc(kaus / 1000) && canBuild(state, p, "muhl", cash))
-    return "muhl";
-  if (p.markt < Math.trunc(kaus / 333) && canBuild(state, p, "markt", cash))
-    return "markt";
-  if (p.titel < ai.prestigeFrom) return null;
-  const prestige = p.dom <= p.burg * 1.33 ? "dom" : "burg";
-  return canBuild(state, p, prestige, cash) ? prestige : null;
+function nextBuilding(state: GameState, p: PlayerState, ai: AiProfile): BuildingKind | null {
+  const { kaus } = state.turn
+  const cash = reserveOf(ai, p)
+  if (p.muhl < Math.trunc(kaus / 1000) && canBuild(state, p, "muhl", cash)) return "muhl"
+  if (p.markt < Math.trunc(kaus / 333) && canBuild(state, p, "markt", cash)) return "markt"
+  if (p.titel < ai.prestigeFrom) return null
+  const prestige = p.dom <= p.burg * 1.33 ? "dom" : "burg"
+  return canBuild(state, p, prestige, cash) ? prestige : null
 }
 
 /** KAISER4 #GESCHAFT end of turn: pawn, deposition, death, interest, title. */
-function endOfTurn(
-  state: GameState,
-  sp: number,
-  rng: Rng,
-  report: ComputerReport,
-): void {
-  const p = playerAt(state, sp);
+function endOfTurn(state: GameState, sp: number, rng: Rng, report: ComputerReport): void {
+  const p = playerAt(state, sp)
   if (p.geld < -10000 - p.titel * 2000) {
-    pawn(p, rng);
-    report.events.push("pawn");
+    pawn(p, rng)
+    report.events.push("pawn")
   }
   if (p.land + p.acker < p.leute * 10 && p.land > 0) {
-    depose(p);
-    report.events.push("deposedLand");
+    depose(p)
+    report.events.push("deposedLand")
   }
   if (p.zoll + p.mwst + p.ein < 20) {
-    depose(p);
-    report.events.push("deposedTax");
+    depose(p)
+    report.events.push("deposedTax")
   }
   if (p.tod <= 0) {
-    die(p, rng);
-    report.events.push("death");
+    die(p, rng)
+    report.events.push("death")
   }
-  applyInterest(p);
-  const rank = p.titel;
-  report.won = titleAdvance(state, sp);
-  report.promoted = p.titel > rank;
+  applyInterest(p)
+  const rank = p.titel
+  report.won = titleAdvance(state, sp)
+  report.promoted = p.titel > rank
 }
 
 /**
@@ -391,46 +329,46 @@ export function playComputerTurn(
   sp: number,
   rng: Rng = defaultRng,
 ): ComputerReport {
-  const p = playerAt(state, sp);
-  const ai = moodOf(profileOf(p), rng);
+  const p = playerAt(state, sp)
+  const ai = moodOf(profileOf(p), rng)
   const report: ComputerReport = {
     won: false,
     promoted: false,
     built: { markt: 0, muhl: 0, burg: 0, dom: 0 },
     leased: 0,
     events: [],
-  };
-  state.turn.han = 0;
+  }
+  state.turn.han = 0
 
-  if (taxDemotion(p, state.rules)) report.events.push("demoted");
-  if (p.titel > 1) tradingHouses(state, sp, ai, rng, report);
+  if (taxDemotion(p, state.rules)) report.events.push("demoted")
+  if (p.titel > 1) tradingHouses(state, sp, ai, rng, report)
 
-  refreshEmperorStock(state, rng);
-  updateEmperorPrices(state, sp, rng);
-  feedPeople(state, sp, ai, rng);
+  refreshEmperorStock(state, rng)
+  updateEmperorPrices(state, sp, rng)
+  feedPeople(state, sp, ai, rng)
 
-  const idle = rand(100, rng) < ai.idle * 100;
-  landShortage(p);
-  buyLand(state, sp, ai, idle);
+  const idle = rand(100, rng) < ai.idle * 100
+  landShortage(p)
+  buyLand(state, sp, ai, idle)
 
-  chronicle(state, sp, rng);
-  stateIncome(state, sp, rng);
-  setTaxes(p, ai, state.rules);
-  landShortage(p);
+  chronicle(state, sp, rng)
+  stateIncome(state, sp, rng)
+  setTaxes(p, ai, state.rules)
+  landShortage(p)
 
   for (let guard = 0; !idle && guard < 200; guard++) {
-    const kind = nextBuilding(state, p, ai);
-    if (!kind) break;
-    addBuilding(p, kind, state.rules);
-    report.built[kind] += 1;
+    const kind = nextBuilding(state, p, ai)
+    if (!kind) break
+    addBuilding(p, kind, state.rules)
+    report.built[kind] += 1
   }
 
-  buyFarmland(state, sp, ai);
+  buyFarmland(state, sp, ai)
 
-  endOfTurn(state, sp, rng, report);
+  endOfTurn(state, sp, rng, report)
 
-  openTrade(state, p, ai);
-  return report;
+  openTrade(state, p, ai)
+  return report
 }
 
 /**
@@ -441,21 +379,14 @@ export function playComputerTurn(
  * price follows the granary: 125 when empty, 100 at the normal stock, 75 at
  * twice that, so grain sold to him comes back cheaper.
  */
-export function openTrade(
-  state: GameState,
-  p: PlayerState,
-  ai: AiProfile,
-): void {
-  p.verAcker = Math.trunc(p.acker / 10);
-  p.verBau = Math.trunc(p.land / 10);
+export function openTrade(state: GameState, p: PlayerState, ai: AiProfile): void {
+  p.verAcker = Math.trunc(p.acker / 10)
+  p.verBau = Math.trunc(p.land / 10)
   if (state.rules !== "remake") {
-    p.verkorn = p.lkorn;
-    return;
+    p.verkorn = p.lkorn
+    return
   }
-  const keep = Math.max(1, (state.turn.vkorn + ai.surplus * p.leute) / 4);
-  p.verkorn = Math.max(0, Math.trunc(p.lkorn - keep));
-  p.kpreis = Math.min(
-    125,
-    Math.max(75, Math.round(125 - (25 * p.lkorn) / keep)),
-  );
+  const keep = Math.max(1, (state.turn.vkorn + ai.surplus * p.leute) / 4)
+  p.verkorn = Math.max(0, Math.trunc(p.lkorn - keep))
+  p.kpreis = Math.min(125, Math.max(75, Math.round(125 - (25 * p.lkorn) / keep)))
 }

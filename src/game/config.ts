@@ -4,13 +4,13 @@
 // up to 6 (arrays are sized 6). We ship 6 and keep it tunable here.
 export interface GameConfig {
   /** Minimum number of rulers in a hotseat game. */
-  minPlayers: number;
+  minPlayers: number
   /** Maximum number of rulers (source arrays are sized 6). */
-  maxPlayers: number;
+  maxPlayers: number
   /** First year of a new game (KAISER3:115). */
-  startYear: number;
+  startYear: number
   /** Default UI language. */
-  language: "de" | "en";
+  language: "de" | "en"
 }
 
 export const GAME_CONFIG: GameConfig = {
@@ -18,4 +18,4 @@ export const GAME_CONFIG: GameConfig = {
   maxPlayers: 6,
   startYear: 1700,
   language: "de",
-};
+}

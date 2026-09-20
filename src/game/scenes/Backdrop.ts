@@ -1,5 +1,5 @@
-import { frameBorder, woodBackground } from "../ui/ornament";
-import { GameScene } from "./base";
+import { frameBorder, woodBackground } from "../ui/ornament"
+import { GameScene } from "./base"
 
 /**
  * Persistent backdrop rendered behind every screen: the walnut wood texture and
@@ -8,18 +8,18 @@ import { GameScene } from "./base";
  */
 export class Backdrop extends GameScene {
   constructor() {
-    super("Backdrop");
+    super("Backdrop")
   }
 
   create() {
     const draw = () => {
-      this.clearScreen();
-      woodBackground(this);
-      frameBorder(this);
-    };
-    draw();
+      this.clearScreen()
+      woodBackground(this)
+      frameBorder(this)
+    }
+    draw()
     // The canvas widens when the device turns; redraw at the new size.
-    this.scale.on("resize", draw);
-    this.events.once("shutdown", () => this.scale.off("resize", draw));
+    this.scale.on("resize", draw)
+    this.events.once("shutdown", () => this.scale.off("resize", draw))
   }
 }
