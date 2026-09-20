@@ -1,7 +1,7 @@
 import { playCoins } from "../audio/music";
 import { toCoronation, toPartner } from "../flow";
 import { t } from "../i18n/i18n";
-import { playComputerTurn } from "../model/ai";
+import { type ComputerEvent, playComputerTurn } from "../model/ai";
 import type { BuildingKind } from "../model/constants";
 import { expropriate, taxDemotion } from "../model/events";
 import {
@@ -16,11 +16,18 @@ import {
 import { tradeHouse } from "../model/rules";
 import { getState } from "../model/session";
 import { type GameState, type PlayerState, playerAt } from "../model/types";
-import { alert, sliderPrompt } from "../ui/dialog";
+import { type AlertLine, alert, sliderPrompt } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
-import { drawCoinsIcon } from "../ui/icon";
+import {
+  drawAcreIcon,
+  drawCoinsIcon,
+  drawCrowdIcon,
+  drawEventIcon,
+  drawKontorIcon,
+  drawPointsIcon,
+  type IconDraw,
+} from "../ui/icon";
 import { frame } from "../ui/layout";
-import { label } from "../ui/text";
 import { COLORS, SPACE } from "../ui/theme";
 import {
   type ListItem,
@@ -32,7 +39,8 @@ import {
 } from "../ui/widgets";
 import { GameScene } from "./base";
 import {
-  BUILDING_LABEL,
+  actionFooter,
+  BUILDING_ICON,
   closeTurn,
   continueAction,
   screenTitle,
@@ -42,6 +50,15 @@ import {
 
 /** The alert must fit the 576 px screen: 190 px of frame plus 30 px a line. */
 const MAX_NOTICES = 10;
+/** Icon leading each computer-turn event line. */
+const EVENT_LINE_ICON: Record<ComputerEvent, IconDraw> = {
+  demoted: drawPointsIcon,
+  seized: drawKontorIcon,
+  pawn: drawCoinsIcon,
+  deposedLand: drawAcreIcon,
+  deposedTax: drawPointsIcon,
+  death: (g, x, y, size) => drawEventIcon(g, x, y, size, "died"),
+};
 const GOOD_LABEL = {
   grain: "grain.title",
   acker: "land.acre",
@@ -141,19 +158,24 @@ export class TradingHouse extends GameScene {
     const group = new FocusGroup(this);
     statusBar(this, state, group);
     const name = { name: p.name };
-    const lines = [
-      t("ai.summary", {
-        pop: Math.trunc(p.leute),
-        geld: Math.trunc(p.geld),
-        rank: titleName(p.titel),
-      }),
+    const lines: AlertLine[] = [
+      { icon: drawCrowdIcon, text: `${Math.trunc(p.leute)}` },
+      { icon: drawCoinsIcon, text: `${Math.trunc(p.geld)}` },
+      { icon: drawPointsIcon, text: titleName(p.titel) },
     ];
-    const built = (Object.keys(report.built) as BuildingKind[])
-      .filter((kind) => report.built[kind] > 0)
-      .map((kind) => `${report.built[kind]}× ${t(BUILDING_LABEL[kind])}`);
-    if (built.length > 0) lines.push(t("ai.built", { list: built.join(", ") }));
-    if (report.leased > 0) lines.push(t("ai.leased"));
-    for (const event of report.events) lines.push(t(`ai.${event}`, name));
+    for (const kind of Object.keys(report.built) as BuildingKind[]) {
+      if (report.built[kind] > 0)
+        lines.push({
+          icon: BUILDING_ICON[kind],
+          text: `${report.built[kind]}×`,
+        });
+    }
+    if (report.leased > 0) lines.push({ icon: drawKontorIcon, text: "1×" });
+    for (const event of report.events)
+      lines.push({
+        icon: EVENT_LINE_ICON[event],
+        text: t(`ai.${event}`, name),
+      });
     const levelLabel = t(`level.${p.ai ?? "medium"}`);
     await alert(this, `${p.name} (${levelLabel})`, lines);
     group.destroy();
@@ -174,7 +196,7 @@ export class TradingHouse extends GameScene {
     const p = playerAt(state, state.sp);
     this.clearScreen();
     const group = new FocusGroup(this);
-    const { content, action } = frame();
+    const { content } = frame();
     statusBar(this, state, group);
     screenTitle(this, t("trade.title"), content.y);
 
@@ -194,11 +216,14 @@ export class TradingHouse extends GameScene {
     );
     const money: StatRowOptions = { icon: drawCoinsIcon };
     const rows: [string, string, StatRowOptions?][] = [
-      [t("trade.houses"), `${p.hh}`],
+      [t("trade.houses"), `${p.hh}`, { icon: drawKontorIcon }],
       [
         t("trade.servants"),
         `${staffNow}`,
-        understaffed ? { valueColor: COLORS.danger } : undefined,
+        {
+          icon: drawCrowdIcon,
+          valueColor: understaffed ? COLORS.danger : undefined,
+        },
       ],
       [t("trade.wages"), `${wages}`, money],
       [t("trade.profit"), `${gew}`, money],
@@ -240,10 +265,7 @@ export class TradingHouse extends GameScene {
     });
 
     // Footer: what the highlighted action does.
-    const footer = label(this, action.x + 140, action.y + action.h / 2, "", {
-      color: COLORS.onWood,
-    });
-    footer.setOrigin(0, 0.5);
+    const footer = actionFooter(this, "");
     const describe = (index: number): string => {
       const id = entries[index]?.id;
       if (id === "servants") return this.staffHint(state, p, needed, staffNow);
@@ -368,7 +390,7 @@ export class TradingHouse extends GameScene {
     const x = content.x + content.w - menuW;
     return new Promise((resolve) => {
       const menu = new ListMenu(this, x, content.y + 54, menuW, options, {
-        rowH: 48,
+        rowH: 56,
         gap: 8,
         onSelect: resolve,
         onChange,

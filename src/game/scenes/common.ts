@@ -14,11 +14,16 @@ import { FocusGroup } from "../ui/focus";
 import { fullscreenButton } from "../ui/fullscreen";
 import {
   drawArrowIcon,
+  drawCathedralIcon,
   drawCoinsIcon,
   drawCrowdIcon,
+  drawEventIcon,
   drawGearIcon,
+  drawPalaceIcon,
   drawPointsIcon,
   drawShield,
+  drawSoundOffIcon,
+  drawSoundOnIcon,
   type IconDraw,
 } from "../ui/icon";
 import { CANVAS_H, CANVAS_W, frame } from "../ui/layout";
@@ -50,7 +55,7 @@ function statusFigure(
   });
   text.setOrigin(1, 0.5);
   c.add(text);
-  const size = 20;
+  const size = 26;
   const g = scene.add.graphics();
   draw(g, right - text.width - 10 - size / 2, cy, size);
   c.add(g);
@@ -89,19 +94,19 @@ export function statusBar(
   const rulerX = SPACE.lg + year.width + SPACE.lg;
 
   const icon = scene.add.graphics();
-  drawShield(icon, rulerX + 20, header.h / 2, 32, p.portrait);
+  drawShield(icon, rulerX + 22, header.h / 2, 38, p.portrait);
   c.add(icon);
 
-  const textX = rulerX + 48;
+  const textX = rulerX + 54;
   c.add(
-    label(scene, textX, 10, p.name, {
+    label(scene, textX, 6, p.name, {
       size: FS.heading,
       weight: "bold",
       color: COLORS.text,
     }),
   );
   c.add(
-    label(scene, textX, 32, `${titleName(p.titel)} · ${p.kingdom}`, {
+    label(scene, textX, 36, `${titleName(p.titel)} · ${p.kingdom}`, {
       color: COLORS.muted,
       size: FS.small,
     }),
@@ -150,15 +155,10 @@ const menuEscape = new WeakMap<Phaser.Scene, () => void>();
  */
 export function gameMenuButton(scene: Phaser.Scene, group: FocusGroup): Button {
   const { action } = frame();
-  const menu = new Button(
-    scene,
-    action.x,
-    action.y + (action.h - 48) / 2,
-    56,
-    48,
-    "",
-    { icon: drawGearIcon, onClick: () => openGameMenu(scene) },
-  );
+  const menu = new Button(scene, action.x, action.y, 72, action.h, "", {
+    icon: drawGearIcon,
+    onClick: () => openGameMenu(scene),
+  });
   const previous = menuEscape.get(scene);
   if (previous) scene.input.keyboard?.off("keydown-ESC", previous);
   // A dialog or the open menu owns the keyboard: `group` is then inactive.
@@ -177,7 +177,7 @@ export function gameMenuButton(scene: Phaser.Scene, group: FocusGroup): Button {
  */
 function openGameMenu(scene: Phaser.Scene): void {
   const w = 420;
-  const h = 360;
+  const h = 340;
   const x = (CANVAS_W - w) / 2;
   const y = (CANVAS_H - h) / 2;
   const overlay = scene.add
@@ -187,11 +187,15 @@ function openGameMenu(scene: Phaser.Scene): void {
   const panel = new Panel(scene, x, y, w, h, t("menu.pauseTitle"));
   const group = new FocusGroup(scene);
 
-  const musicLabel = () => t(isMuted() ? "menu.musicOff" : "menu.musicOn");
-  const music = new Button(scene, 50, 80, 320, 46, musicLabel(), {
+  // Icon row: music and (where the browser has it) fullscreen share the width.
+  const soundIcon = () => (isMuted() ? drawSoundOffIcon : drawSoundOnIcon);
+  const fullscreenOk = scene.game.device.fullscreen.available;
+  const iconW = fullscreenOk ? 156 : 320;
+  const music = new Button(scene, 50, 80, iconW, 56, "", {
+    icon: soundIcon(),
     onClick: () => toggleMute(),
   });
-  const end = new Button(scene, 50, 140, 320, 46, t("menu.endGame"), {
+  const end = new Button(scene, 50, 148, 320, 56, t("menu.endGame"), {
     variant: "danger",
     onClick: () => {
       close();
@@ -199,7 +203,7 @@ function openGameMenu(scene: Phaser.Scene): void {
       toHighscore(scene.scene);
     },
   });
-  const resume = new Button(scene, 50, 200, 320, 46, t("menu.resume"), {
+  const resume = new Button(scene, 50, 216, 320, 56, t("menu.resume"), {
     variant: "primary",
     onClick: () => close(),
   });
@@ -209,11 +213,11 @@ function openGameMenu(scene: Phaser.Scene): void {
   music.bind(group);
   end.bind(group);
   resume.bind(group);
-  const fullscreen = fullscreenButton(scene, group, 50, 260, 320, 46);
+  const fullscreen = fullscreenButton(scene, group, 214, 80, 156, 56);
   if (fullscreen) panel.add(fullscreen);
   group.focus(resume);
 
-  const stopWatchingMute = onMuteChange(() => music.setText(musicLabel()));
+  const stopWatchingMute = onMuteChange(() => music.setIcon(soundIcon()));
   const onEsc = () => close();
   scene.input.keyboard?.on("keydown-ESC", onEsc);
   let closed = false;
@@ -240,17 +244,22 @@ export async function applyLandShortage(
   ]);
 }
 
-/** Screen heading aligned to the content area's left edge. */
+/**
+ * Screen heading aligned to the content area's left edge. `wrap` lets a long
+ * heading break onto more lines within the content width.
+ */
 export function screenTitle(
   scene: Phaser.Scene,
   text: string,
   y: number,
+  wrap = false,
 ): Phaser.GameObjects.Text {
   return label(scene, frame().content.x, y, text, {
     size: FS.title,
     weight: "bold",
     display: true,
     color: COLORS.accent,
+    wrap: wrap ? frame().content.w : undefined,
   }).setShadow(0, 2, css(COLORS.woodDark), 4);
 }
 
@@ -266,17 +275,13 @@ export function primaryAction(
   icon?: IconDraw,
 ): Button {
   const { action } = frame();
-  const w = 200;
-  const h = 52;
-  const btn = new Button(
-    scene,
-    action.x + action.w - w,
-    action.y + (action.h - h) / 2,
-    w,
-    h,
-    text,
-    { variant: "primary", onClick, icon },
-  );
+  const w = 220;
+  const h = action.h;
+  const btn = new Button(scene, action.x + action.w - w, action.y, w, h, text, {
+    variant: "primary",
+    onClick,
+    icon,
+  });
   btn.bind(group);
   // Start with focus on the advance button so Enter proceeds.
   group.focus(btn);
@@ -293,7 +298,7 @@ export function continueAction(
 }
 
 /** Font size of a big panel figure. */
-const FIGURE_SIZE = 34;
+const FIGURE_SIZE = 40;
 
 /**
  * A big number with its unit icon, centered as one block in `panel` at height
@@ -313,7 +318,7 @@ export function panelFigure(
     mono: true,
     color,
   }).setOrigin(0, 0.5);
-  const iconSize = 40;
+  const iconSize = 46;
   const gap = 12;
   const left = (panel.w - (iconSize + gap + figure.width)) / 2;
   figure.setX(left + iconSize + gap);
@@ -323,16 +328,19 @@ export function panelFigure(
   panel.add(figure);
 }
 
+/** Left edge of action-bar text: clear of the gear button. */
+export const FOOTER_X = 96;
+
 /** Explanatory text in the bottom action bar, between the menu and next button. */
 export function actionFooter(
   scene: Phaser.Scene,
   text: string,
 ): Phaser.GameObjects.Text {
   const { action } = frame();
-  return label(scene, action.x + 140, action.y + action.h / 2, text, {
+  return label(scene, action.x + FOOTER_X, action.y + action.h / 2, text, {
     color: COLORS.onWood,
-    size: FS.small,
-    wrap: action.w - 360,
+    size: FS.body,
+    wrap: action.w - FOOTER_X - 240,
   }).setOrigin(0, 0.5);
 }
 
@@ -381,4 +389,12 @@ export const BUILDING_LABEL: Record<BuildingKind, StringKey> = {
   muhl: "business.mill",
   burg: "business.palace",
   dom: "business.cathedral",
+};
+
+/** Icon of each building kind. */
+export const BUILDING_ICON: Record<BuildingKind, IconDraw> = {
+  markt: (g, x, y, size) => drawEventIcon(g, x, y, size, "market"),
+  muhl: (g, x, y, size) => drawEventIcon(g, x, y, size, "mill"),
+  burg: drawPalaceIcon,
+  dom: drawCathedralIcon,
 };

@@ -50,12 +50,17 @@ export const FONT_DISPLAY = '"Cinzel", "EB Garamond", Georgia, serif';
 export const FONT_MONO =
   '"JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
+/**
+ * Font sizes in design units. The canvas is fitted to the window, so a phone
+ * (about 390 css px high for the 576 design units) shows them at ~0.68: the
+ * smallest size must stay at 18 to read as at least 12 css px.
+ */
 export const FS = {
-  title: 28,
-  heading: 18,
-  body: 15,
-  small: 12,
-  mono: 16,
+  title: 34,
+  heading: 24,
+  body: 21,
+  small: 18,
+  mono: 22,
 } as const;
 
 /** Numeric color → `#rrggbb` string for Phaser Text styles. */

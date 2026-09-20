@@ -1,6 +1,7 @@
 import type { Game as PhaserGame } from "phaser";
 import { attachMusic, isMuted, toggleMute } from "./game/audio/music";
 import { snapshotScenes } from "./game/debug/snapshot";
+import { t } from "./game/i18n/i18n";
 import StartGame from "./game/main";
 import { captureInstallPrompt } from "./game/pwa";
 
@@ -20,7 +21,20 @@ function fitViewport(game: PhaserGame): void {
   window.addEventListener("orientationchange", apply);
 }
 
+// The portrait overlay is plain HTML; fill it from the game's language, and
+// again whenever it is about to show (the player may have switched language).
+function syncRotateText(): void {
+  const title = document.getElementById("rotate-title");
+  const sub = document.getElementById("rotate-sub");
+  if (title) title.textContent = t("rotate.title");
+  if (sub) sub.textContent = t("rotate.sub");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  syncRotateText();
+  window
+    .matchMedia("(orientation: portrait)")
+    .addEventListener("change", syncRotateText);
   captureInstallPrompt();
   const game = StartGame("game-container");
   fitViewport(game);

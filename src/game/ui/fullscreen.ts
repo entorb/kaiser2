@@ -1,13 +1,12 @@
 import type Phaser from "phaser";
-import { Scale } from "phaser";
-import { t } from "../i18n/i18n";
 import type { FocusGroup } from "./focus";
+import { drawExpandIcon } from "./icon";
 import { Button } from "./widgets";
 
 /**
- * Button that toggles browser fullscreen and reflects the current state in its
- * label. Returns `undefined` where the Fullscreen API is unavailable (e.g.
- * iPhone Safari), so callers can simply skip it. The button joins `group`.
+ * Icon button that toggles browser fullscreen. Returns `undefined` where the
+ * Fullscreen API is unavailable (e.g. iPhone Safari), so callers can simply
+ * skip it. The button joins `group`.
  */
 export function fullscreenButton(
   scene: Phaser.Scene,
@@ -19,20 +18,11 @@ export function fullscreenButton(
 ): Button | undefined {
   if (!scene.game.device.fullscreen.available) return undefined;
 
-  const label = () => t("menu.fullscreen");
-  const button = new Button(scene, x, y, w, h, label(), {
+  const button = new Button(scene, x, y, w, h, "", {
+    icon: drawExpandIcon,
     activateOn: "up",
     onClick: () => scene.scale.toggleFullscreen(),
   });
-
-  const onFullscreenChange = () => button.setText(label());
-  scene.scale.on(Scale.Events.ENTER_FULLSCREEN, onFullscreenChange);
-  scene.scale.on(Scale.Events.LEAVE_FULLSCREEN, onFullscreenChange);
-  scene.events.once("shutdown", () => {
-    scene.scale.off(Scale.Events.ENTER_FULLSCREEN, onFullscreenChange);
-    scene.scale.off(Scale.Events.LEAVE_FULLSCREEN, onFullscreenChange);
-  });
-
   button.bind(group);
   return button;
 }

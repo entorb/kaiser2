@@ -9,15 +9,21 @@ import {
 } from "../model/rules";
 import { getState } from "../model/session";
 import { type GameState, playerAt, rand } from "../model/types";
-import { alert, chooseList, numberPrompt } from "../ui/dialog";
+import { alert, chooseList, sliderPrompt } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
-import { drawCoinsIcon, drawEventIcon } from "../ui/icon";
+import {
+  drawCoinsIcon,
+  drawEventIcon,
+  drawKontorIcon,
+  drawPalaceIcon,
+  drawShield,
+  type IconDraw,
+} from "../ui/icon";
 import { frame } from "../ui/layout";
-import { label } from "../ui/text";
-import { COLORS, SPACE } from "../ui/theme";
+import { SPACE } from "../ui/theme";
 import { type ListItem, ListMenu, Panel, StatRow } from "../ui/widgets";
 import { GameScene } from "./base";
-import { primaryAction, screenTitle, statusBar } from "./common";
+import { actionFooter, primaryAction, screenTitle, statusBar } from "./common";
 
 type Building = GuardKind;
 
@@ -38,7 +44,7 @@ export class SecretService extends GameScene {
     while (!done) {
       this.clearScreen();
       const group = new FocusGroup(this);
-      const { content, action } = frame();
+      const { content } = frame();
       statusBar(this, state, group);
       screenTitle(this, t("secret.title"), content.y);
 
@@ -50,16 +56,19 @@ export class SecretService extends GameScene {
         panelW,
         content.h - 54,
       );
+      // Head counts, each followed by its current training level.
       const rows: [string, string][] = [
         [t("secret.guards"), `${p.infant}`],
+        [t("secret.guardLevel"), `${p.kavall}`],
         [t("secret.saboteurs"), `${p.artell}`],
+        [t("secret.saboteurLevel"), `${p.manov}`],
       ];
       rows.forEach(([labelText, value], i) => {
         panel.add(
           new StatRow(
             this,
             SPACE.lg,
-            64 + i * 44,
+            64 + i * 46,
             panelW - SPACE.lg * 2,
             labelText,
             value,
@@ -103,10 +112,7 @@ export class SecretService extends GameScene {
 
       // Footer: what the highlighted action does (training raises the strength
       // multiplier used in sabotage resolution).
-      const footer = label(this, action.x + 140, action.y + action.h / 2, "", {
-        color: COLORS.onWood,
-      });
-      footer.setOrigin(0, 0.5);
+      const footer = actionFooter(this, "");
       const hints = [
         t("secret.hireGuardsHint"),
         t("secret.hireSaboteursHint"),
@@ -125,7 +131,7 @@ export class SecretService extends GameScene {
           menuW,
           options,
           {
-            rowH: 42,
+            rowH: 52,
             gap: 8,
             onSelect: resolve,
             onChange: (i) => footer.setText(hints[i] ?? ""),
@@ -169,7 +175,11 @@ export class SecretService extends GameScene {
     const indices: number[] = [];
     for (let i = 1; i <= state.count; i++) {
       if (i === state.sp) continue;
-      names.push({ label: playerAt(state, i).name });
+      const { name, portrait } = playerAt(state, i);
+      names.push({
+        label: name,
+        icon: (g, x, y, size) => drawShield(g, x, y, size, portrait),
+      });
       indices.push(i);
     }
     names.push({ label: t("secret.nobody") });
@@ -189,11 +199,18 @@ export class SecretService extends GameScene {
       t("secret.house"),
       t("secret.palace"),
     ];
+    const icons: IconDraw[] = [
+      (g, x, y, size) => drawEventIcon(g, x, y, size, "mill"),
+      (g, x, y, size) => drawEventIcon(g, x, y, size, "market"),
+      drawKontorIcon,
+      drawPalaceIcon,
+    ];
     const kind = await chooseList(
       this,
       t("secret.building"),
       labels.map((label, i) => ({
         label: `${label} (${counts[i]})`,
+        icon: at(icons, i),
         disabled: (counts[i] ?? 0) <= 0,
       })),
       { cancel: true },
@@ -209,14 +226,18 @@ export class SecretService extends GameScene {
     // the spy picks the weakest one, whose guards form the defence (WW).
     const guards = guardsInBuilding(distributeGuards(target), building);
 
-    const sab = await numberPrompt(this, {
-      title: t("secret.amount"),
-      stel: 3,
-      min: 1,
-      max: p.artell,
-    });
-    if (sab === null || sab <= 0) return;
-    const used = Math.min(sab, p.artell);
+    // A single saboteur needs no choice (and a one-value slider has no track).
+    const used =
+      p.artell <= 1
+        ? p.artell
+        : await sliderPrompt(this, {
+            title: t("secret.amount"),
+            min: 1,
+            max: p.artell,
+            initial: p.artell,
+            minLabel: "1",
+            maxLabel: `${p.artell}`,
+          });
     if (used <= 0) return;
 
     const res = resolveSabotage(p, target, used, guards);
