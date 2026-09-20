@@ -1,7 +1,7 @@
-import type Phaser from "phaser";
-import type { FocusGroup } from "./focus";
-import { drawExpandIcon } from "./icon";
-import { Button } from "./widgets";
+import type Phaser from "phaser"
+import type { FocusGroup } from "./focus"
+import { drawExpandIcon } from "./icon"
+import { Button } from "./widgets"
 
 /**
  * Icon button that toggles browser fullscreen. Returns `undefined` where the
@@ -16,13 +16,13 @@ export function fullscreenButton(
   w: number,
   h: number,
 ): Button | undefined {
-  if (!scene.game.device.fullscreen.available) return undefined;
+  if (!scene.game.device.fullscreen.available) return undefined
 
   const button = new Button(scene, x, y, w, h, "", {
     icon: drawExpandIcon,
     activateOn: "up",
     onClick: () => scene.scale.toggleFullscreen(),
-  });
-  button.bind(group);
-  return button;
+  })
+  button.bind(group)
+  return button
 }

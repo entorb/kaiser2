@@ -1,5 +1,5 @@
-import { Scene } from "phaser";
-import { attachSceneMusic } from "../audio/music";
+import { Scene } from "phaser"
+import { attachSceneMusic } from "../audio/music"
 import {
   CANVAS_H,
   CANVAS_W,
@@ -8,7 +8,7 @@ import {
   GAME_W,
   landscapeAspect,
   RENDER_SCALE,
-} from "../ui/layout";
+} from "../ui/layout"
 
 /**
  * Base scene for every screen. The game canvas renders at `RENDER_SCALE` times
@@ -23,14 +23,14 @@ import {
  */
 export class GameScene extends Scene {
   init(): void {
-    const { width, height } = this.scale.parentSize;
+    const { width, height } = this.scale.parentSize
     if (width > 0 && fitCanvas(landscapeAspect(width, height))) {
-      this.scale.setGameSize(GAME_W, GAME_H);
+      this.scale.setGameSize(GAME_W, GAME_H)
     }
-    const camera = this.cameras.main;
-    camera.setZoom(RENDER_SCALE);
-    camera.centerOn(CANVAS_W / 2, CANVAS_H / 2);
-    attachSceneMusic(this);
+    const camera = this.cameras.main
+    camera.setZoom(RENDER_SCALE)
+    camera.centerOn(CANVAS_W / 2, CANVAS_H / 2)
+    attachSceneMusic(this)
   }
 
   /**
@@ -41,6 +41,6 @@ export class GameScene extends Scene {
    * so stepping by index (or a snapshot) is not needed.
    */
   protected clearScreen(): void {
-    while (this.children.list.length > 0) this.children.list[0]?.destroy();
+    while (this.children.list.length > 0) this.children.list[0]?.destroy()
   }
 }

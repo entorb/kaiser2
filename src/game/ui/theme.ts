@@ -35,20 +35,20 @@ export const COLORS = {
   acre: 0xd8b13a,
   /** Building land (stone) on the Land map, legend and Ranking icon. */
   building: 0x8d8d8d,
-} as const;
+} as const
 
 /** Slight bevel, not a modern pill. */
-export const RADIUS = 3;
+export const RADIUS = 3
 
-export const SPACE = { xs: 4, sm: 8, md: 12, lg: 20, xl: 32 } as const;
+export const SPACE = { xs: 4, sm: 8, md: 12, lg: 20, xl: 32 } as const
 
 /** Body/labels: an old-style serif. */
-export const FONT_UI = '"EB Garamond", Georgia, "Times New Roman", serif';
+export const FONT_UI = '"EB Garamond", Georgia, "Times New Roman", serif'
 /** Titles/buttons: Roman inscriptional capitals. */
-export const FONT_DISPLAY = '"Cinzel", "EB Garamond", Georgia, serif';
+export const FONT_DISPLAY = '"Cinzel", "EB Garamond", Georgia, serif'
 /** Numbers and tables: the game monospace. */
 export const FONT_MONO =
-  '"JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+  '"JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
 
 /**
  * Font sizes in design units. The canvas is fitted to the window, so a phone
@@ -61,9 +61,9 @@ export const FS = {
   body: 21,
   small: 18,
   mono: 22,
-} as const;
+} as const
 
 /** Numeric color → `#rrggbb` string for Phaser Text styles. */
 export function css(color: number): string {
-  return `#${color.toString(16).padStart(6, "0")}`;
+  return `#${color.toString(16).padStart(6, "0")}`
 }
