@@ -58,23 +58,11 @@ export class Chronicle extends GameScene {
 
     const moneyRows: Row[] = [];
     if (c.mg1 > 0)
-      moneyRows.push([
-        "mill",
-        `${c.mg1} ${t("common.taler")}`,
-        t("chronicle.millProfit"),
-      ]);
+      moneyRows.push(["mill", `${c.mg1}`, t("chronicle.millProfit")]);
     if (c.mg2 > 0)
-      moneyRows.push([
-        "market",
-        `${c.mg2} ${t("common.taler")}`,
-        t("chronicle.marketProfit"),
-      ]);
+      moneyRows.push(["market", `${c.mg2}`, t("chronicle.marketProfit")]);
     if (c.sold > 0)
-      moneyRows.push([
-        "spy",
-        `-${c.sold} ${t("common.taler")}`,
-        t("chronicle.secretService"),
-      ]);
+      moneyRows.push(["spy", `-${c.sold}`, t("chronicle.secretService")]);
 
     this.section(left, drawCrowdIcon, t("chronicle.population"), peopleRows, {
       text: sign(people),
@@ -101,10 +89,10 @@ export class Chronicle extends GameScene {
   ): void {
     const w = panel.w;
     const g = this.add.graphics();
-    icon(g, SPACE.lg + 12, 22, 24);
+    icon(g, SPACE.lg + 14, 24, 28);
     panel.add(g);
     panel.add(
-      label(this, SPACE.lg + 32, 10, title, {
+      label(this, SPACE.lg + 40, 10, title, {
         size: FS.heading,
         weight: "bold",
         color: COLORS.wood,
@@ -112,18 +100,18 @@ export class Chronicle extends GameScene {
     );
     const rule = this.add.graphics();
     rule.lineStyle(1, COLORS.border, 0.5);
-    rule.lineBetween(SPACE.lg, 38, w - SPACE.lg, 38);
+    rule.lineBetween(SPACE.lg, 44, w - SPACE.lg, 44);
     panel.add(rule);
 
-    const top = 60;
-    const step = 44;
+    const top = 62;
+    const step = 50;
     rows.forEach(([kind, value, text], i) => {
       const y = top + i * step;
       const ig = this.add.graphics();
-      drawEventIcon(ig, SPACE.lg + 11, y + 9, 22, kind);
+      drawEventIcon(ig, SPACE.lg + 14, y + 12, 28, kind);
       panel.add(ig);
       panel.add(
-        label(this, SPACE.lg + 32, y, `${value}  ${text}`, {
+        label(this, SPACE.lg + 40, y, `${value}  ${text}`, {
           size: FS.body,
           color: COLORS.text,
         }),

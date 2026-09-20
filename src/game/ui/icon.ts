@@ -769,3 +769,179 @@ export function drawWeatherIcon(
       break;
   }
 }
+
+/** Speaker cone shared by the two sound icons; returns the ink line width. */
+function speaker(
+  g: GameObjects.Graphics,
+  cx: number,
+  cy: number,
+  size: number,
+): number {
+  const s = size;
+  g.fillStyle(COLORS.wood, 1);
+  g.fillPoints(
+    [
+      new V(cx - s * 0.46, cy - s * 0.14),
+      new V(cx - s * 0.24, cy - s * 0.14),
+      new V(cx + s * 0.02, cy - s * 0.36),
+      new V(cx + s * 0.02, cy + s * 0.36),
+      new V(cx - s * 0.24, cy + s * 0.14),
+      new V(cx - s * 0.46, cy + s * 0.14),
+    ],
+    true,
+  );
+  return Math.max(1.5, s * 0.09);
+}
+
+/** Speaker with sound waves: music on. */
+export function drawSoundOnIcon(
+  g: GameObjects.Graphics,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
+  g.lineStyle(speaker(g, cx, cy, size), COLORS.wood, 1);
+  for (const r of [0.2, 0.38]) {
+    g.beginPath();
+    g.arc(cx + size * 0.02, cy, size * r, -0.9, 0.9);
+    g.strokePath();
+  }
+}
+
+/** Speaker crossed out in red: music off. */
+export function drawSoundOffIcon(
+  g: GameObjects.Graphics,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
+  g.lineStyle(speaker(g, cx, cy, size), COLORS.danger, 1);
+  g.lineBetween(
+    cx + size * 0.14,
+    cy - size * 0.2,
+    cx + size * 0.46,
+    cy + size * 0.2,
+  );
+  g.lineBetween(
+    cx + size * 0.14,
+    cy + size * 0.2,
+    cx + size * 0.46,
+    cy - size * 0.2,
+  );
+}
+
+/** Three linked nodes: proclaim the game to others. */
+export function drawShareIcon(
+  g: GameObjects.Graphics,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
+  const s = size;
+  const nodes = [
+    new V(cx + s * 0.28, cy - s * 0.3),
+    new V(cx - s * 0.3, cy),
+    new V(cx + s * 0.28, cy + s * 0.3),
+  ] as const;
+  g.lineStyle(Math.max(1.5, s * 0.09), COLORS.wood, 1);
+  g.lineBetween(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y);
+  g.lineBetween(nodes[1].x, nodes[1].y, nodes[2].x, nodes[2].y);
+  g.fillStyle(COLORS.wood, 1);
+  for (const n of nodes) g.fillCircle(n.x, n.y, s * 0.15);
+}
+
+/** Arrow dropping into a tray: install the app. */
+export function drawDownloadIcon(
+  g: GameObjects.Graphics,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
+  const s = size;
+  g.fillStyle(COLORS.wood, 1);
+  g.fillRect(cx - s * 0.06, cy - s * 0.42, s * 0.12, s * 0.42);
+  g.fillTriangle(
+    cx - s * 0.26,
+    cy - s * 0.06,
+    cx + s * 0.26,
+    cy - s * 0.06,
+    cx,
+    cy + s * 0.22,
+  );
+  g.lineStyle(Math.max(1.5, s * 0.09), COLORS.wood, 1);
+  g.beginPath();
+  g.moveTo(cx - s * 0.4, cy + s * 0.1);
+  g.lineTo(cx - s * 0.4, cy + s * 0.38);
+  g.lineTo(cx + s * 0.4, cy + s * 0.38);
+  g.lineTo(cx + s * 0.4, cy + s * 0.1);
+  g.strokePath();
+}
+
+/** Four corner brackets: fullscreen. */
+export function drawExpandIcon(
+  g: GameObjects.Graphics,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
+  const s = size;
+  const arm = s * 0.22;
+  g.lineStyle(Math.max(1.5, s * 0.1), COLORS.wood, 1);
+  for (const [sx, sy] of [
+    [-1, -1],
+    [1, -1],
+    [-1, 1],
+    [1, 1],
+  ] as const) {
+    const x = cx + sx * s * 0.38;
+    const y = cy + sy * s * 0.38;
+    g.beginPath();
+    g.moveTo(x - sx * arm, y);
+    g.lineTo(x, y);
+    g.lineTo(x, y - sy * arm);
+    g.strokePath();
+  }
+}
+
+/** Wooden crate with cross slats: the amount a trading partner has in stock. */
+export function drawStockIcon(
+  g: GameObjects.Graphics,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
+  const w = size * 0.84;
+  const h = size * 0.66;
+  const x = cx - w / 2;
+  const y = cy - h / 2;
+  g.fillStyle(COLORS.border, 1);
+  g.fillRect(x, y, w, h);
+  g.lineStyle(Math.max(1.2, size * 0.08), COLORS.woodDark, 1);
+  g.strokeRect(x, y, w, h);
+  g.lineBetween(x, y, x + w, y + h);
+  g.lineBetween(x + w, y, x, y + h);
+}
+
+/** Gabled counting-house with a coin over the door: a trading house. */
+export function drawKontorIcon(
+  g: GameObjects.Graphics,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
+  const s = size;
+  g.fillStyle(COLORS.wood, 1);
+  g.fillTriangle(
+    cx - s * 0.5,
+    cy - s * 0.04,
+    cx + s * 0.5,
+    cy - s * 0.04,
+    cx,
+    cy - s * 0.46,
+  );
+  g.fillRect(cx - s * 0.38, cy - s * 0.04, s * 0.76, s * 0.5);
+  g.fillStyle(COLORS.accent, 1);
+  g.fillCircle(cx, cy + s * 0.2, s * 0.17);
+  g.lineStyle(Math.max(1, s * 0.05), COLORS.woodDark, 1);
+  g.strokeCircle(cx, cy + s * 0.2, s * 0.17);
+}

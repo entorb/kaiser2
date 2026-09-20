@@ -23,7 +23,6 @@ import {
   type IconDraw,
 } from "../ui/icon";
 import { frame } from "../ui/layout";
-import { divider } from "../ui/ornament";
 import { label } from "../ui/text";
 import { COLORS, css, FS, SPACE } from "../ui/theme";
 import { moneyLabel, Panel, Slider } from "../ui/widgets";
@@ -166,7 +165,7 @@ export class Land extends GameScene {
     };
 
     const acre = section(
-      top + 29,
+      top + 14,
       drawAcreIcon,
       t("land.acre"),
       "acker",
@@ -179,9 +178,8 @@ export class Land extends GameScene {
         redraw();
       },
     );
-    divider(this, rightX + rightW / 2, top + 161, sliderW);
     const building = section(
-      top + 181,
+      top + 156,
       drawBuildingIcon,
       t("land.building"),
       "land",

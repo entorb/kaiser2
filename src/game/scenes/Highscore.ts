@@ -6,6 +6,7 @@ import { highscoreValue } from "../model/rules";
 import { getState } from "../model/session";
 import { playerAt } from "../model/types";
 import { FocusGroup } from "../ui/focus";
+import { drawPointsIcon } from "../ui/icon";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
 import { COLORS, FS, RADIUS, SPACE } from "../ui/theme";
@@ -78,13 +79,6 @@ export class Highscore extends GameScene {
       }),
     );
     panel.add(
-      label(this, SPACE.lg + rankW, headY, t("ranking.ruler"), {
-        color: COLORS.muted,
-        size: FS.small,
-        weight: "bold",
-      }),
-    );
-    panel.add(
       label(this, yearCx, headY, t("status.year"), {
         color: COLORS.muted,
         size: FS.small,
@@ -92,14 +86,9 @@ export class Highscore extends GameScene {
         mono: true,
       }).setOrigin(0.5, 0),
     );
-    panel.add(
-      label(this, pointsCx, headY, t("status.points"), {
-        color: COLORS.muted,
-        size: FS.small,
-        weight: "bold",
-        mono: true,
-      }).setOrigin(0.5, 0),
-    );
+    const pointsHead = this.add.graphics();
+    drawPointsIcon(pointsHead, pointsCx, headY + 11, 28);
+    panel.add(pointsHead);
 
     const sep = this.add.graphics();
     sep.lineStyle(1, COLORS.border, 1);

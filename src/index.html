@@ -20,8 +20,17 @@
     <div id="app">
         <div id="game-container"></div>
         <div id="rotate">
-            <div class="rotate-title">ROTATE YOUR DEVICE</div>
-            <div class="rotate-sub">LANDSCAPE REQUIRED</div>
+            <svg class="rotate-icon" viewBox="0 0 96 96" fill="none" stroke="currentColor"
+                stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <g class="rotate-phone">
+                    <rect x="34" y="20" width="28" height="48" rx="5" />
+                    <path d="M44 61h8" />
+                </g>
+                <path d="M72 20A34 34 0 0 1 80 56M73 50l7 7 7-7" />
+                <path d="M24 68A34 34 0 0 1 16 32M9 39l7-7 7 7" />
+            </svg>
+            <div class="rotate-title" id="rotate-title"></div>
+            <div class="rotate-sub" id="rotate-sub"></div>
         </div>
     </div>
     <script type="module" src="/main.ts"></script>

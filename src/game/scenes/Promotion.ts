@@ -33,7 +33,9 @@ export class Promotion extends GameScene {
     playFanfare();
     const group = new FocusGroup(this);
     const { content } = frame();
-    screenTitle(
+    // The headline is long and breaks onto a second line when it must; the
+    // panel takes the room that is left below it.
+    const title = screenTitle(
       this,
       t("promotion.title", {
         name: data.name,
@@ -42,10 +44,11 @@ export class Promotion extends GameScene {
         kingdom: data.kingdom,
       }),
       content.y,
+      true,
     );
-
-    const panelH = content.h - 54;
-    const panel = new Panel(this, content.x, content.y + 54, content.w, panelH);
+    const panelTop = content.y + Math.max(54, Math.ceil(title.height) + 12);
+    const panelH = content.y + content.h - panelTop;
+    const panel = new Panel(this, content.x, panelTop, content.w, panelH);
     const cx = content.w / 2;
     const cy = panelH / 2;
 

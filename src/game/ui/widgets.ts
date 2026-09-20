@@ -131,7 +131,7 @@ export interface ButtonOptions {
   icon?: IconDraw;
 }
 
-const BUTTON_ICON = 20;
+const BUTTON_ICON = 26;
 const BUTTON_ICON_GAP = 8;
 
 export class Button extends Widget {
@@ -183,6 +183,13 @@ export class Button extends Widget {
   setText(text: string): this {
     this.text.setText(text);
     if (this.opts.icon) this.layoutIcon(this.opts.icon);
+    return this;
+  }
+
+  /** Swap the decoration, e.g. a sound toggle between on and off. */
+  setIcon(icon: IconDraw): this {
+    this.opts.icon = icon;
+    this.layoutIcon(icon);
     return this;
   }
 
@@ -287,7 +294,7 @@ export interface ListItem {
   color?: number;
 }
 
-const LIST_ICON = 20;
+const LIST_ICON = 24;
 const LIST_ICON_GAP = 10;
 const LIST_LEAD = 64;
 const LIST_VALUE_ICON = 18;
@@ -297,6 +304,8 @@ export interface ListMenuOptions {
   gap?: number;
   /** Center of each `ListItem.cells` column, in row coordinates. */
   cellX?: number[];
+  /** Font size of the cell figures; default `FS.mono`. */
+  cellSize?: number;
   onSelect?: (index: number) => void;
   /** Fired when the highlighted row changes (keyboard or pointer). */
   onChange?: (index: number) => void;
@@ -389,7 +398,10 @@ export class ListMenu extends Widget {
       const cells = (item.cells ?? []).map((cell, c) => {
         const cx = opts.cellX?.[c] ?? bw / 2;
         const cy = rowY + rowH / 2;
-        const text = label(scene, cx, cy, cell.text, { mono: true });
+        const text = label(scene, cx, cy, cell.text, {
+          mono: true,
+          size: opts.cellSize,
+        });
         this.add(text);
         if (!cell.icon) {
           text.setOrigin(0.5);
@@ -604,7 +616,7 @@ export interface StatRowOptions {
   bold?: boolean;
 }
 
-const STAT_ICON = 18;
+const STAT_ICON = 24;
 const STAT_ICON_GAP = 10;
 
 /** A muted label on the left, a value (optionally monospace) on the right. */
@@ -655,204 +667,6 @@ export class StatRow extends GameObjects.Container {
       for (let px = startX; px < endX; px += 7) g.fillCircle(px, 10, 1);
       this.add(g);
     }
-  }
-}
-
-export interface NumberFieldOptions {
-  min?: number;
-  max?: number;
-  stel?: number;
-  step?: number;
-  initial?: number;
-  /** Fires on every visible change, including while typing. */
-  onInput?: (value: number) => void;
-  onChange?: (value: number) => void;
-  onSubmit?: (value: number) => void;
-}
-
-/**
- * Numeric stepper: `−` / value / `+`. Type digits to edit, arrows to step,
- * Enter to submit. Self-contained (no DOM input), so it works inside panels.
- */
-export class NumberField extends Widget {
-  value: number;
-  private editing = false;
-  private buffer = "";
-  private readonly bg: GameObjects.Graphics;
-  private readonly valueText: GameObjects.Text;
-  private readonly min: number;
-  private readonly max: number;
-  private readonly stel: number;
-  private readonly step: number;
-
-  constructor(
-    scene: Scene,
-    x: number,
-    y: number,
-    private readonly bw: number,
-    private readonly bh: number,
-    private readonly opts: NumberFieldOptions = {},
-  ) {
-    super(scene, x, y);
-    this.stel = opts.stel ?? 6;
-    this.min = opts.min ?? 0;
-    this.max = opts.max ?? 10 ** this.stel - 1;
-    this.step = opts.step ?? 1;
-    this.value = clamp(opts.initial ?? 0, this.min, this.max);
-
-    this.bg = scene.add.graphics();
-    this.add(this.bg);
-
-    const btn = Math.min(bh, 44);
-    this.addStepButton(SPACE.sm, (bh - btn) / 2, btn, "−", -1);
-    this.addStepButton(bw - SPACE.sm - btn, (bh - btn) / 2, btn, "+", 1);
-
-    this.valueText = label(scene, bw / 2, bh / 2, "", {
-      mono: true,
-      size: FS.mono,
-      origin: 0.5,
-    });
-    this.valueText.setOrigin(0.5);
-    this.add(this.valueText);
-    this.updateText();
-
-    const zone = scene.add
-      .zone(bw / 2 - 50, 0, 100, bh)
-      .setOrigin(0, 0)
-      .setInteractive({ useHandCursor: true });
-    this.add(zone);
-    zone.on("pointerdown", () => {
-      this.focusSelf();
-      this.beginEdit();
-    });
-    this.redraw();
-  }
-
-  private addStepButton(
-    x: number,
-    y: number,
-    size: number,
-    glyph: string,
-    delta: number,
-  ): void {
-    const g = this.scene.add.graphics();
-    g.fillStyle(COLORS.surfaceAlt, 1);
-    g.fillRoundedRect(x, y, size, size, RADIUS);
-    this.add(g);
-    const text = label(this.scene, x + size / 2, y + size / 2, glyph, {
-      size: FS.heading,
-      weight: "bold",
-      origin: 0.5,
-    });
-    text.setOrigin(0.5);
-    this.add(text);
-    const zone = this.scene.add
-      .zone(x, y, size, size)
-      .setOrigin(0, 0)
-      .setInteractive({ useHandCursor: true });
-    this.add(zone);
-    zone.on("pointerdown", () => {
-      this.focusSelf();
-      this.stepBy(delta);
-    });
-  }
-
-  setValue(value: number): void {
-    this.value = clamp(Math.round(value), this.min, this.max);
-    this.updateText();
-    this.opts.onChange?.(this.value);
-  }
-
-  /** Commit any in-progress typing and return the resulting value. */
-  commitValue(): number {
-    this.commit();
-    return this.value;
-  }
-
-  private stepBy(delta: number): void {
-    this.editing = false;
-    this.setValue(this.value + delta * this.step);
-  }
-
-  private beginEdit(): void {
-    this.editing = true;
-    this.buffer = String(this.value);
-    this.updateText();
-  }
-
-  private commit(): void {
-    if (this.editing && this.buffer !== "") {
-      this.value = clamp(Math.floor(Number(this.buffer)), this.min, this.max);
-    }
-    this.editing = false;
-    this.updateText();
-    this.opts.onChange?.(this.value);
-  }
-
-  private updateText(): void {
-    const shown = this.editing ? `${this.buffer}▌` : String(this.value);
-    this.valueText.setText(shown);
-    this.opts.onInput?.(this.effectiveValue());
-  }
-
-  /** The value as currently shown: the live buffer while editing, else `value`. */
-  private effectiveValue(): number {
-    if (!this.editing || this.buffer === "") return this.value;
-    return clamp(Math.floor(Number(this.buffer)), this.min, this.max);
-  }
-
-  handleKey(event: KeyboardEvent): boolean {
-    if (this.editing) {
-      if (/^\d$/.test(event.key)) {
-        if (this.buffer.length < this.stel) this.buffer += event.key;
-      } else if (event.key === "Backspace") {
-        this.buffer = this.buffer.slice(0, -1);
-      } else if (event.key === "Enter") {
-        event.preventDefault();
-        this.commit();
-        this.opts.onSubmit?.(this.value);
-      } else if (event.key === "Escape") {
-        this.editing = false;
-      } else {
-        return true;
-      }
-      this.updateText();
-      return true;
-    }
-    if (event.key === "ArrowUp" || event.key === "ArrowRight") {
-      event.preventDefault();
-      this.stepBy(1);
-      return true;
-    }
-    if (event.key === "ArrowDown" || event.key === "ArrowLeft") {
-      event.preventDefault();
-      this.stepBy(-1);
-      return true;
-    }
-    if (/^\d$/.test(event.key)) {
-      this.beginEdit();
-      this.buffer = event.key;
-      this.updateText();
-      return true;
-    }
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      this.opts.onSubmit?.(this.value);
-      return true;
-    }
-    return false;
-  }
-
-  protected redraw(): void {
-    this.bg.clear();
-    this.bg.fillStyle(COLORS.surfaceAlt, 1);
-    this.bg.fillRoundedRect(0, 0, this.bw, this.bh, RADIUS);
-    this.bg.lineStyle(
-      this.focused ? 2 : 1,
-      this.focused ? COLORS.accent : COLORS.border,
-      1,
-    );
-    this.bg.strokeRoundedRect(0.5, 0.5, this.bw - 1, this.bh - 1, RADIUS);
   }
 }
 
@@ -927,7 +741,8 @@ export class Slider extends Widget {
   private step: number;
   private readonly initial: number;
   private readonly trackX = 26;
-  private readonly trackY = 32;
+  // Below the value text; a slider without a title has it centered above.
+  private readonly trackY: number;
   private readonly trackW: number;
   private dragging = false;
   private readonly onUp: () => void;
@@ -944,6 +759,7 @@ export class Slider extends Widget {
     this.min = opts.min ?? 0;
     this.max = opts.max ?? 100;
     this.step = opts.step ?? 1;
+    this.trackY = opts.label ? 35 : 42;
     this.trackW = bw - this.trackX * 2;
     this.initial = clamp(opts.initial ?? 0, this.min, this.max);
     this.value = this.initial;
@@ -967,7 +783,7 @@ export class Slider extends Widget {
     this.add(this.valueText);
 
     if (opts.minLabel) {
-      const l = label(scene, this.trackX, this.trackY + 16, opts.minLabel, {
+      const l = label(scene, this.trackX, this.trackY + 24, opts.minLabel, {
         size: FS.small,
         color: COLORS.muted,
       });
@@ -978,7 +794,7 @@ export class Slider extends Widget {
       const l = label(
         scene,
         bw - this.trackX,
-        this.trackY + 16,
+        this.trackY + 24,
         opts.maxLabel,
         { size: FS.small, color: COLORS.muted },
       );
@@ -990,7 +806,7 @@ export class Slider extends Widget {
       const l = label(
         scene,
         this.tickX(tick.value),
-        this.trackY + 16,
+        this.trackY + 24,
         tick.label,
         { size: FS.small, color: COLORS.muted, origin: 0.5 },
       );
@@ -999,7 +815,7 @@ export class Slider extends Widget {
     }
 
     const zone = scene.add
-      .zone(this.trackX - 14, this.trackY - 18, this.trackW + 28, 46)
+      .zone(this.trackX - 14, this.trackY - 30, this.trackW + 28, 70)
       .setOrigin(0, 0)
       .setInteractive({ useHandCursor: true });
     this.add(zone);
@@ -1031,7 +847,7 @@ export class Slider extends Widget {
       this.costText = label(
         scene,
         bw / 2,
-        this.trackY + 30,
+        this.trackY + 36,
         opts.cost(this.value),
         {
           color: opts.costColor?.(this.value) ?? COLORS.accent,
@@ -1170,17 +986,17 @@ export class Slider extends Widget {
     g.clear();
     // Recessed groove: dark rim, parchment channel, lit lower lip.
     g.fillStyle(COLORS.woodDark, 1);
-    g.fillRoundedRect(this.trackX, this.trackY - 2, this.trackW, 12, 6);
+    g.fillRoundedRect(this.trackX, this.trackY - 2, this.trackW, 14, 7);
     g.fillStyle(COLORS.surfaceAlt, 1);
-    g.fillRoundedRect(this.trackX, this.trackY, this.trackW, 8, 4);
+    g.fillRoundedRect(this.trackX, this.trackY, this.trackW, 10, 5);
     const tx = this.tickX(this.value);
     g.fillStyle(COLORS.accent, 1);
     g.fillRoundedRect(
       this.trackX,
       this.trackY,
       Math.max(4, tx - this.trackX),
-      8,
-      4,
+      10,
+      5,
     );
     this.drawZero();
     this.drawMarkers();
@@ -1189,18 +1005,18 @@ export class Slider extends Widget {
     if (this.opts.valueIcon)
       this.drawBefore(this.opts.valueIcon, this.valueText, 16);
     // Brass knob: shadow, body, ring and a highlight pip.
-    const ky = this.trackY + 4;
+    const ky = this.trackY + 5;
     g.fillStyle(0x000000, 0.25);
-    g.fillCircle(tx, ky + 2, 11);
+    g.fillCircle(tx, ky + 2, 17);
     g.fillStyle(COLORS.accent, 1);
-    g.fillCircle(tx, ky, 10);
+    g.fillCircle(tx, ky, 16);
     g.lineStyle(2, COLORS.woodDark, 1);
-    g.strokeCircle(tx, ky, 10);
+    g.strokeCircle(tx, ky, 16);
     g.fillStyle(0xffffff, 0.25);
-    g.fillCircle(tx - 3, ky - 3, 3);
+    g.fillCircle(tx - 5, ky - 5, 5);
     if (this.focused) {
       g.lineStyle(2, COLORS.accentHover, 1);
-      g.strokeCircle(tx, ky, 13);
+      g.strokeCircle(tx, ky, 20);
     }
   }
 

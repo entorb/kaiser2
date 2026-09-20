@@ -251,9 +251,14 @@ export function drawRuler(
   drawShield(g, 0, 76, 62, portrait);
 }
 
+/** The bust spans y = -165 (crown) .. 116 (robe hem) around the chin. */
+const BUST_TOP = -165;
+const BUST_BOTTOM = 116;
+
 /**
  * Promotion picture: gold ray halo of radius `halo` around (`cx`, `cy`) and the
- * ruler's bust in front of it.
+ * ruler's bust in front of it, scaled down to fit the halo's diameter and
+ * centered on (`cx`, `cy`).
  */
 export function drawPromotionArt(
   g: GameObjects.Graphics,
@@ -276,8 +281,10 @@ export function drawPromotionArt(
       cy + halo * Math.sin(b),
     );
   }
+  const scale = Math.min(1, (halo * 2) / (BUST_BOTTOM - BUST_TOP));
   g.save();
-  g.translateCanvas(cx, cy + 38);
+  g.translateCanvas(cx, cy - ((BUST_TOP + BUST_BOTTOM) / 2) * scale);
+  g.scaleCanvas(scale, scale);
   drawRuler(g, rank, portrait);
   g.restore();
 }

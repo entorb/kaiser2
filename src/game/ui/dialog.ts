@@ -1,14 +1,14 @@
-import type { GameObjects, Scene } from "phaser";
+import type { Scene } from "phaser";
 import { t } from "../i18n/i18n";
 import { FocusGroup } from "./focus";
+import type { IconDraw } from "./icon";
 import { CANVAS_H, CANVAS_W } from "./layout";
 import { label } from "./text";
-import { COLORS, SPACE } from "./theme";
+import { SPACE } from "./theme";
 import {
   Button,
   type ListItem,
   ListMenu,
-  NumberField,
   Panel,
   Slider,
   type SliderOptions,
@@ -49,29 +49,63 @@ function openModal(
   };
 }
 
+/** A modal line: plain text, or text led by an icon. */
+export type AlertLine = string | { icon: IconDraw; text: string };
+
+const LINE_ICON = 28;
+const LINE_ICON_GAP = 10;
+
+const lineText = (line: AlertLine) =>
+  typeof line === "string" ? line : line.text;
+const lineIndent = (line: AlertLine) =>
+  typeof line === "string" ? 0 : LINE_ICON + LINE_ICON_GAP;
+
+/** Height the wrapped `lines` need, so a modal can be sized to its text. */
+function linesHeight(scene: Scene, lines: AlertLine[], w: number): number {
+  return lines.reduce((sum, line) => {
+    const probe = label(scene, 0, 0, lineText(line), {
+      wrap: w - SPACE.lg * 2 - lineIndent(line),
+    });
+    const h = Math.max(probe.height, lineIndent(line) ? LINE_ICON : 0);
+    probe.destroy();
+    return sum + h + LINE_GAP;
+  }, 0);
+}
+
 function addLines(
   scene: Scene,
   panel: Panel,
-  lines: string[],
+  lines: AlertLine[],
   w: number,
 ): void {
-  lines.forEach((line, i) => {
-    panel.add(
-      label(scene, SPACE.lg, 72 + i * 30, line, {
-        wrap: w - SPACE.lg * 2,
-      }),
-    );
-  });
+  let y = 72;
+  for (const line of lines) {
+    const indent = lineIndent(line);
+    const text = label(scene, SPACE.lg + indent, y, lineText(line), {
+      wrap: w - SPACE.lg * 2 - indent,
+    });
+    const h = Math.max(text.height, indent ? LINE_ICON : 0);
+    text.y = y + (h - text.height) / 2;
+    panel.add(text);
+    if (typeof line !== "string") {
+      const g = scene.add.graphics();
+      line.icon(g, SPACE.lg + LINE_ICON / 2, y + h / 2, LINE_ICON);
+      panel.add(g);
+    }
+    y += h + LINE_GAP;
+  }
 }
+
+const LINE_GAP = 12;
 
 /** Informational modal with a single continue button. */
 export function alert(
   scene: Scene,
   title: string,
-  lines: string[] = [],
+  lines: AlertLine[] = [],
 ): Promise<void> {
-  const w = 560;
-  const h = 190 + lines.length * 30;
+  const w = Math.min(720, CANVAS_W - 96);
+  const h = 160 + linesHeight(scene, lines, w);
   return new Promise((resolve) => {
     let m!: Modal;
     const finish = () => {
@@ -83,9 +117,9 @@ export function alert(
     const btn = new Button(
       scene,
       w - SPACE.lg - 150,
-      h - 66,
+      h - 76,
       150,
-      44,
+      56,
       t("ui.ok"),
       {
         variant: "primary",
@@ -108,11 +142,11 @@ export function chooseList(
   items: ListItem[],
   opts: ChooseListOptions = {},
 ): Promise<number> {
-  const rowH = 40;
+  const rowH = 52;
   const gap = 6;
   const w = 560;
   const listH = items.length * (rowH + gap) - gap;
-  const h = 80 + listH + (opts.cancel ? 68 : SPACE.lg);
+  const h = 80 + listH + (opts.cancel ? 84 : SPACE.lg);
   return new Promise((resolve) => {
     let m!: Modal;
     const finish = (index: number) => {
@@ -137,9 +171,9 @@ export function chooseList(
       const cancel = new Button(
         scene,
         w - SPACE.lg - 150,
-        h - 60,
+        h - 70,
         150,
-        44,
+        56,
         t("ui.cancel"),
         { onClick: () => finish(-1) },
       );
@@ -161,17 +195,6 @@ function settle<T>(
     close();
     resolve(value);
   };
-}
-
-export interface NumberPromptOptions {
-  title: string;
-  initial?: number;
-  min?: number;
-  max?: number;
-  stel?: number;
-  step?: number;
-  /** Live line under the field, e.g. the calculated total money. */
-  info?: (value: number) => string;
 }
 
 export type SliderPromptOptions = Omit<
@@ -205,9 +228,9 @@ export function sliderPrompt(
     const ok = new Button(
       scene,
       w - SPACE.lg - 150,
-      h - 66,
+      h - 76,
       150,
-      44,
+      56,
       t("ui.ok"),
       {
         variant: "primary",
@@ -215,68 +238,6 @@ export function sliderPrompt(
       },
     );
     m.panel.add(ok);
-    ok.bind(m.group);
-  });
-}
-
-/** Modal numeric stepper; resolves the value, or null when cancelled. */
-export function numberPrompt(
-  scene: Scene,
-  opts: NumberPromptOptions,
-): Promise<number | null> {
-  const w = 480;
-  const h = opts.info ? 286 : 240;
-  return new Promise((resolve) => {
-    let m!: Modal;
-    const finish = settle<number | null>(() => m.close(), resolve);
-    m = openModal(scene, opts.title, w, h, () => finish(null));
-    let infoText: GameObjects.Text | undefined;
-    const field = new NumberField(scene, (w - 260) / 2, 86, 260, 52, {
-      initial: opts.initial,
-      min: opts.min,
-      max: opts.max,
-      stel: opts.stel,
-      step: opts.step,
-      onInput: (value) => infoText?.setText(opts.info?.(value) ?? ""),
-      onSubmit: (value) => finish(value),
-    });
-    m.panel.add(field);
-    field.bind(m.group);
-
-    if (opts.info) {
-      infoText = label(scene, w / 2, 160, opts.info(field.value), {
-        origin: 0.5,
-        color: COLORS.accent,
-      });
-      infoText.setOrigin(0.5);
-      m.panel.add(infoText);
-    }
-
-    const cancel = new Button(
-      scene,
-      w - SPACE.lg - 300,
-      h - 66,
-      140,
-      44,
-      t("ui.cancel"),
-      { onClick: () => finish(null) },
-    );
-    const ok = new Button(
-      scene,
-      w - SPACE.lg - 150,
-      h - 66,
-      150,
-      44,
-      t("ui.ok"),
-      {
-        variant: "primary",
-        // Commit an in-progress edit so a mouse click on OK keeps the typed value.
-        onClick: () => finish(field.commitValue()),
-      },
-    );
-    m.panel.add(cancel);
-    m.panel.add(ok);
-    cancel.bind(m.group);
     ok.bind(m.group);
   });
 }

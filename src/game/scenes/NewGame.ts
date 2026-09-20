@@ -249,25 +249,32 @@ export class NewGame extends GameScene {
 
     // Name and kingdom: native DOM inputs (canvas has no caret), scaled with
     // the camera.
-    const inputW = 300;
+    const inputW = Math.min(420, (content.w - 30) / 2);
     const kingdomX = content.x + inputW + 30;
+    const inputY = content.y + 238;
+    label(this, content.x, inputY - 32, t("newGame.name"), {
+      color: COLORS.onWood,
+    });
+    label(this, kingdomX, inputY - 32, t("newGame.kingdom"), {
+      color: COLORS.onWood,
+    });
     const [nameInput, nameField] = this.textInput(
       content.x,
-      content.y + 240,
+      inputY,
       inputW,
       10,
       profile?.name ?? "",
     );
     const [kingdomInput, kingdomField] = this.textInput(
       kingdomX,
-      content.y + 240,
+      inputY,
       inputW,
       12,
       profile?.kingdom ?? PROVINCES[index - 1] ?? "",
     );
     const inputs = [nameInput, kingdomInput];
 
-    const err = label(this, content.x, content.y + 288, "", {
+    const err = label(this, content.x, inputY + 66, "", {
       color: COLORS.danger,
       size: FS.small,
     });
@@ -392,7 +399,7 @@ export class NewGame extends GameScene {
     input.addEventListener("focus", () => input.select());
     Object.assign(input.style, {
       width: `${width}px`,
-      height: "40px",
+      height: "56px",
       boxSizing: "border-box",
       padding: `0 ${SPACE.md}px`,
       fontFamily: FONT_UI,
