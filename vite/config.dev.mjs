@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vite"
 
 export default defineConfig({
   root: "src",
@@ -14,14 +14,13 @@ export default defineConfig({
       },
       output: {
         manualChunks(id) {
-          if (id.includes("node_modules/phaser")) return "phaser";
+          if (id.includes("node_modules/phaser")) return "phaser"
         },
       },
     },
   },
   server: {
-    // support running in container
     host: true,
-    port: 8080,
+    port: 5173,
   },
-});
+})
