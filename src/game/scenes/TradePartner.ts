@@ -15,12 +15,13 @@ import {
   drawBuildingIcon,
   drawCoinsIcon,
   drawGrainIcon,
+  drawStockIcon,
 } from "../ui/icon";
 import { frame } from "../ui/layout";
-import { COLORS, SPACE } from "../ui/theme";
+import { COLORS, FS, SPACE } from "../ui/theme";
 import { type ListCell, type ListItem, ListMenu, Panel } from "../ui/widgets";
 import { GameScene } from "./base";
-import { actionFooter, screenTitle, statusBar } from "./common";
+import { screenTitle, statusBar } from "./common";
 
 export class TradePartner extends GameScene {
   constructor() {
@@ -50,9 +51,12 @@ export class TradePartner extends GameScene {
       const top = content.y + 54;
       const panel = new Panel(this, content.x, top, content.w, content.h - 54);
       const tableW = content.w - SPACE.lg * 2;
-      // Per good: the price (coin first) and the most the partner offers.
-      const groupX = [0, 1, 2].map((i) => 250 + (620 * (i + 0.5)) / 3);
-      const cellX = groupX.flatMap((x) => [x - 45, x + 55]);
+      // Per good: the price (coin) and the amount in stock (crate). The name
+      // column comes first; the three goods share the rest of the width.
+      const nameW = 200;
+      const groupW = (tableW - nameW) / 3;
+      const groupX = [0, 1, 2].map((i) => nameW + groupW * (i + 0.5));
+      const cellX = groupX.flatMap((x) => [x - 48, x + 50]);
       const g = this.add.graphics();
       [drawGrainIcon, drawAcreIcon, drawBuildingIcon].forEach((draw, c) => {
         draw(g, SPACE.lg + at(groupX, c), 32, 28);
@@ -62,14 +66,10 @@ export class TradePartner extends GameScene {
       rule.lineStyle(1, COLORS.border, 0.5);
       rule.lineBetween(SPACE.lg, 56, SPACE.lg + tableW, 56);
       panel.add(rule);
-      const footer = actionFooter(
-        this,
-        state.rules === "remake" ? t("partner.bid") : "",
-      );
 
       const cellPair = (price: number, offer: number): ListCell[] => [
         { text: `${price}`, icon: drawCoinsIcon },
-        { text: `${t("partner.max")} ${Math.trunc(offer)}`, muted: true },
+        { text: `${Math.trunc(offer)}`, icon: drawStockIcon, muted: true },
       ];
       const items: ListItem[] = [];
       const ids: number[] = [];
@@ -77,7 +77,7 @@ export class TradePartner extends GameScene {
         if (w === state.sp) continue;
         const p = playerAt(state, w);
         items.push({
-          label: w === 0 ? "der Kaiser" : p.name,
+          label: w === 0 ? t("partner.emperor") : p.name,
           cells: [
             ...cellPair(p.kpreis, p.verkorn),
             ...cellPair(shownPrice("acker", p.apreis), p.verAcker),
@@ -95,12 +95,11 @@ export class TradePartner extends GameScene {
           top + 68,
           tableW,
           items,
-          { rowH: 48, gap: 8, cellX, onSelect: resolve },
+          { rowH: 56, gap: 8, cellX, cellSize: FS.small, onSelect: resolve },
         );
         menu.bind(group);
         group.focus(menu);
       });
-      footer.destroy();
       group.destroy();
       chosen = at(ids, idx);
     }

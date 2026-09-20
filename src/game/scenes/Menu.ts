@@ -10,6 +10,12 @@ import { hasInstallPrompt, promptInstall } from "../pwa";
 import { alert } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
 import { fullscreenButton } from "../ui/fullscreen";
+import {
+  drawDownloadIcon,
+  drawShareIcon,
+  drawSoundOffIcon,
+  drawSoundOnIcon,
+} from "../ui/icon";
 import { CANVAS_W, MARGIN } from "../ui/layout";
 import { crest, divider } from "../ui/ornament";
 import { label } from "../ui/text";
@@ -18,13 +24,11 @@ import { Button, Panel } from "../ui/widgets";
 import { GameScene } from "./base";
 
 const SCREENSHOT_KEY = "menuScreenshot";
-const PANEL_W = 448;
-const PANEL_H = 254;
-const PANELS_Y = 246;
-const BUTTON_H = 46;
+const PANEL_GAP = 16;
+const PANEL_PAD = 16;
+const BUTTON_H = 56;
 const BUTTON_GAP = 12;
-const LEFT_X = 24;
-const RIGHT_X = 24 + PANEL_W + 16;
+const ICON_GAP = 8;
 
 export class Menu extends GameScene {
   constructor() {
@@ -38,10 +42,10 @@ export class Menu extends GameScene {
   async create() {
     const group = new FocusGroup(this);
 
-    crest(this, CANVAS_W / 2, 40, 48);
+    crest(this, CANVAS_W / 2, 30, 36);
 
-    label(this, CANVAS_W / 2, 150, t("app.title"), {
-      size: 50,
+    label(this, CANVAS_W / 2, 126, t("app.title"), {
+      size: 56,
       weight: "bold",
       display: true,
       color: COLORS.accent,
@@ -50,31 +54,43 @@ export class Menu extends GameScene {
       .setOrigin(0.5)
       .setShadow(0, 3, css(COLORS.woodDark), 5);
 
-    label(this, CANVAS_W / 2, 196, t("app.subtitle"), {
+    label(this, CANVAS_W / 2, 170, t("app.subtitle"), {
       size: FS.body,
       color: COLORS.onWood,
       origin: 0.5,
     }).setOrigin(0.5);
 
-    divider(this, CANVAS_W / 2, 222, 420);
+    divider(this, CANVAS_W / 2, 194, 420);
+
+    // Two panels: the 1989 screenshot on the left, the buttons on the right
+    // (a little wider, its rows need the room). Height follows the button rows.
+    const saved = hasSave();
+    const rows = saved ? 3 : 2;
+    const panelsY = 214;
+    const panelH = PANEL_PAD * 2 + rows * BUTTON_H + (rows - 1) * BUTTON_GAP;
+    const totalW = CANVAS_W - MARGIN * 2 - PANEL_GAP;
+    const leftW = Math.round(totalW * 0.45);
+    const rightW = totalW - leftW;
+    const leftX = MARGIN;
+    const rightX = MARGIN + leftW + PANEL_GAP;
 
     // Footer: games-played counter and credit links. Created first so the
     // install modal can hide it (DOM always renders above the canvas).
     const { element, setCount } = creditsFooter();
-    const footer = this.add.dom(0, 510, element).setOrigin(0, 0);
+    const footer = this.add
+      .dom(0, panelsY + panelH + 14, element)
+      .setOrigin(0, 0);
     void readGlobalGames().then((games) => {
       if (games !== null) setCount(games);
     });
 
-    // Right: the menu buttons on a parchment panel.
-    Panel.decorate(this, RIGHT_X, PANELS_Y, PANEL_W, PANEL_H);
-
-    const bx = RIGHT_X + 20;
-    const bw = PANEL_W - 40;
-    let y = PANELS_Y + 16;
+    Panel.decorate(this, rightX, panelsY, rightW, panelH);
+    const bx = rightX + 20;
+    const bw = rightW - 40;
+    let y = panelsY + PANEL_PAD;
 
     // Top row: start a game and pick the rules it will use.
-    const halfW = (bw - 12) / 2;
+    const halfW = (bw - BUTTON_GAP) / 2;
     const rulesLabel = () =>
       t(getRuleset() === "atari" ? "menu.rulesAtari" : "menu.rulesRemake");
     const newGame = new Button(
@@ -91,7 +107,7 @@ export class Menu extends GameScene {
     );
     const rules = new Button(
       this,
-      bx + halfW + 12,
+      bx + halfW + BUTTON_GAP,
       y,
       halfW,
       BUTTON_H,
@@ -107,7 +123,7 @@ export class Menu extends GameScene {
     rules.bind(group);
     y += BUTTON_H + BUTTON_GAP;
 
-    if (hasSave()) {
+    if (saved) {
       const cont = new Button(this, bx, y, bw, BUTTON_H, t("menu.continue"), {
         onClick: () => {
           const state = loadGame();
@@ -121,18 +137,20 @@ export class Menu extends GameScene {
       y += BUTTON_H + BUTTON_GAP;
     }
 
-    const gridW = (bw - 12) / 2;
-    const gridH = 40;
-    const gridTop = y + 4;
-    const gridBottom = gridTop + gridH + 8;
+    // Bottom row: icon buttons (language shows its own code). Fullscreen is
+    // absent where the browser has no Fullscreen API (iPhone Safari).
+    const fullscreen = this.game.device.fullscreen.available;
+    const slots = fullscreen ? 5 : 4;
+    const slotW = (bw - ICON_GAP * (slots - 1)) / slots;
+    let slot = 0;
+    const nextX = () => bx + slot++ * (slotW + ICON_GAP);
 
-    const musicLabel = () => t(isMuted() ? "menu.musicOff" : "menu.musicOn");
     const language = new Button(
       this,
-      bx,
-      gridTop,
-      gridW,
-      gridH,
+      nextX(),
+      y,
+      slotW,
+      BUTTON_H,
       t("menu.language"),
       {
         onClick: () => {
@@ -141,68 +159,53 @@ export class Menu extends GameScene {
         },
       },
     );
-    const music = new Button(
-      this,
-      bx + gridW + 12,
-      gridTop,
-      gridW,
-      gridH,
-      musicLabel(),
-      { onClick: () => toggleMute() },
-    );
-    const share = new Button(
-      this,
-      bx,
-      gridBottom,
-      gridW,
-      gridH,
-      t("menu.share"),
-      {
-        onClick: () =>
-          shareGame((label) => {
-            share.setText(label);
-            this.time.delayedCall(1500, () => share.setText(t("menu.share")));
-          }),
+    const soundIcon = () => (isMuted() ? drawSoundOffIcon : drawSoundOnIcon);
+    const music = new Button(this, nextX(), y, slotW, BUTTON_H, "", {
+      icon: soundIcon(),
+      onClick: () => toggleMute(),
+    });
+    const share = new Button(this, nextX(), y, slotW, BUTTON_H, "", {
+      icon: drawShareIcon,
+      onClick: () =>
+        shareGame((copied) => {
+          share.setText(copied);
+          this.time.delayedCall(1500, () => share.setText(""));
+        }),
+    });
+    const install = new Button(this, nextX(), y, slotW, BUTTON_H, "", {
+      icon: drawDownloadIcon,
+      onClick: () => {
+        if (hasInstallPrompt()) {
+          void promptInstall();
+          return;
+        }
+        footer.setVisible(false);
+        void alert(this, t("menu.installTitle"), [
+          `${t("menu.installAndroid")} ${t("menu.installAndroidText")}`,
+          `${t("menu.installIphone")} ${t("menu.installIphoneText")}`,
+        ]).then(() => footer.setVisible(true));
       },
-    );
-    const install = new Button(
-      this,
-      bx + gridW + 12,
-      gridBottom,
-      gridW,
-      gridH,
-      t("menu.install"),
-      {
-        onClick: () => {
-          if (hasInstallPrompt()) {
-            void promptInstall();
-            return;
-          }
-          footer.setVisible(false);
-          void alert(this, t("menu.installTitle"), [
-            `${t("menu.installAndroid")} ${t("menu.installAndroidText")}`,
-            `${t("menu.installIphone")} ${t("menu.installIphoneText")}`,
-          ]).then(() => footer.setVisible(true));
-        },
-      },
-    );
+    });
     language.bind(group);
     music.bind(group);
     share.bind(group);
     install.bind(group);
-    fullscreenButton(this, group, CANVAS_W - MARGIN - 150, 30, 150, 40);
-    const stopWatchingMute = onMuteChange(() => music.setText(musicLabel()));
+    if (fullscreen) {
+      fullscreenButton(this, group, nextX(), y, slotW, BUTTON_H);
+    }
+    const stopWatchingMute = onMuteChange(() => music.setIcon(soundIcon()));
     this.events.once("shutdown", stopWatchingMute);
 
     // Left: a framed screenshot of the original 1989 game.
-    Panel.decorate(this, LEFT_X, PANELS_Y, PANEL_W, PANEL_H);
-    const shotH = 222;
+    Panel.decorate(this, leftX, panelsY, leftW, panelH);
     const shot = this.add.image(
-      LEFT_X + PANEL_W / 2,
-      PANELS_Y + PANEL_H / 2,
+      leftX + leftW / 2,
+      panelsY + panelH / 2,
       SCREENSHOT_KEY,
     );
-    shot.setScale(shotH / shot.height);
+    shot.setScale(
+      Math.min((panelH - 32) / shot.height, (leftW - 32) / shot.width),
+    );
   }
 }
 
@@ -232,15 +235,15 @@ function creditsFooter(): {
     width: `${CANVAS_W}px`,
     gap: "5px",
     fontFamily: FONT_UI,
-    fontSize: "13px",
-    color: css(COLORS.muted),
+    fontSize: "18px",
+    color: css(COLORS.onWood),
     textAlign: "center",
     lineHeight: "1.25",
     pointerEvents: "auto",
   });
 
   const line1 = document.createElement("div");
-  line1.style.minHeight = "16px";
+  line1.style.minHeight = "22px";
   div.appendChild(line1);
   const setCount = (games: number) => {
     line1.textContent = t("menu.gamesPlayed", { n: games });

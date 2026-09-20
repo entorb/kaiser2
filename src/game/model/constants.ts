@@ -152,15 +152,6 @@ export function playerNameError(
   return null;
 }
 
-/** JUSTIZ names, index 1..4 (KAISER4:280). */
-export const JUSTICE = [
-  "",
-  "Sehr fair",
-  "Bescheiden",
-  "Hart",
-  "Gierig",
-] as const;
-
 export const KAISER = 0;
 
 export function createPlayer(name: string, index: number): PlayerState {

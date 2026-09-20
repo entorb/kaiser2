@@ -12,7 +12,14 @@ export class Backdrop extends GameScene {
   }
 
   create() {
-    woodBackground(this);
-    frameBorder(this);
+    const draw = () => {
+      this.clearScreen();
+      woodBackground(this);
+      frameBorder(this);
+    };
+    draw();
+    // The canvas widens when the device turns; redraw at the new size.
+    this.scale.on("resize", draw);
+    this.events.once("shutdown", () => this.scale.off("resize", draw));
   }
 }

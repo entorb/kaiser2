@@ -17,16 +17,15 @@ import { Taxes } from "./scenes/Taxes";
 import { TradeData } from "./scenes/TradeData";
 import { TradePartner } from "./scenes/TradePartner";
 import { TradingHouse } from "./scenes/TradingHouse";
-import { GAME_H, GAME_W } from "./ui/layout";
+import { fitCanvas, GAME_H, GAME_W, landscapeAspect } from "./ui/layout";
 import { COLORS, css } from "./ui/theme";
 
-// The layout uses a fixed 960x576 design space (the original 320x192 at
-// SCALE 3), rendered at RENDER_SCALE times that for crisp text and vector art
-// (see layout.ts); scenes zoom their camera to match.
+// The layout uses a 576-high design space at least 960 wide (the original
+// 320x192 at SCALE 3), widened to the window's aspect and rendered at
+// RENDER_SCALE times that for crisp text and vector art (see layout.ts);
+// scenes zoom their camera to match.
 const config: Types.Core.GameConfig = {
   type: AUTO,
-  width: GAME_W,
-  height: GAME_H,
   parent: "game-container",
   backgroundColor: css(COLORS.bg),
   pixelArt: false,
@@ -64,7 +63,8 @@ const config: Types.Core.GameConfig = {
 };
 
 const StartGame = (parent: string) => {
-  return new Game({ ...config, parent });
+  fitCanvas(landscapeAspect(window.innerWidth, window.innerHeight));
+  return new Game({ ...config, parent, width: GAME_W, height: GAME_H });
 };
 
 export default StartGame;

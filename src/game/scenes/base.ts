@@ -1,6 +1,14 @@
 import { Scene } from "phaser";
 import { attachSceneMusic } from "../audio/music";
-import { CANVAS_H, CANVAS_W, RENDER_SCALE } from "../ui/layout";
+import {
+  CANVAS_H,
+  CANVAS_W,
+  fitCanvas,
+  GAME_H,
+  GAME_W,
+  landscapeAspect,
+  RENDER_SCALE,
+} from "../ui/layout";
 
 /**
  * Base scene for every screen. The game canvas renders at `RENDER_SCALE` times
@@ -9,10 +17,16 @@ import { CANVAS_H, CANVAS_W, RENDER_SCALE } from "../ui/layout";
  * coordinates while text and vector graphics stay sharp.
  *
  * `init` runs before `create`, and no scene overrides it, so this is the one
- * central place that applies the render scale and picks the music track.
+ * central place that fits the canvas width to the window, applies the render
+ * scale and picks the music track. Every screen switch re-reads the window, so
+ * a rotated or resized device lays out afresh at the next screen.
  */
 export class GameScene extends Scene {
   init(): void {
+    const { width, height } = this.scale.parentSize;
+    if (width > 0 && fitCanvas(landscapeAspect(width, height))) {
+      this.scale.setGameSize(GAME_W, GAME_H);
+    }
     const camera = this.cameras.main;
     camera.setZoom(RENDER_SCALE);
     camera.centerOn(CANVAS_W / 2, CANVAS_H / 2);

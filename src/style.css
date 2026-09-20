@@ -32,10 +32,15 @@ body {
    CENTER_BOTH does the centering (see main.ts). */
 #app {
   position: relative;
+  box-sizing: border-box;
   width: 100vw;
   height: 100vh;
   /* biome-ignore lint/suspicious/noDuplicateProperties: 100svh fallback overrides 100vh on browsers that support it */
   height: 100svh;
+  /* Notched phones: keep the game (and its frame) out from under the cutout;
+     #game-container fills the padding box's content, which Phaser's FIT reads. */
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+    env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
   overflow: hidden;
   touch-action: none;
 }
@@ -61,21 +66,58 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 3vmin;
+  padding: 0 8vw;
   background: #241810;
-  color: #f0e0a0;
-  font-family: monospace;
+  color: #e6d6ae;
+  font-family: "EB Garamond", Georgia, serif;
   text-align: center;
 }
 
+.rotate-icon {
+  width: 34vmin;
+  height: 34vmin;
+  color: #c08a1e;
+}
+
+/* The phone tips over onto its side, like the turn the player must make. */
+.rotate-phone {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rotate-tilt 2.8s ease-in-out infinite;
+}
+
+@keyframes rotate-tilt {
+  0%,
+  15% {
+    transform: rotate(0deg);
+  }
+  55%,
+  85% {
+    transform: rotate(-90deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotate-phone {
+    animation: none;
+    transform: rotate(-90deg);
+  }
+}
+
 .rotate-title {
-  font-size: 6vw;
-  letter-spacing: 0.2em;
+  font-family: "Cinzel", "EB Garamond", Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 7vmin, 3rem);
+  letter-spacing: 0.06em;
+  color: #c08a1e;
 }
 
 .rotate-sub {
-  font-size: 3vw;
-  opacity: 0.7;
+  font-size: clamp(1.125rem, 5vmin, 2rem);
 }
 
 @media (orientation: portrait) {

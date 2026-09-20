@@ -19,12 +19,9 @@ import { alert } from "../ui/dialog";
 import { FocusGroup } from "../ui/focus";
 import {
   drawBuildingIcon,
-  drawCathedralIcon,
   drawCoinsIcon,
   drawEventIcon,
-  drawPalaceIcon,
   drawPointsIcon,
-  type IconDraw,
 } from "../ui/icon";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
@@ -32,21 +29,16 @@ import { COLORS, css } from "../ui/theme";
 import { type ListItem, ListMenu } from "../ui/widgets";
 import { GameScene } from "./base";
 import {
+  BUILDING_ICON,
   BUILDING_LABEL,
   closeTurn,
+  FOOTER_X,
   primaryAction,
   screenTitle,
   statusBar,
 } from "./common";
 
 const BUILDING_ORDER: BuildingKind[] = ["markt", "muhl", "burg", "dom"];
-
-const BUILDING_ICON: Record<BuildingKind, IconDraw> = {
-  markt: (g, x, y, size) => drawEventIcon(g, x, y, size, "market"),
-  muhl: (g, x, y, size) => drawEventIcon(g, x, y, size, "mill"),
-  burg: drawPalaceIcon,
-  dom: drawCathedralIcon,
-};
 
 export class Business extends GameScene {
   constructor() {
@@ -105,19 +97,23 @@ export class Business extends GameScene {
       // Footer: requirements and benefit of the highlighted building. Cost and
       // land turn red when the ruler cannot afford / does not own enough.
       const footerY = action.y + action.h / 2;
+      // Three groups (icon + figure) share the bar between the gear and the
+      // advance button.
+      const groupW = (action.w - FOOTER_X - 240) / 3;
+      const groupX = (i: number) => action.x + FOOTER_X + i * groupW;
       const costIcon = this.add.graphics();
-      drawCoinsIcon(costIcon, action.x + 149, footerY, 18);
-      const costLabel = label(this, action.x + 168, footerY, "", {
+      drawCoinsIcon(costIcon, groupX(0) + 14, footerY, 26);
+      const costLabel = label(this, groupX(0) + 36, footerY, "", {
         color: COLORS.onWood,
       });
       const landIcon = this.add.graphics();
-      drawBuildingIcon(landIcon, action.x + 349, footerY, 20);
-      const landLabel = label(this, action.x + 368, footerY, "", {
+      drawBuildingIcon(landIcon, groupX(1) + 14, footerY, 26);
+      const landLabel = label(this, groupX(1) + 36, footerY, "", {
         color: COLORS.onWood,
       });
       const pointsIcon = this.add.graphics();
-      drawPointsIcon(pointsIcon, action.x + 619, footerY, 20);
-      const pointsLabel = label(this, action.x + 638, footerY, "", {
+      drawPointsIcon(pointsIcon, groupX(2) + 14, footerY, 26);
+      const pointsLabel = label(this, groupX(2) + 36, footerY, "", {
         color: COLORS.onWood,
       });
       [costLabel, landLabel, pointsLabel].forEach((l) => {
@@ -151,7 +147,7 @@ export class Business extends GameScene {
 
       // Buildings and the secret service are one list; the expected interest
       // sits in its own strip below the last row.
-      const rowH = 40;
+      const rowH = 46;
       const gap = 6;
       const listY = content.y + 54;
       const choice = await new Promise<number>((resolve) => {

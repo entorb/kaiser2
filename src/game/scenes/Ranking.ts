@@ -33,7 +33,7 @@ interface Column {
   value: (p: PlayerState) => string;
 }
 
-const HEAD_ICON = 22;
+const HEAD_ICON = 28;
 
 /** Ranking of the human rulers with their key possessions (replaces the map). */
 export class Ranking extends GameScene {
@@ -105,13 +105,6 @@ export class Ranking extends GameScene {
 
     panel.add(
       label(this, SPACE.lg, headY, t("ranking.rank"), {
-        color: COLORS.muted,
-        size: FS.small,
-        weight: "bold",
-      }),
-    );
-    panel.add(
-      label(this, SPACE.lg + rankW, headY, t("ranking.ruler"), {
         color: COLORS.muted,
         size: FS.small,
         weight: "bold",

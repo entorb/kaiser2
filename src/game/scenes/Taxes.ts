@@ -1,7 +1,6 @@
 import { toTradeData } from "../flow";
 import { t } from "../i18n/i18n";
 import { at } from "../lookup";
-import { JUSTICE } from "../model/constants";
 import { stateIncome } from "../model/rules";
 import { getState } from "../model/session";
 import {
@@ -16,12 +15,12 @@ import { FocusGroup } from "../ui/focus";
 import { drawCoinsIcon } from "../ui/icon";
 import { frame } from "../ui/layout";
 import { label } from "../ui/text";
-import { COLORS, css, SPACE } from "../ui/theme";
+import { COLORS, SPACE } from "../ui/theme";
 import { Panel, SegmentedControl, Slider, StatRow } from "../ui/widgets";
 import { GameScene } from "./base";
 import { continueAction, panelFigure, screenTitle, statusBar } from "./common";
 
-/** Gauge and mood-word color per `unrestLevel`. */
+/** Gauge color per `unrestLevel`. */
 const MOOD_COLORS = [
   COLORS.success,
   COLORS.accent,
@@ -96,7 +95,7 @@ export class Taxes extends GameScene {
     fields.forEach(([text, value, set], i) => {
       const y = 56 + i * 58;
       const field = new Slider(this, SPACE.lg, y, panelW - SPACE.lg * 2, 52, {
-        label: `${text} (%)`,
+        label: text,
         min: 0,
         max: 99,
         initial: value,
@@ -118,11 +117,11 @@ export class Taxes extends GameScene {
     );
     const justice = new SegmentedControl(
       this,
-      panelW - SPACE.lg - 400,
+      panelW - SPACE.lg - 460,
       justiceY,
-      400,
-      44,
-      [JUSTICE[1], JUSTICE[2], JUSTICE[3], JUSTICE[4]],
+      460,
+      56,
+      [t("justice.1"), t("justice.2"), t("justice.3"), t("justice.4")],
       {
         selected: p.justiz - 1,
         onChange: (i) => {
@@ -197,34 +196,31 @@ export class Taxes extends GameScene {
     panel.add(
       label(this, SPACE.lg, rowY, t("tax.mood"), { color: COLORS.muted }),
     );
-    const gaugeX = SPACE.lg + 110;
-    const gaugeW = 180;
+    // The mood gauge starts where the forecast label ends and both end at the
+    // panel's right edge, so the bar lines up with the figure above it.
+    const gaugeX = SPACE.lg + 130;
+    const gaugeW = right - gaugeX;
     const gauge = this.add.graphics();
     panel.add(gauge);
-    const word = label(this, right, rowY, "", { weight: "bold" }).setOrigin(
-      1,
-      0,
-    );
-    panel.add(word);
 
     return () => {
-      total.setText(`${taxBreakdown(state, p).total} ${t("common.taler")}`);
+      total.setText(`${taxBreakdown(state, p).total}`);
       const u = unrest(p);
       const level = unrestLevel(u);
       const color = at(MOOD_COLORS, level);
       gauge.clear();
+      drawCoinsIcon(gauge, right - total.width - 20, y + 13, 26);
       gauge.fillStyle(COLORS.surfaceAlt, 1);
-      gauge.fillRect(gaugeX, rowY + 6, gaugeW, 12);
+      gauge.fillRect(gaugeX, rowY + 5, gaugeW, 16);
       gauge.fillStyle(color, 1);
       gauge.fillRect(
         gaugeX,
-        rowY + 6,
+        rowY + 5,
         gaugeW * Math.min(1, u / UNREST_LIMIT),
-        12,
+        16,
       );
       gauge.lineStyle(1, COLORS.border, 1);
-      gauge.strokeRect(gaugeX, rowY + 6, gaugeW, 12);
-      word.setText(t(`tax.mood${level}`)).setColor(css(color));
+      gauge.strokeRect(gaugeX, rowY + 5, gaugeW, 16);
     };
   }
 }
