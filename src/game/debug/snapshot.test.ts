@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { collectText, type SceneNode, type SnapshotText } from "./snapshot";
+import { describe, expect, it } from "vitest"
+import { collectText, type SceneNode, type SnapshotText } from "./snapshot"
 
 describe("collectText", () => {
   it("flattens nested text with canvas offsets and marks focus", () => {
@@ -17,12 +17,12 @@ describe("collectText", () => {
         { x: 0, y: 0, visible: false, text: "hidden" },
         { x: 0, y: 0, text: "" },
       ],
-    };
-    const out: SnapshotText[] = [];
-    collectText(root, 0, 0, false, out);
+    }
+    const out: SnapshotText[] = []
+    collectText(root, 0, 0, false, out)
     expect(out).toEqual([
       { x: 15, y: 25, text: "hello" },
       { x: 110, y: 60, text: "focused child", focused: true },
-    ]);
-  });
-});
+    ])
+  })
+})

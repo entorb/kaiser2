@@ -2,11 +2,11 @@
 // the manual); English is the translation. Add new keys here as scenes need
 // them. ATASCII escapes in the source (\ ä, ] ö, ^ ü, { ß) are already
 // normalised to Unicode.
-export type Lang = "de" | "en";
+export type Lang = "de" | "en"
 
 export interface StringEntry {
-  de: string;
-  en: string;
+  de: string
+  en: string
 }
 
 export const STRINGS = {
@@ -427,6 +427,6 @@ export const STRINGS = {
 
   "status.year": { de: "Jahr", en: "Year" },
   "status.population": { de: "Volk", en: "Folk" },
-} as const satisfies Record<string, StringEntry>;
+} as const satisfies Record<string, StringEntry>
 
-export type StringKey = keyof typeof STRINGS;
+export type StringKey = keyof typeof STRINGS

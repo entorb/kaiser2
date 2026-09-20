@@ -1,7 +1,7 @@
-import { AUTO, Game, Scale, type Scene } from "phaser";
-import { RENDER_SCALE } from "../ui/layout";
-import { loadFonts } from "../ui/text";
-import { COLORS, css } from "../ui/theme";
+import { AUTO, Game, Scale, type Scene } from "phaser"
+import { RENDER_SCALE } from "../ui/layout"
+import { loadFonts } from "../ui/text"
+import { COLORS, css } from "../ui/theme"
 
 /**
  * Boot a scrolling overview page: a canvas of `width` x `height` design pixels
@@ -14,7 +14,7 @@ export async function bootGallery(
   height: number,
   scene: typeof Scene,
 ): Promise<Game> {
-  await loadFonts();
+  await loadFonts()
   return new Game({
     type: AUTO,
     parent,
@@ -25,5 +25,5 @@ export async function bootGallery(
     scale: { mode: Scale.NONE },
     input: { mouse: { preventDefaultWheel: false }, touch: { capture: false } },
     scene,
-  });
+  })
 }

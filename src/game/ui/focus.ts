@@ -1,14 +1,14 @@
-import type Phaser from "phaser";
-import { blip } from "../audio/music";
+import type Phaser from "phaser"
+import { blip } from "../audio/music"
 
 /** A widget that can take keyboard focus and optionally consume keys. */
 export interface Focusable {
-  setFocused(focused: boolean): void;
+  setFocused(focused: boolean): void
   /** Handle a key while focused; return true if consumed. */
-  handleKey(event: KeyboardEvent): boolean;
+  handleKey(event: KeyboardEvent): boolean
 }
 
-const stack = new WeakMap<Phaser.Scene, FocusGroup[]>();
+const stack = new WeakMap<Phaser.Scene, FocusGroup[]>()
 
 /**
  * Linear keyboard focus ring. Tab (and Up/Down when the focused widget does not
@@ -19,125 +19,122 @@ const stack = new WeakMap<Phaser.Scene, FocusGroup[]>();
  * (which builds its own group) automatically suspends the screen behind it.
  */
 export class FocusGroup {
-  private items: Focusable[] = [];
-  private index = -1;
-  private isActive = true;
-  private readonly handler: (event: KeyboardEvent) => void;
+  private items: Focusable[] = []
+  private index = -1
+  private isActive = true
+  private readonly handler: (event: KeyboardEvent) => void
 
   /** `horizontal`: Left/Right also move focus, for a single row of widgets. */
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly horizontal = false,
   ) {
-    this.handler = (event) => this.onKey(event);
-    scene.input.keyboard?.on("keydown", this.handler);
-    const groups = stack.get(scene) ?? [];
-    groups[groups.length - 1]?.deactivate();
-    groups.push(this);
-    stack.set(scene, groups);
-    scene.events.once("shutdown", () => this.destroy());
+    this.handler = (event) => this.onKey(event)
+    scene.input.keyboard?.on("keydown", this.handler)
+    const groups = stack.get(scene) ?? []
+    groups[groups.length - 1]?.deactivate()
+    groups.push(this)
+    stack.set(scene, groups)
+    scene.events.once("shutdown", () => this.destroy())
   }
 
   add<T extends Focusable>(item: T, focus = true): T {
-    this.items.push(item);
+    this.items.push(item)
     if (focus && this.index < 0 && this.isActive) {
-      this.index = this.items.length - 1;
-      item.setFocused(true);
+      this.index = this.items.length - 1
+      item.setFocused(true)
     }
-    return item;
+    return item
   }
 
   /** True while this is the top group, i.e. no dialog or menu is open over it. */
   get active(): boolean {
-    return this.isActive;
+    return this.isActive
   }
 
   /** Drop all items (widgets were destroyed by the scene) but keep listening. */
   reset(): void {
-    for (const item of this.items) item.setFocused(false);
-    this.items = [];
-    this.index = -1;
+    for (const item of this.items) item.setFocused(false)
+    this.items = []
+    this.index = -1
   }
 
   focus(item: Focusable): void {
-    const i = this.items.indexOf(item);
-    if (i >= 0) this.setIndex(i);
+    const i = this.items.indexOf(item)
+    if (i >= 0) this.setIndex(i)
   }
 
   private setIndex(i: number): void {
-    const n = this.items.length;
-    if (n === 0) return;
-    this.items[this.index]?.setFocused(false);
-    this.index = ((i % n) + n) % n;
-    this.items[this.index]?.setFocused(true);
+    const n = this.items.length
+    if (n === 0) return
+    this.items[this.index]?.setFocused(false)
+    this.index = ((i % n) + n) % n
+    this.items[this.index]?.setFocused(true)
   }
 
   private onKey(event: KeyboardEvent): void {
-    if (!this.isActive) return;
+    if (!this.isActive) return
     // Phaser can re-dispatch the same native event on a later frame. If a
     // handler rebuilt the screen (new group) in between, the event would fire
     // twice, so tag it once it has been handled.
-    const tagged = event as KeyboardEvent & { __focusHandled?: boolean };
-    if (tagged.__focusHandled) return;
-    tagged.__focusHandled = true;
-    const n = this.items.length;
-    if (n === 0) return;
+    const tagged = event as KeyboardEvent & { __focusHandled?: boolean }
+    if (tagged.__focusHandled) return
+    tagged.__focusHandled = true
+    const n = this.items.length
+    if (n === 0) return
     if (event.key === "Tab") {
-      event.preventDefault();
-      this.setIndex(this.index + (event.shiftKey ? -1 : 1));
-      blip("move");
-      return;
+      event.preventDefault()
+      this.setIndex(this.index + (event.shiftKey ? -1 : 1))
+      blip("move")
+      return
     }
     if (this.items[this.index]?.handleKey(event)) {
-      this.blipFor(event);
-      return;
+      this.blipFor(event)
+      return
     }
-    this.navigate(event);
+    this.navigate(event)
   }
 
   private navigate(event: KeyboardEvent): void {
-    const forward =
-      event.key === "ArrowDown" ||
-      (this.horizontal && event.key === "ArrowRight");
-    const back =
-      event.key === "ArrowUp" || (this.horizontal && event.key === "ArrowLeft");
-    if (!forward && !back) return;
-    const n = this.items.length;
-    const next = this.index + (forward ? 1 : -1);
+    const forward = event.key === "ArrowDown" || (this.horizontal && event.key === "ArrowRight")
+    const back = event.key === "ArrowUp" || (this.horizontal && event.key === "ArrowLeft")
+    if (!forward && !back) return
+    const n = this.items.length
+    const next = this.index + (forward ? 1 : -1)
     // No wrapping: ArrowDown on the bottom action (Next/Continue) is ignored.
-    if (next < 0 || next >= n) return;
-    event.preventDefault();
-    this.setIndex(next);
-    blip("move");
+    if (next < 0 || next >= n) return
+    event.preventDefault()
+    this.setIndex(next)
+    blip("move")
   }
 
   private blipFor(event: KeyboardEvent): void {
-    blip(event.key === "Enter" || event.key === " " ? "click" : "move");
+    blip(event.key === "Enter" || event.key === " " ? "click" : "move")
   }
 
   private deactivate(): void {
-    this.isActive = false;
-    for (const item of this.items) item.setFocused(false);
+    this.isActive = false
+    for (const item of this.items) item.setFocused(false)
   }
 
   private activate(): void {
-    this.isActive = true;
+    this.isActive = true
     if (this.items.length > 0) {
-      this.index = Math.max(0, this.index);
-      this.items[this.index]?.setFocused(true);
+      this.index = Math.max(0, this.index)
+      this.items[this.index]?.setFocused(true)
     }
   }
 
   destroy(): void {
-    this.isActive = false;
-    this.scene.input.keyboard?.off("keydown", this.handler);
-    const groups = stack.get(this.scene);
+    this.isActive = false
+    this.scene.input.keyboard?.off("keydown", this.handler)
+    const groups = stack.get(this.scene)
     if (groups) {
-      const i = groups.indexOf(this);
-      if (i >= 0) groups.splice(i, 1);
-      groups[groups.length - 1]?.activate();
+      const i = groups.indexOf(this)
+      if (i >= 0) groups.splice(i, 1)
+      groups[groups.length - 1]?.activate()
     }
-    this.items = [];
-    this.index = -1;
+    this.items = []
+    this.index = -1
   }
 }

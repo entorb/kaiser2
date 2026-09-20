@@ -1,82 +1,77 @@
-import { toTaxes } from "../flow";
-import { t } from "../i18n/i18n";
-import { at } from "../lookup";
-import { chronicle } from "../model/rules";
-import { getState } from "../model/session";
-import { FocusGroup } from "../ui/focus";
+import { toTaxes } from "../flow"
+import { t } from "../i18n/i18n"
+import { at } from "../lookup"
+import { chronicle } from "../model/rules"
+import { getState } from "../model/session"
+import { FocusGroup } from "../ui/focus"
 import {
   drawCoinsIcon,
   drawCrowdIcon,
   drawEventIcon,
   type EventIcon,
   type IconDraw,
-} from "../ui/icon";
-import { columns, frame } from "../ui/layout";
-import { divider } from "../ui/ornament";
-import { label } from "../ui/text";
-import { COLORS, FS, SPACE } from "../ui/theme";
-import { Panel } from "../ui/widgets";
-import { GameScene } from "./base";
-import { continueAction, panelFigure, screenTitle, statusBar } from "./common";
+} from "../ui/icon"
+import { columns, frame } from "../ui/layout"
+import { divider } from "../ui/ornament"
+import { label } from "../ui/text"
+import { COLORS, FS, SPACE } from "../ui/theme"
+import { Panel } from "../ui/widgets"
+import { GameScene } from "./base"
+import { continueAction, panelFigure, screenTitle, statusBar } from "./common"
 
 /** A chronicle row: event icon, the figure, and the sentence. */
-type Row = [EventIcon, string, string];
+type Row = [EventIcon, string, string]
 
 export class Chronicle extends GameScene {
   constructor() {
-    super("Chronicle");
+    super("Chronicle")
   }
 
   async create() {
-    const state = getState(this);
-    const c = chronicle(state, state.sp);
+    const state = getState(this)
+    const c = chronicle(state, state.sp)
 
-    const group = new FocusGroup(this);
-    const { content } = frame();
-    statusBar(this, state, group);
-    screenTitle(this, t("chronicle.title"), content.y);
+    const group = new FocusGroup(this)
+    const { content } = frame()
+    statusBar(this, state, group)
+    screenTitle(this, t("chronicle.title"), content.y)
 
-    const cols = columns(content, 2, SPACE.lg);
-    const leftRect = at(cols, 0);
-    const rightRect = at(cols, 1);
-    const top = content.y + 54;
-    const h = content.h - 54;
-    const left = new Panel(this, leftRect.x, top, leftRect.w, h);
-    const right = new Panel(this, rightRect.x, top, rightRect.w, h);
+    const cols = columns(content, 2, SPACE.lg)
+    const leftRect = at(cols, 0)
+    const rightRect = at(cols, 1)
+    const top = content.y + 54
+    const h = content.h - 54
+    const left = new Panel(this, leftRect.x, top, leftRect.w, h)
+    const right = new Panel(this, rightRect.x, top, rightRect.w, h)
 
-    const sign = (n: number) => `${n >= 0 ? "+" : ""}${n}`;
-    const people = c.geb - c.ges + c.einw - c.ausw;
-    const money = c.mg1 + c.mg2 - c.sold;
+    const sign = (n: number) => `${n >= 0 ? "+" : ""}${n}`
+    const people = c.geb - c.ges + c.einw - c.ausw
+    const money = c.mg1 + c.mg2 - c.sold
 
-    const peopleRows: Row[] = [];
-    if (c.geb > 0) peopleRows.push(["born", `${c.geb}`, t("chronicle.born")]);
-    if (c.ges > 0) peopleRows.push(["died", `${c.ges}`, t("chronicle.died")]);
-    if (c.einw > 0)
-      peopleRows.push(["immigrant", `${c.einw}`, t("chronicle.immigrants")]);
-    if (c.ausw > 0)
-      peopleRows.push(["emigrant", `${c.ausw}`, t("chronicle.emigrants")]);
+    const peopleRows: Row[] = []
+    if (c.geb > 0) peopleRows.push(["born", `${c.geb}`, t("chronicle.born")])
+    if (c.ges > 0) peopleRows.push(["died", `${c.ges}`, t("chronicle.died")])
+    if (c.einw > 0) peopleRows.push(["immigrant", `${c.einw}`, t("chronicle.immigrants")])
+    if (c.ausw > 0) peopleRows.push(["emigrant", `${c.ausw}`, t("chronicle.emigrants")])
 
-    const moneyRows: Row[] = [];
-    if (c.mg1 > 0)
-      moneyRows.push(["mill", `${c.mg1}`, t("chronicle.millProfit")]);
-    if (c.mg2 > 0)
-      moneyRows.push(["market", `${c.mg2}`, t("chronicle.marketProfit")]);
-    if (c.sold > 0)
-      moneyRows.push(["spy", `-${c.sold}`, t("chronicle.secretService")]);
+    const moneyRows: Row[] = []
+    if (c.mg1 > 0) moneyRows.push(["mill", `${c.mg1}`, t("chronicle.millProfit")])
+    if (c.mg2 > 0) moneyRows.push(["market", `${c.mg2}`, t("chronicle.marketProfit")])
+    if (c.sold > 0) moneyRows.push(["spy", `-${c.sold}`, t("chronicle.secretService")])
 
     this.section(left, drawCrowdIcon, t("chronicle.population"), peopleRows, {
       text: sign(people),
       color: people >= 0 ? COLORS.success : COLORS.danger,
-    });
+    })
     this.section(right, drawCoinsIcon, t("chronicle.money"), moneyRows, {
       text: sign(money),
       color: money >= 0 ? COLORS.success : COLORS.danger,
-    });
+    })
 
-    await new Promise<void>((resolve) => continueAction(this, group, resolve));
-    group.destroy();
+    await new Promise<void>((resolve) => continueAction(this, group, resolve))
+    group.destroy()
 
-    toTaxes(this.scene);
+    toTaxes(this.scene)
   }
 
   /** One themed column: header, the event rows and a big total with its unit icon. */
@@ -87,42 +82,42 @@ export class Chronicle extends GameScene {
     rows: Row[],
     sum: { text: string; color: number },
   ): void {
-    const w = panel.w;
-    const g = this.add.graphics();
-    icon(g, SPACE.lg + 14, 24, 28);
-    panel.add(g);
+    const w = panel.w
+    const g = this.add.graphics()
+    icon(g, SPACE.lg + 14, 24, 28)
+    panel.add(g)
     panel.add(
       label(this, SPACE.lg + 40, 10, title, {
         size: FS.heading,
         weight: "bold",
         color: COLORS.wood,
       }),
-    );
-    const rule = this.add.graphics();
-    rule.lineStyle(1, COLORS.border, 0.5);
-    rule.lineBetween(SPACE.lg, 44, w - SPACE.lg, 44);
-    panel.add(rule);
+    )
+    const rule = this.add.graphics()
+    rule.lineStyle(1, COLORS.border, 0.5)
+    rule.lineBetween(SPACE.lg, 44, w - SPACE.lg, 44)
+    panel.add(rule)
 
-    const top = 62;
-    const step = 50;
+    const top = 62
+    const step = 50
     rows.forEach(([kind, value, text], i) => {
-      const y = top + i * step;
-      const ig = this.add.graphics();
-      drawEventIcon(ig, SPACE.lg + 14, y + 12, 28, kind);
-      panel.add(ig);
+      const y = top + i * step
+      const ig = this.add.graphics()
+      drawEventIcon(ig, SPACE.lg + 14, y + 12, 28, kind)
+      panel.add(ig)
       panel.add(
         label(this, SPACE.lg + 40, y, `${value}  ${text}`, {
           size: FS.body,
           color: COLORS.text,
         }),
-      );
-    });
+      )
+    })
 
     // The total sits vertically centered in the band below the divider, as
     // one block: unit icon, gap, number.
-    const bandH = 84;
-    const sumY = panel.h - bandH / 2;
-    panel.add(divider(this, w / 2, panel.h - bandH, w - SPACE.lg * 2));
-    panelFigure(this, panel, sumY, sum.text, sum.color, icon);
+    const bandH = 84
+    const sumY = panel.h - bandH / 2
+    panel.add(divider(this, w / 2, panel.h - bandH, w - SPACE.lg * 2))
+    panelFigure(this, panel, sumY, sum.text, sum.color, icon)
   }
 }
