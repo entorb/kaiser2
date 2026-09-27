@@ -50,6 +50,7 @@ export const STRINGS = {
   },
   "menu.openSource": { de: "OpenSource", en: "OpenSource" },
   "menu.contact": { de: "Kontakt", en: "Contact" },
+  "menu.home": { de: "Home", en: "Home" },
   "menu.pause": { de: "Rast", en: "Rest" },
   "menu.pauseTitle": { de: "Rast", en: "Rest" },
   "menu.resume": { de: "Voran", en: "Onward" },
