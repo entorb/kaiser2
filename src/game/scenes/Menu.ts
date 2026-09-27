@@ -114,9 +114,11 @@ export class Menu extends GameScene {
     }
 
     // Bottom row: icon buttons (language shows its own code). Fullscreen is
-    // absent where the browser has no Fullscreen API (iPhone Safari).
+    // absent where the browser has no Fullscreen API (iPhone Safari), and the
+    // install button is absent once the app already runs standalone.
     const fullscreen = this.game.device.fullscreen.available
-    const slots = fullscreen ? 5 : 4
+    const installed = isInstalled()
+    const slots = 3 + (fullscreen ? 1 : 0) + (installed ? 0 : 1) // language, music, share
     const slotW = (bw - ICON_GAP * (slots - 1)) / slots
     let slot = 0
     const nextX = () => bx + slot++ * (slotW + ICON_GAP)
@@ -140,24 +142,26 @@ export class Menu extends GameScene {
           this.time.delayedCall(1500, () => share.setText(""))
         }),
     })
-    const install = new Button(this, nextX(), y, slotW, BUTTON_H, "", {
-      icon: drawDownloadIcon,
-      onClick: () => {
-        if (hasInstallPrompt()) {
-          void promptInstall()
-          return
-        }
-        footer.setVisible(false)
-        void alert(this, t("menu.installTitle"), [
-          `${t("menu.installAndroid")} ${t("menu.installAndroidText")}`,
-          `${t("menu.installIphone")} ${t("menu.installIphoneText")}`,
-        ]).then(() => footer.setVisible(true))
-      },
-    })
     language.bind(group)
     music.bind(group)
     share.bind(group)
-    install.bind(group)
+    if (!installed) {
+      const install = new Button(this, nextX(), y, slotW, BUTTON_H, "", {
+        icon: drawDownloadIcon,
+        onClick: () => {
+          if (hasInstallPrompt()) {
+            void promptInstall()
+            return
+          }
+          footer.setVisible(false)
+          void alert(this, t("menu.installTitle"), [
+            `${t("menu.installAndroid")} ${t("menu.installAndroidText")}`,
+            `${t("menu.installIphone")} ${t("menu.installIphoneText")}`,
+          ]).then(() => footer.setVisible(true))
+        },
+      })
+      install.bind(group)
+    }
     if (fullscreen) {
       fullscreenButton(this, group, nextX(), y, slotW, BUTTON_H)
     }
@@ -169,6 +173,12 @@ export class Menu extends GameScene {
     const shot = this.add.image(leftX + leftW / 2, panelsY + panelH / 2, SCREENSHOT_KEY)
     shot.setScale(Math.min((panelH - 32) / shot.height, (leftW - 32) / shot.width))
   }
+}
+
+/** True when the game runs as an installed PWA, so there is nothing to install. */
+function isInstalled(): boolean {
+  const standalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
+  return window.matchMedia("(display-mode: standalone)").matches || standalone
 }
 
 /** Share the game via the Web Share API, or copy the link as a fallback. */
@@ -218,22 +228,53 @@ function creditsFooter(): {
   div.appendChild(line2)
 
   const line3 = document.createElement("div")
-  const links: [string, string][] = [
-    [t("menu.openSource"), "https://github.com/entorb/kaiser2"],
-    [t("menu.contact"), "https://entorb.net/contact.php?origin=kaiser2"],
+  const links: [string, string, keyof typeof FOOTER_ICON_PATHS | undefined][] = [
+    [t("menu.home"), "https://entorb.net/games/", "home"],
+    [t("menu.openSource"), "https://github.com/entorb/kaiser2", undefined],
+    [t("menu.contact"), "https://entorb.net/contact.php?origin=kaiser2", "contact"],
   ]
-  links.forEach(([text, href], i) => {
+  links.forEach(([text, href, icon], i) => {
     if (i > 0) line3.append(" · ")
-    line3.appendChild(link(text, href))
+    line3.appendChild(link(text, href, icon))
   })
   div.appendChild(line3)
 
   return { element: div, setCount }
 }
 
-function link(text: string, href: string): HTMLAnchorElement {
+/** Outline paths (24x24) for the footer link icons, in the project's plain-line-art style. */
+const FOOTER_ICON_PATHS = {
+  home: ["M4 11 12 4 20 11 20 20 4 20Z", "M9 20V13H15V20"],
+  contact: ["M4 5H20V19H4Z", "M4 5 12 13 20 5"],
+}
+
+/** Small inline SVG icon matching a footer link's destination. */
+function linkIcon(name: keyof typeof FOOTER_ICON_PATHS): SVGSVGElement {
+  const ns = "http://www.w3.org/2000/svg"
+  const svg = document.createElementNS(ns, "svg")
+  svg.setAttribute("viewBox", "0 0 24 24")
+  svg.setAttribute("width", "15")
+  svg.setAttribute("height", "15")
+  svg.style.flex = "none"
+  for (const d of FOOTER_ICON_PATHS[name]) {
+    const path = document.createElementNS(ns, "path")
+    path.setAttribute("d", d)
+    path.setAttribute("fill", "none")
+    path.setAttribute("stroke", css(COLORS.accent))
+    path.setAttribute("stroke-width", "1.6")
+    path.setAttribute("stroke-linecap", "round")
+    path.setAttribute("stroke-linejoin", "round")
+    svg.appendChild(path)
+  }
+  return svg
+}
+
+function link(
+  text: string,
+  href: string,
+  icon?: keyof typeof FOOTER_ICON_PATHS,
+): HTMLAnchorElement {
   const a = document.createElement("a")
-  a.textContent = text
   a.href = href
   a.target = "_blank"
   a.rel = "noopener"
@@ -241,6 +282,12 @@ function link(text: string, href: string): HTMLAnchorElement {
     color: css(COLORS.accent),
     textDecoration: "underline",
     cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    verticalAlign: "middle",
   })
+  if (icon) a.appendChild(linkIcon(icon))
+  a.append(text)
   return a
 }
