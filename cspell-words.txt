@@ -526,6 +526,7 @@ starb
 startbild
 startbildschirm
 starten
+Startseite
 staufen
 stel
 Steuern
