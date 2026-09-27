@@ -2,7 +2,7 @@
 
 Historical record of the web re-implementation of Kaiser 2 (Phaser v4 + Vite +
 TypeScript). Frozen: kept for reference, not updated. Source of truth for rules:
-`atari/src/*.TUR`; for intended behaviour and UI text: `atari/manual/index.md`.
+`atari/src/*.TUR`; for intended behaviour and UI text: `atari/manual/README.md`.
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
