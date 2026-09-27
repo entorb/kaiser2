@@ -50,11 +50,11 @@ Object.assign(p, { burg: 14, dom: 19, geld: 500000, land: 100000 })
 - `pnpm run lint` — biome
 - `pnpm run test` — vitest
 - `pnpm run icons` — regenerate `public/icons/` from `scripts/gen_icons.mjs` (committed, not run on build)
-- `sh scripts/run_checks.sh` — full check suite
 - `sh scripts/gen_screen_exports.sh` — export every game screen for UI review
-- `sh scripts/scripts/get_sonar_issues.sh` — download SonarQube findings to `tmp/sonar.json`
 
 ## Code Checks
 
-- see [scripts/chk_*.sh](scripts/)
+- `sh scripts/run_checks.sh` — biome, tsc, knip, vitest, `pnpm audit`, prek (each a [`scripts/chk_*.sh`](scripts/))
+- `sh scripts/get_sonar_issues.sh` — download SonarQube findings to `tmp/sonar.json`
+- CI: [![Check Code](https://github.com/entorb/kaiser2/actions/workflows/check.yml/badge.svg)](https://github.com/entorb/kaiser2/actions/workflows/check.yml)
 - [SonarQube](https://sonarcloud.io/summary/overall?id=entorb_kaiser2)

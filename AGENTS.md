@@ -7,7 +7,7 @@ Vite + TypeScript + pnpm).
 
 * [atari/rules.md](atari/rules.md) — rules extracted from the Atari source code.
 * [rules-remake.md](rules-remake.md) — Remake ruleset (start-page toggle `Rules: Atari / Remake`, default Remake; `GameState.rules`, `model/ruleset.ts`); tax model lives in `model/tax.ts`, rule functions branch on `state.rules`.
-* [atari/manual/index.md](atari/manual/index.md) — original manual.
+* [atari/manual/](atari/manual/README.md) — original manual.
 * [atari/src/](atari/src.zip) — Atari BASIC source (`*.TUR`).
 * [atari/bin/](atari/bin.zip) — original binaries (audio/graphics).
 * [rewrite.md](rewrite.md) — frozen progress tracker + known source bugs.
@@ -34,7 +34,8 @@ e.g. `07`) to re-export only that screen in place; existing files are
 overwritten, never deleted.
 
 After each task run `sh scripts/chk_js_format.sh`; after each feature run
-`sh scripts/run_checks.sh` (biome + tsc + knip + pre-commit + vitest). Features
+`sh scripts/run_checks.sh` (runs every `scripts/chk_*.sh`: biome, tsc, knip,
+`pnpm audit`, pre-commit, vitest). Features
 that change a screen's layout also re-export the touched screens in place with
 `sh scripts/gen_screen_exports.sh --screen=NN` (one `--screen=NN` per modified
 screen) and diff the `.txt`/`.png` against the baseline.
@@ -96,6 +97,16 @@ screen) and diff the `.txt`/`.png` against the baseline.
   available and otherwise falls back to the Android/iPhone instructions. Test
   the SW with `pnpm run build && pnpm preview` (localhost only; the deployed
   site needs HTTPS).
+* The start screen must expose all five external links: contact
+  (`https://entorb.net/contact.php?origin=kaiser2`), source code
+  (`https://github.com/entorb/kaiser2`), home (`https://entorb.net/games/`) —
+  the three in the DOM credits footer (`creditsFooter()` in `scenes/Menu.ts`,
+  labels in `i18n/strings.ts`) — plus share and install as icon buttons in the
+  bottom button row. That row is sized from the buttons that exist: fullscreen
+  is omitted where the browser has no Fullscreen API (iPhone Safari) and the
+  install button is omitted once the app runs standalone (`isInstalled()`:
+  `matchMedia("(display-mode: standalone)")` or iOS `navigator.standalone`), so
+  `slots` counts what is actually shown.
 * `src/main.ts` exposes `window.__game` only under `import.meta.env.DEV` for
   Playwright debugging; stripped from production builds.
 
@@ -166,8 +177,8 @@ granary and distribution bounds, and one `Weiter` settles both.
   event and weather pictograms — never asset files), `focus.ts` (`FocusGroup` keyboard ring), `text.ts`
   (`label`, `loadFonts`), `ornament.ts` (procedural `woodBackground`,
   `frameBorder`, `crest`, `divider`, `panelFrame`/`panelTitle`),
-  `widgets.ts` (`Panel`, `Button`, `ListMenu`, `StatRow`, `NumberField`,
-  `SegmentedControl`) and `dialog.ts` (`alert`, `chooseList`, `numberPrompt`
+  `widgets.ts` (`Panel`, `Button`, `ListMenu`, `StatRow`, `Slider`,
+  `SegmentedControl`) and `dialog.ts` (`alert`, `chooseList`, `sliderPrompt`
   modals). The shared `statusBar`/`primaryAction`/`screenTitle` live in
   `scenes/common.ts`; every in-game `statusBar` also carries a bottom-left
   `Menü` button whose pause overlay toggles the music and can end the game
@@ -179,15 +190,14 @@ granary and distribution bounds, and one `Weiter` settles both.
   `loadFonts()` before the Menu so Phaser rasterizes the real typeface.
 * Every widget supports pointer **and** keyboard; only the newest `FocusGroup`
   per scene is active, so modals suspend the screen behind them.
-* `NumberField` only commits typed digits on Enter, so `numberPrompt`'s OK button
-  must call `field.commitValue()` (a mouse click would otherwise drop the typed
-  value). Only the NewGame name prompt uses a native DOM `<input>`
-  (`this.add.dom`, so `dom.createContainer` is on) because the canvas has no real
-  caret; `#game-container` needs `overflow: hidden` so the canvas's
-  auto-centering margin does not collapse through it and double-offset the DOM
-  overlay.
+* Only the NewGame name prompt uses a native DOM `<input>` (`this.add.dom`, so
+  `dom.createContainer` is on) because the canvas has no real caret;
+  `#game-container` needs `overflow: hidden` so the canvas's auto-centering
+  margin does not collapse through it and double-offset the DOM overlay.
 * Sliders (`Slider` / `sliderPrompt`) have no cancel button; Escape resets to the
   initial/default position (`Slider.reset()`).
+* Do not disable pinch-zoom via the viewport meta (`user-scalable=no`,
+  `maximum-scale`); the canvas already blocks it with `touch-action: none`.
 
 ## Browser debugging
 
@@ -238,14 +248,10 @@ from a `./tmp/*.mjs` script (gitignored; resolves `playwright-core` from the roo
 
 ## Phaser v4 notes
 
-* `this.input.keyboard` is nullable; guard before use.
-* Keyboard key types are `Phaser.Types.Input.Keyboard.*`.
-* Phaser 4 removed the `setTintFill(color)` argument: use
-  `setTint(color).setTintMode(TintModes.FILL)` (import `TintModes` from `phaser`).
+* `this.input.keyboard` is nullable; guard before use (`?.`) — every keyboard
+  listener in this codebase does.
 * `ScenePlugin.start()`/`restart()` with no data reuse the previous scene data;
-  pass explicit data to reset `init()`.
-* `GameObjects.Sprite` is not a subclass of `GameObjects.Image`; animated objects
-  must be typed/created as `Sprite`.
+  pass explicit data to reset `init()` (see `Menu.ts`'s `restart({ pause: false })`).
 
 ## Tooling gotchas
 
@@ -253,12 +259,13 @@ from a `./tmp/*.mjs` script (gitignored; resolves `playwright-core` from the roo
 * `knip.json` `entry` must list `src/main.ts` (vite `root` is `src`, so the HTML
   entry alone is not resolved) or knip reports every `src/` file as unused.
 * The game does **not** load extracted Atari graphics/sounds; they are archival
-  only. `sh scripts/run_all.sh` extracts `atari/bin/` → `re/`; `pnpm run assets`
-  copies `re/assets/` → `public/assets/`. `re/` and `public/assets/` are
-  generated and gitignored; `atari/bin/` and `scripts/` are committed.
-* `atari/scripts/*.mjs` are dev-only conversion tools; list them under knip
-  `ignore`, **not** `entry` (an uninstalled import like `ffmpeg-static` then
-  fails `chk_js_dead`).
+  only. `sh atari/scripts/run_all.sh` extracts `atari/bin.zip` → `re/`;
+  `node atari/scripts/convert-assets.mjs` copies `re/assets/` → `public/assets/`
+  (no `pnpm` script wraps it). `re/` and `public/assets/` are generated and
+  gitignored; `atari/bin.zip` and `atari/scripts/` are committed.
+* `atari/scripts/convert-assets.mjs` is a dev-only conversion tool; it is listed
+  under knip `ignore`, **not** `entry` (its `ffmpeg-static` import is not an
+  installed dependency, so under `entry` it would fail `chk_js_dead`).
 
 ## SonarQube
 
@@ -267,11 +274,8 @@ from a `./tmp/*.mjs` script (gitignored; resolves `playwright-core` from the roo
 * Never instantiate a widget only for its side effect: a bare background panel
   uses `Panel.decorate(...)` (plain `new Panel(...)` is S1848, `void new
   Panel(...)` is S3735).
-* Mark every field that is never reassigned `readonly`.
-* Prefer `??=`, optional chaining (`a?.b`) and `Math.min`/`Math.max` over the
-  hand-written `if`/ternary equivalents.
 * No `Math.random` (S2245) — use `crypto.getRandomValues` (see `coinNoise` in
-  `audio/music.ts`).
+  `audio/music.ts`, `defaultRng` in `model/types.ts`).
 * Keep regexes linear (S8786): anchor on the suffix instead of a lazy `.*?`
   before an alternation, and drop the regex entirely when string methods do the
   job (see `heirName` in `model/events.ts`).
@@ -280,9 +284,6 @@ from a `./tmp/*.mjs` script (gitignored; resolves `playwright-core` from the roo
 * Keep cognitive complexity ≤ 15 per function (S3776) — extract helpers
   (`TradingHouse.chooseAction`, `atr.parse_atr`).
 * `str.endswith` takes a tuple, not chained `or`; use `\d`, not `[0-9]`.
-* Object spread tolerates `undefined`, so `...(x ?? {})` is redundant.
-* Do not disable pinch-zoom via the viewport meta (`user-scalable=no`,
-  `maximum-scale`); the canvas already blocks it with `touch-action: none`.
 * Treat CLI paths in `atari/scripts/` as untrusted: reduce to
   `os.path.basename` or guard with a repo-root `Path.resolve()` /
   `is_relative_to` check (S8707). The Python scripts must stay under the
