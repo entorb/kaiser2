@@ -20,6 +20,8 @@ export async function readGlobalGames(): Promise<number | null> {
 
 /** Ping the server once per started game. No-op during local development. */
 export function reportGameStart(): void {
-  if (import.meta.env.DEV) return
+  // dev server and local preview must not raise the live counter
+  const host = globalThis.location?.hostname ?? ""
+  if (import.meta.env.DEV || host === "localhost" || host === "127.0.0.1") return
   void globalThis.fetch?.(`${STATS_URL}&action=write`).catch(() => {})
 }
