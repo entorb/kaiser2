@@ -1,12 +1,13 @@
 #!/bin/sh
+set -e
+cd "$(dirname "$0")/.."
+
 # Export a PNG and a text snapshot of every game screen for UI review.
 # Outputs tmp/screens/ (gitignored), named after the screen table in AGENTS.md;
 # sub-menus/pop-ups export as their own -<name> files. Uses the dev build, so
 # start pnpm dev, or let this script start it when port 5173 is idle.
 #
 #   sh scripts/gen_screen_exports.sh
-set -e
-cd "$(dirname "$0")/.." || exit 1
 
 URL="http://localhost:5173/kaiser2/"
 LOG="tmp/dev-server.log"
