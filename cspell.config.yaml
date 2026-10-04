@@ -13,6 +13,7 @@ dictionaries:
   - typescript
 language: en-US
 ignorePaths:
+  - "/*.json"
   - /.vscode/
   - /atari/
   - /cspell-words.txt
