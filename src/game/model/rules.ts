@@ -49,7 +49,10 @@ export function harvest(state: GameState, sp: number, rng: Rng = defaultRng): Ha
   // on-screen text and manual §6. Fixed to keep the surviving share.
   p.lkorn = (p.lkorn * (100 - faul)) / 100 + korn
 
-  const vkorn = p.leute * 22 + rand(100, rng) + 1
+  const atariNeed = p.leute * 22 + rand(100, rng) + 1
+  // The Remake treats the former complaint threshold as the population's
+  // actual need; Atari keeps its original VKORN value.
+  const vkorn = state.rules === "remake" ? int((atariNeed * 100) / 80) : atariNeed
   const klager = (vkorn * 100) / 80
 
   state.wetter = weather

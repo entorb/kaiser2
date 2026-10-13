@@ -71,7 +71,7 @@ export interface TurnState {
   han: number // HAN - current trading partner (0 = Kaiser)
   kaus: number // KAUS - grain given to the people
   vkorn: number // VKORN - grain the people need
-  klager: number // KLAGER - complaint threshold (vkorn*100/80)
+  klager: number // KLAGER - stock required to give VKORN under the 80% limit
   abg: number // ABG - tribute actually paid
   zahl: number // ZAHL - tribute demanded
   gew: number // GEW - trading-house profit

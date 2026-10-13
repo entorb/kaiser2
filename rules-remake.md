@@ -444,6 +444,23 @@ The computers farm and wander since §5.3; those numbers are in §4. Open: a
 stock of Emperor grain shared by all rulers of a year (his stock is still
 re-rolled per turn, so nobody competes for it).
 
+### 3.8 Implemented: grain need and linked dole
+
+Atari keeps its original `VKORN = LEUTE × 22 + RAND(100) + 1`. The Remake
+promotes the former complaint threshold to the population's actual need:
+
+```text
+VKORN  = INT(atari VKORN × 100 / 80)   ; population need shown as Nötig
+KLAGER = VKORN × 100 / 80              ; stock needed under the 80% dole cap
+```
+
+This is Remake-only; Atari population and chronicle calculations remain
+unchanged. The grain screen resets the dole to `VKORN` after every trade. If
+`P80 = INT(LKORN × 80 / 100)` is smaller, the dole and its red need marker stay
+at `P80` and the value/track remain red. At equality they turn green; with more
+stock the marker sits inside the range at `VKORN`. Chronicle population,
+Remake tax income and computer rulers all use the same `VKORN` need.
+
 ## 4. Simulation
 
 `node scripts/sim.mjs [--n=200] [--turns=150] [--seed=1] [--snap=30]

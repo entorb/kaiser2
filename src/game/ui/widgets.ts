@@ -652,6 +652,8 @@ export interface SliderOptions {
   valueIcon?: IconDraw
   /** Color of the value shown at the top (e.g. below/above a target). */
   valueColor?: (value: number) => number
+  /** Color of the filled track (e.g. red/green around a target). */
+  trackColor?: (value: number) => number
   /** Live line under the track (e.g. the calculated total cost). */
   info?: (value: number) => string
   /** Color of the live info line (e.g. red when it exceeds the budget). */
@@ -829,10 +831,25 @@ export class Slider extends Widget {
 
   setValue(value: number): void {
     const v = clamp(this.snap(value), this.min, this.max)
-    this.value = v
+    this.commitValue(v)
+  }
+
+  /** Set a calculated target exactly, without moving it to the interaction grid. */
+  setExactValue(value: number): void {
+    this.commitValue(clamp(value, this.min, this.max))
+  }
+
+  private commitValue(value: number): void {
+    this.value = value
     this.updateTexts()
     this.redraw()
-    this.opts.onChange?.(v)
+    this.opts.onChange?.(value)
+  }
+
+  /** Replace live guide lines after a linked control changes this slider's range. */
+  setMarkers(markers: { value: number; color?: number }[]): void {
+    this.opts.markers = markers
+    this.redraw()
   }
 
   /** Return to the initial/default position (Escape). */
@@ -913,7 +930,7 @@ export class Slider extends Widget {
     g.fillStyle(COLORS.surfaceAlt, 1)
     g.fillRoundedRect(this.trackX, this.trackY, this.trackW, 10, 5)
     const tx = this.tickX(this.value)
-    g.fillStyle(COLORS.accent, 1)
+    g.fillStyle(this.opts.trackColor?.(this.value) ?? COLORS.accent, 1)
     g.fillRoundedRect(this.trackX, this.trackY, Math.max(4, tx - this.trackX), 10, 5)
     this.drawZero()
     this.drawMarkers()
