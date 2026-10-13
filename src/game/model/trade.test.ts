@@ -4,6 +4,8 @@ import {
   buyCheapest,
   buyCost,
   dealPrice,
+  dealSpend,
+  landTradeSpend,
   MARKET,
   maxAfford,
   maxBuy,
@@ -300,6 +302,16 @@ describe("remake market", () => {
     expect(dealPrice(state, 0, "grain", 20000)).toBe(125) // +25 % on average
     expect(dealPrice(state, 0, "grain", -20000)).toBe(80) // -20 %
     expect(dealPrice(state, 0, "acker", 5000)).toBe(1250)
+  })
+
+  it("adds both land deals and offsets a purchase with a sale", () => {
+    const { state, k } = setup()
+    k.apreis = 2000
+    k.lpreis = 2000
+    const acre = dealSpend(state, 0, "acker", 1000)
+    const building = dealSpend(state, 0, "land", 1000)
+    expect(landTradeSpend(state, 0, 1000, 1000)).toBe(acre + building)
+    expect(landTradeSpend(state, 0, 1000, -1000)).toBe(acre + dealSpend(state, 0, "land", -1000))
   })
 
   it("finds what the cash buys despite the rising price", () => {

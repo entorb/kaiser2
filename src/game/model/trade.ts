@@ -150,6 +150,23 @@ export function sellProceeds(
   return flatValue(state, han, good, units) / (1 + dealRise(state, good, units))
 }
 
+/** Net treasury cost of one planned deal: positive for a purchase, negative for a sale. */
+export function dealSpend(state: GameState, han: number, good: TradeGood, amount: number): number {
+  return amount > 0
+    ? Math.trunc(buyCost(state, han, good, amount))
+    : -Math.trunc(sellProceeds(state, han, good, -amount))
+}
+
+/** Combined treasury cost of the two land sliders on the Remake's merged screen. */
+export function landTradeSpend(
+  state: GameState,
+  han: number,
+  acreAmount: number,
+  buildingAmount: number,
+): number {
+  return dealSpend(state, han, "acker", acreAmount) + dealSpend(state, han, "land", buildingAmount)
+}
+
 /** Most units `cash` buys from `han` in one deal (whole units). */
 export function maxAfford(state: GameState, han: number, good: TradeGood, cash: number): number {
   if (cash <= 0) return 0
