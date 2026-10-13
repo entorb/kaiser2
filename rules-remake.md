@@ -353,8 +353,10 @@ so posting the maximum lifted the price the Emperor paid him.
    5) and 1000..4000 for land (per 1000 ha, shown per 500: 500..2000) instead
    of 75..125 and 1500..2500; Atari keeps the old band. The price is still one
    number for both directions.
-5. **An offer can be zero.** No 10 % minimum any more; the amount starts at
-   10 % of the holdings as before.
+5. **An offer can be zero.** No 10 % minimum any more. New rulers start at
+   10 %; afterwards each slider remembers its relative position, so for example
+   40 % continues to offer 40 % of the stock that can be offered next year.
+   Atari continues to reset the amounts and enforce its 10 % minimum.
 6. **Land keeps buildings and the realm** (`spareLand`, `maxBuy`, `maxSale`).
    Under Atari rules a sale can raze markets and mills (`landShortage`: 600 ha
    of building land per market, 1000 per mill) or depose the seller (land plus

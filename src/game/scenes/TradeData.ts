@@ -1,8 +1,14 @@
 import { toBusiness } from "../flow"
 import { t } from "../i18n/i18n"
 import { getState } from "../model/session"
-import { shownPrice, spareLand, type TradeGood } from "../model/trade"
-import { playerAt } from "../model/types"
+import {
+  relativeOffer,
+  relativeOfferShare,
+  shownPrice,
+  spareLand,
+  type TradeGood,
+} from "../model/trade"
+import { playerAt, type TradeOfferShares } from "../model/types"
 import { FocusGroup } from "../ui/focus"
 import {
   drawAcreIcon,
@@ -38,10 +44,17 @@ export class TradeData extends GameScene {
     await applyLandShortage(this, state)
     const p = playerAt(state, state.sp)
     const remake = state.rules === "remake"
-    // KAISER4:740-760 - refresh the offer on entry; must offer at least 10%.
-    p.verkorn = p.lkorn
-    p.verAcker = Math.trunc(p.acker / 10)
-    p.verBau = Math.trunc(p.land / 10)
+    if (!remake) {
+      // KAISER4:740-760 - refresh the offer on entry; must offer at least 10%.
+      p.verkorn = p.lkorn
+      p.verAcker = Math.trunc(p.acker / 10)
+      p.verBau = Math.trunc(p.land / 10)
+    }
+    let offerShares = p.offerShares
+    if (!offerShares) {
+      offerShares = { grain: 0.1, acker: 0.1, land: 0.1 }
+      p.offerShares = offerShares
+    }
 
     const group = new FocusGroup(this)
     const { content } = frame()
@@ -55,6 +68,7 @@ export class TradeData extends GameScene {
       icon: IconDraw
       price: PriceKey
       amount: AmountKey
+      share: keyof TradeOfferShares
       max: MaxKey
       range: [number, number]
       step: number
@@ -65,6 +79,7 @@ export class TradeData extends GameScene {
         icon: drawGrainIcon,
         price: "kpreis",
         amount: "verkorn",
+        share: "grain",
         max: "lkorn",
         range: remake ? [50, 200] : [75, 125],
         step: remake ? 5 : 1,
@@ -75,6 +90,7 @@ export class TradeData extends GameScene {
         icon: drawAcreIcon,
         price: "apreis",
         amount: "verAcker",
+        share: "acker",
         max: "acker",
         // Land prices are per 1000 ha.
         range: remake ? [1000, 4000] : [1500, 2500],
@@ -86,6 +102,7 @@ export class TradeData extends GameScene {
         icon: drawBuildingIcon,
         price: "lpreis",
         amount: "verBau",
+        share: "land",
         max: "land",
         range: remake ? [1000, 4000] : [1500, 2500],
         step: 100,
@@ -139,9 +156,12 @@ export class TradeData extends GameScene {
         min,
         max,
         step: 1,
-        initial: remake ? Math.min(max, Math.trunc(held / 10)) : min,
+        initial: remake ? relativeOffer(max, offerShares[row.share]) : min,
         format: (v) => `${v}`,
-        onChange: (v) => (p[row.amount] = v),
+        onChange: (v) => {
+          p[row.amount] = v
+          offerShares[row.share] = relativeOfferShare(v, max, offerShares[row.share])
+        },
         onSubmit: () => finish(),
       })
       p[row.price] = price.value

@@ -19,6 +19,13 @@ export interface TradeNote {
 /** Skill of a computer ruler; see `model/ai.ts`. */
 export type Difficulty = "easy" | "medium" | "hard"
 
+/** Remake: remembered positions of the three offer-amount sliders (0..1). */
+export interface TradeOfferShares {
+  grain: number
+  acker: number
+  land: number
+}
+
 export interface PlayerState {
   name: string
   /** Set for computer rulers, absent for humans. */
@@ -62,6 +69,8 @@ export interface PlayerState {
   /** Remake: highest title already celebrated on the promotion screen (absent = 0). */
   bestTitel?: number
   verkorn: number // VERKORN - grain offered for trade
+  /** Remake: offer amounts as shares of the stock that can currently be offered. */
+  offerShares?: TradeOfferShares
   /** Remake: trades by other rulers since this ruler's last turn. */
   notices?: TradeNote[]
 }
