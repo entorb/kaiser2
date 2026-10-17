@@ -34,7 +34,7 @@ export class Menu extends GameScene {
     this.load.image(SCREENSHOT_KEY, screenshotUrl)
   }
 
-  async create() {
+  create() {
     const group = new FocusGroup(this)
 
     crest(this, CANVAS_W / 2, 30, 36)

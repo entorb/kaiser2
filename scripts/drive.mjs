@@ -142,7 +142,7 @@ try {
     await session.startScene(scene)
     await session.wait(700)
   }
-  for (const step of steps) await runStep(session, step)
+  for (const step of steps) await runStep(session, step) // NOSONAR sequential by design
   if (has("png")) await session.shot(flow ? "flow-final" : scene)
   console.log(formatSnapshot(await session.snapshot()))
 } finally {
