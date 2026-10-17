@@ -353,8 +353,10 @@ so posting the maximum lifted the price the Emperor paid him.
    5) and 1000..4000 for land (per 1000 ha, shown per 500: 500..2000) instead
    of 75..125 and 1500..2500; Atari keeps the old band. The price is still one
    number for both directions.
-5. **An offer can be zero.** No 10 % minimum any more; the amount starts at
-   10 % of the holdings as before.
+5. **An offer can be zero.** No 10 % minimum any more. New rulers start at
+   10 %; afterwards each slider remembers its relative position, so for example
+   40 % continues to offer 40 % of the stock that can be offered next year.
+   Atari continues to reset the amounts and enforce its 10 % minimum.
 6. **Land keeps buildings and the realm** (`spareLand`, `maxBuy`, `maxSale`).
    Under Atari rules a sale can raze markets and mills (`landShortage`: 600 ha
    of building land per market, 1000 per mill) or depose the seller (land plus
@@ -443,6 +445,23 @@ whether rival trading gets interesting for humans needs a hotseat game.
 The computers farm and wander since §5.3; those numbers are in §4. Open: a
 stock of Emperor grain shared by all rulers of a year (his stock is still
 re-rolled per turn, so nobody competes for it).
+
+### 3.8 Implemented: grain need and linked dole
+
+Atari keeps its original `VKORN = LEUTE × 22 + RAND(100) + 1`. The Remake
+promotes the former complaint threshold to the population's actual need:
+
+```text
+VKORN  = INT(atari VKORN × 100 / 80)   ; population need shown as Nötig
+KLAGER = VKORN × 100 / 80              ; stock needed under the 80% dole cap
+```
+
+This is Remake-only; Atari population and chronicle calculations remain
+unchanged. The grain screen resets the dole to `VKORN` after every trade. If
+`P80 = INT(LKORN × 80 / 100)` is smaller, the dole and its red need marker stay
+at `P80` and the value/track remain red. At equality they turn green; with more
+stock the marker sits inside the range at `VKORN`. Chronicle population,
+Remake tax income and computer rulers all use the same `VKORN` need.
 
 ## 4. Simulation
 

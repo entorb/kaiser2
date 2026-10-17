@@ -5,11 +5,11 @@ import { t } from "../i18n/i18n"
 import { at } from "../lookup"
 import { getState } from "../model/session"
 import {
-  buyCost,
   dealPrice,
+  dealSpend,
+  landTradeSpend,
   maxBuy,
   maxSale,
-  sellProceeds,
   type TradeGood,
   tradeLand,
 } from "../model/trade"
@@ -77,14 +77,16 @@ export class Land extends GameScene {
 
     const { han } = state.turn
     // Buying more raises the price, selling more lowers it (rules-remake.md §3.7).
-    const spend = (v: number, good: TradeGood) =>
-      v > 0
-        ? Math.trunc(buyCost(state, han, good, v))
-        : -Math.trunc(sellProceeds(state, han, good, -v))
+    const spend = (v: number, good: TradeGood) => dealSpend(state, han, good, v)
     // Buying (v > 0) costs money (-), selling (v < 0) earns it (+).
     const cost = (v: number, good: TradeGood) => (v === 0 ? "" : moneyLabel(-spend(v, good)))
-    const costColor = (v: number, good: TradeGood) =>
-      v > 0 && spend(v, good) > p.geld ? COLORS.danger : COLORS.accent
+    const costColor = (v: number, good: TradeGood) => {
+      const overBudget =
+        state.rules === "remake"
+          ? landTradeSpend(state, han, acreAmount, buildingAmount) > p.geld
+          : v > 0 && spend(v, good) > p.geld
+      return overBudget ? COLORS.danger : COLORS.accent
+    }
     // The price per 500 ha like the grain price per 500 units; it follows the
     // deal because a big deal moves the price.
     const priceText = (good: TradeGood, v: number) => `${dealPrice(state, han, good, v)}`
@@ -94,6 +96,7 @@ export class Land extends GameScene {
      * (coin icon first) under the name, the running cost right of the name
      * and the trade slider below.
      */
+    let refreshCosts = () => {}
     const section = (
       y: number,
       draw: IconDraw,
@@ -101,7 +104,7 @@ export class Land extends GameScene {
       good: TradeGood,
       stock: { min: number; max: number },
       onChange: (v: number) => void,
-    ): Slider => {
+    ): { slider: Slider; refresh: () => void } => {
       const head = this.add.graphics()
       draw(head, sliderX + 24, y + 26, 48)
       drawCoinsIcon(head, sliderX + 68, y + 44, 16)
@@ -128,8 +131,9 @@ export class Land extends GameScene {
         costText.setColor(css(costColor(v, good)))
         costIcon.setVisible(text !== "")
       }
-      showCost(0)
-      return new Slider(this, sliderX, y + 62, sliderW, 56, {
+      let current = 0
+      showCost(current)
+      const slider = new Slider(this, sliderX, y + 62, sliderW, 56, {
         ...stock,
         step: 500,
         initial: 0,
@@ -137,14 +141,16 @@ export class Land extends GameScene {
         maxIcon: "plus",
         format: (v) => (v > 0 ? `+${v}` : `${v}`),
         onChange: (v) => {
-          showCost(v)
+          current = v
           onChange(v)
+          refreshCosts()
         },
         onSubmit: finish,
       })
+      return { slider, refresh: () => showCost(current) }
     }
 
-    const acre = section(
+    const acreSection = section(
       top + 14,
       drawAcreIcon,
       t("land.acre"),
@@ -158,7 +164,7 @@ export class Land extends GameScene {
         redraw()
       },
     )
-    const building = section(
+    const buildingSection = section(
       top + 156,
       drawBuildingIcon,
       t("land.building"),
@@ -172,6 +178,13 @@ export class Land extends GameScene {
         redraw()
       },
     )
+    const acre = acreSection.slider
+    const building = buildingSection.slider
+    refreshCosts = () => {
+      acreSection.refresh()
+      buildingSection.refresh()
+    }
+    refreshCosts()
 
     acre.bind(group)
     building.bind(group)
