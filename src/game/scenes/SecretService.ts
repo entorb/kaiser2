@@ -104,6 +104,7 @@ export class SecretService extends GameScene {
 
       const menuW = 420
       const choice = await new Promise<number>((resolve) => {
+        // NOSONAR sequential by design
         const menu = new ListMenu(
           this,
           content.x + content.w - menuW,
@@ -140,7 +141,7 @@ export class SecretService extends GameScene {
         p.manov++
         p.geld -= manP * p.artell
       } else if (choice === 4) {
-        if (p.artell > 0) await this.operate(state)
+        if (p.artell > 0) await this.operate(state) // NOSONAR sequential by design
       } else {
         done = true
       }
