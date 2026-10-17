@@ -167,6 +167,7 @@ export function createPlayer(name: string, index: number): PlayerState {
     tod: rand(10) + 35,
     titel: 0,
     verkorn: 10000,
+    offerShares: { grain: 0.1, acker: 0.1, land: 0.1 },
   }
 }
 

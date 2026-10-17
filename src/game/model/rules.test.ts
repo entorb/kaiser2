@@ -46,6 +46,8 @@ describe("harvest", () => {
     // 100*1.9 + (10000/10) * 1 * FARMING.acreYield + 1
     const r = harvest(state, 1, seq(0, 0, 0, 0))
     expect(r.harvest).toBeCloseTo(191 + 1000 * FARMING.acreYield, 5)
+    expect(r.vkorn).toBe(13751)
+    expect(r.klager).toBeCloseTo(17188.75)
     expect(FARMING.acreYield).toBeGreaterThan(1)
   })
 

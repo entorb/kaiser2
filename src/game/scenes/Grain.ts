@@ -3,6 +3,7 @@ import { playCoins } from "../audio/music"
 import { toLand } from "../flow"
 import { t } from "../i18n/i18n"
 import type { StringKey } from "../i18n/strings"
+import { grainNeed, grainPlan, stockForGrainNeed } from "../model/grain"
 import { giveGrain, grainBounds, harvest } from "../model/rules"
 import { getState } from "../model/session"
 import { buyCost, dealPrice, maxSale, sellProceeds, tradeGrain } from "../model/trade"
@@ -26,9 +27,8 @@ export class Grain extends GameScene {
 
   async create() {
     const state = getState(this)
-    const result = harvest(state, state.sp)
-
-    await this.play(state, result.vkorn)
+    harvest(state, state.sp)
+    await this.play(state)
     toLand(this.scene)
   }
 
@@ -38,7 +38,7 @@ export class Grain extends GameScene {
    * distribution bounds, and a single "Weiter" settles the trade, hands the
    * chosen amount to the people, then leaves for land.
    */
-  private async play(state: GameState, vkorn: number): Promise<void> {
+  private async play(state: GameState): Promise<void> {
     const p = playerAt(state, state.sp)
     const seller = playerAt(state, state.turn.han)
     this.granary = undefined
@@ -48,8 +48,10 @@ export class Grain extends GameScene {
     screenTitle(this, t("grain.title"), content.y)
     this.drawGranary(state, p.lkorn)
 
-    // Required stock includes the 20% the ruler keeps (max give is 80%).
-    const required = Math.trunc(state.turn.klager)
+    // What the people need ("Nötig"); the dole follows it after every trade.
+    const required = grainNeed(state)
+    // Stock that lets the 80% maximum dole reach the need.
+    const requiredStock = stockForGrainNeed(required)
     const maxSell = Math.trunc(maxSale(state, state.sp, state.turn.han, "grain"))
     const maxBuy = Math.trunc(seller.verkorn)
     const step = 500
@@ -63,10 +65,7 @@ export class Grain extends GameScene {
     const priceOf = (v: number) => `${dealPrice(state, state.turn.han, "grain", v)}`
     // Distribution bounds for the stock that results from a given trade.
     const boundsFor = (traded: number) => grainBounds({ ...p, lkorn: p.lkorn + traded })
-    const neededFor = (traded: number) => {
-      const { p20, p80 } = boundsFor(traded)
-      return Math.max(p20, Math.min(p80, Math.min(vkorn, p80)))
-    }
+    const planFor = (traded: number) => grainPlan(state, p.lkorn + traded)
     const distStep = (traded: number) => {
       const { p20, p80 } = boundsFor(traded)
       return Math.max(1, Math.round(Math.max(p80 - p20, 1) / 100))
@@ -99,11 +98,11 @@ export class Grain extends GameScene {
     const sliderX = controlsX + 24
     const sliderW = controlsW - 48
     const b0 = boundsFor(0)
+    const initialPlan = planFor(0)
 
     await new Promise<void>((resolve) => {
       let trade: Slider
       let dist: Slider
-      let tradeAmount = 0
       const finish = () => {
         this.applyTrade(state, trade.value)
         giveGrain(state, state.sp, dist.value)
@@ -115,12 +114,13 @@ export class Grain extends GameScene {
         min: b0.p20,
         max: b0.p80,
         step: distStep(0),
-        initial: neededFor(0),
+        initial: initialPlan.donation,
         format: (v) => `${v}`,
         // Red while giving the people less than they need.
-        valueColor: (v) => (v < neededFor(tradeAmount) ? COLORS.danger : COLORS.success),
-        // What the people need; the slider starts there.
-        markers: [{ value: vkorn, color: COLORS.danger }],
+        valueColor: (v) => (v < required ? COLORS.danger : COLORS.success),
+        trackColor: (v) => (v < required ? COLORS.danger : COLORS.success),
+        // The need, pinned to the maximum while the current stock cannot cover it.
+        markers: [{ value: initialPlan.marker, color: COLORS.danger }],
         onSubmit: finish,
       })
 
@@ -134,8 +134,8 @@ export class Grain extends GameScene {
         size: FS.heading,
       })
 
-      // Trade needed to bring the stock up to the required amount.
-      const needMark = required - Math.trunc(p.lkorn)
+      // Trade needed to bring the stock up to the required stock.
+      const needMark = requiredStock - Math.trunc(p.lkorn)
       trade = new Slider(this, sliderX, content.y + 70, sliderW, 130, {
         label: t("grain.trade"),
         min: -maxSell,
@@ -146,23 +146,23 @@ export class Grain extends GameScene {
         maxIcon: "plus",
         markers: [{ value: needMark, color: COLORS.danger }],
         format: (v) => (v > 0 ? `+${v}` : `${v}`),
-        // Red while the resulting stock stays under the required amount.
-        valueColor: (v) => (p.lkorn + v < required ? COLORS.danger : COLORS.success),
+        // Red while the resulting stock stays under the required stock.
+        valueColor: (v) => (p.lkorn + v < requiredStock ? COLORS.danger : COLORS.success),
+        trackColor: (v) => (p.lkorn + v < requiredStock ? COLORS.danger : COLORS.success),
         cost: (v) => {
           if (v === 0) return ""
           return moneyLabel(v > 0 ? -total(v) : total(v))
         },
         costColor: (v) => (v > 0 && total(v) > p.geld ? COLORS.danger : COLORS.accent),
         onChange: (v) => {
-          tradeAmount = v
           priceText.setText(priceOf(v))
           const b = boundsFor(v)
           dist.setRange(b.p20, b.p80, distStep(v))
-          // Reset distribution default: the need, rounded up to the step so a
-          // sufficient stock never shows red just from rounding down.
-          const need = neededFor(v)
-          const step = distStep(v)
-          dist.setValue(Math.ceil(need / step) * step)
+          // Reset to the exact need, or pin both knob and marker to the right
+          // edge while the 80% maximum cannot feed everybody.
+          const plan = planFor(v)
+          dist.setMarkers([{ value: plan.marker, color: COLORS.danger }])
+          dist.setExactValue(plan.donation)
           this.drawGranary(state, p.lkorn + v)
         },
         onSubmit: finish,

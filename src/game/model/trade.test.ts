@@ -4,11 +4,15 @@ import {
   buyCheapest,
   buyCost,
   dealPrice,
+  dealSpend,
+  landTradeSpend,
   MARKET,
   maxAfford,
   maxBuy,
   maxSale,
   refreshEmperorStock,
+  relativeOffer,
+  relativeOfferShare,
   sellProceeds,
   shownPrice,
   spareLand,
@@ -18,6 +22,25 @@ import {
   updateEmperorPrices,
 } from "./trade"
 import { playerAt } from "./types"
+
+describe("relative offers", () => {
+  it("restores the same slider position against the current maximum", () => {
+    const share = relativeOfferShare(3000, 12000)
+    expect(share).toBe(0.25)
+    expect(relativeOffer(8000, share)).toBe(2000)
+  })
+
+  it("defaults to ten percent and preserves the position without stock", () => {
+    expect(relativeOffer(12345, undefined)).toBe(1234)
+    expect(relativeOfferShare(0, 0, 0.4)).toBe(0.4)
+  })
+
+  it("clamps invalid saved positions", () => {
+    expect(relativeOffer(1000, 2)).toBe(1000)
+    expect(relativeOffer(1000, -1)).toBe(0)
+    expect(relativeOffer(1000, Number.NaN)).toBe(100)
+  })
+})
 
 describe("emperor", () => {
   it("offers grain by weather and land by the roll", () => {
@@ -279,6 +302,16 @@ describe("remake market", () => {
     expect(dealPrice(state, 0, "grain", 20000)).toBe(125) // +25 % on average
     expect(dealPrice(state, 0, "grain", -20000)).toBe(80) // -20 %
     expect(dealPrice(state, 0, "acker", 5000)).toBe(1250)
+  })
+
+  it("adds both land deals and offsets a purchase with a sale", () => {
+    const { state, k } = setup()
+    k.apreis = 2000
+    k.lpreis = 2000
+    const acre = dealSpend(state, 0, "acker", 1000)
+    const building = dealSpend(state, 0, "land", 1000)
+    expect(landTradeSpend(state, 0, 1000, 1000)).toBe(acre + building)
+    expect(landTradeSpend(state, 0, 1000, -1000)).toBe(acre + dealSpend(state, 0, "land", -1000))
   })
 
   it("finds what the cash buys despite the rising price", () => {

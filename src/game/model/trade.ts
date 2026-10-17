@@ -20,6 +20,24 @@ export const LAND_PRICE_UNIT = 1000
 
 export type TradeGood = TradeNote["good"]
 
+export const DEFAULT_OFFER_SHARE = 0.1
+
+function validOfferShare(share: number | undefined): number {
+  if (share === undefined || !Number.isFinite(share)) return DEFAULT_OFFER_SHARE
+  return Math.max(0, Math.min(1, share))
+}
+
+/** Turn a remembered Remake slider position into this round's offered amount. */
+export function relativeOffer(max: number, share: number | undefined): number {
+  return Math.trunc(Math.max(0, max) * validOfferShare(share))
+}
+
+/** Remember an offer as a slider position; no stock leaves the old position intact. */
+export function relativeOfferShare(amount: number, max: number, previous?: number): number {
+  if (max <= 0) return validOfferShare(previous)
+  return validOfferShare(amount / max)
+}
+
 /**
  * Remake tunables (`scripts/sim.mjs --tune=market.impact=0.5`).
  * `emperorGrain`: the Emperor's grain stock per point of weather (Atari: 8000).
@@ -130,6 +148,23 @@ export function sellProceeds(
   units: number,
 ): number {
   return flatValue(state, han, good, units) / (1 + dealRise(state, good, units))
+}
+
+/** Net treasury cost of one planned deal: positive for a purchase, negative for a sale. */
+export function dealSpend(state: GameState, han: number, good: TradeGood, amount: number): number {
+  return amount > 0
+    ? Math.trunc(buyCost(state, han, good, amount))
+    : -Math.trunc(sellProceeds(state, han, good, -amount))
+}
+
+/** Combined treasury cost of the two land sliders on the Remake's merged screen. */
+export function landTradeSpend(
+  state: GameState,
+  han: number,
+  acreAmount: number,
+  buildingAmount: number,
+): number {
+  return dealSpend(state, han, "acker", acreAmount) + dealSpend(state, han, "land", buildingAmount)
 }
 
 /** Most units `cash` buys from `han` in one deal (whole units). */
