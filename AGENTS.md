@@ -288,6 +288,14 @@ from a `./tmp/*.mjs` script (gitignored; resolves `playwright-core` from the roo
   `os.path.basename` or guard with a repo-root `Path.resolve()` /
   `is_relative_to` check (S8707). The Python scripts must stay under the
   complexity limit too.
+* `await` in a loop (S9382): fine only for inherently sequential flows (per-player
+  prompts, key presses, scene steps) — put `// NOSONAR sequential by design` on the
+  `await` line. Independent work uses `Promise.all`.
+* No `export let` (S6861) — use `const`; the live `CANVAS_W`/`GAME_W` in
+  `ui/layout.ts` are the deliberate exception (`// NOSONAR live binding`).
+* No `!important` in CSS (S9423) — fix specificity; the gallery `canvas` size
+  overriding Phaser's inline style is the exception (`/* NOSONAR */` on the line).
+* No `async` without `await` (S7503) — drop the keyword.
 * A suppression comment (`# NOSONAR`) must sit on the offending line; a
   standalone or malformed one is itself flagged (S7632). Prefer fixing the
   root cause.
