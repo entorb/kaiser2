@@ -85,6 +85,7 @@ export class TradePartner extends GameScene {
       }
 
       const idx = await new Promise<number>((resolve) => {
+        // NOSONAR sequential by design
         const menu = new ListMenu(this, content.x + SPACE.lg, top + 68, tableW, items, {
           rowH: 56,
           gap: 8,

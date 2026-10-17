@@ -21,8 +21,8 @@ export const CANVAS_H = 192 * SCALE // 576
 export const RENDER_SCALE = 2
 
 // Live bindings: importers read the current width, `fitCanvas` updates it.
-export let CANVAS_W = MIN_CANVAS_W // 960 .. MAX_CANVAS_W
-export let GAME_W = CANVAS_W * RENDER_SCALE
+export let CANVAS_W = MIN_CANVAS_W // 960 .. MAX_CANVAS_W // NOSONAR live binding
+export let GAME_W = CANVAS_W * RENDER_SCALE // NOSONAR live binding
 export const GAME_H = CANVAS_H * RENDER_SCALE // 1152
 
 /**

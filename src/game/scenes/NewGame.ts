@@ -44,7 +44,7 @@ export class NewGame extends GameScene {
     const profiles = loadProfiles()
     const reserved = levels.map((level) => AI_PROFILES[level].name)
     for (let i = 1; i <= humans; i++)
-      await this.setupPlayer(state, i, profiles[i - 1] ?? null, reserved)
+      await this.setupPlayer(state, i, profiles[i - 1] ?? null, reserved) // NOSONAR sequential by design
     saveProfiles(state.players, humans)
     // Computer rulers sit after the humans, with fixed names and kingdoms.
     levels.forEach((level, k) => {

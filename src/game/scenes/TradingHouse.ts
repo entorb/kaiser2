@@ -100,12 +100,12 @@ export class TradingHouse extends GameScene {
     // house it moves to the servants.
     let focusServants = false
     while (!done) {
-      const choice = await this.chooseAction(state, gew, leased, focusServants)
+      const choice = await this.chooseAction(state, gew, leased, focusServants) // NOSONAR sequential by design
       focusServants = false
 
       if (choice === "servants") {
         // One combined slider like grain/land: left = dismiss, right = hire.
-        const v = await this.servantPrompt(p, crewNeeded(p, state.rules))
+        const v = await this.servantPrompt(p, crewNeeded(p, state.rules)) // NOSONAR sequential by design
         state.turn.neu = Math.max(0, v)
         state.turn.alt = Math.max(0, -v)
       } else if (choice === "lease") {

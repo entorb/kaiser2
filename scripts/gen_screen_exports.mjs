@@ -115,7 +115,7 @@ const SCREENS = [
       await capture("02-01-menu")
       // Install button (inactive in dev; the alert opens): focus order is new
       // game, rules, language, music, share, install.
-      for (let i = 0; i < 5; i++) await session.press("Tab")
+      for (let i = 0; i < 5; i++) await session.press("Tab") // NOSONAR sequential by design
       await session.press("Enter")
       await session.wait(400)
       await capture("02-02-menu-install")
@@ -287,7 +287,7 @@ const SCREENS = [
       await session.wait(START_WAIT)
       await capture("14-01-secretservice")
       await session.press("Shift+Tab") // "Zurück" -> list
-      for (let i = 0; i < 4; i++) await session.press("ArrowDown") // -> operations
+      for (let i = 0; i < 4; i++) await session.press("ArrowDown") // -> operations // NOSONAR sequential by design
       await session.press("Enter")
       await session.wait(400)
       await capture("14-02-secretservice-target")
@@ -326,7 +326,7 @@ const page = session.page
 
 try {
   const targets = only ? SCREENS.filter(({ id }) => id === only) : SCREENS
-  for (const screen of targets) await screen.run()
+  for (const screen of targets) await screen.run() // NOSONAR sequential by design
 } finally {
   const fresh = session.errors.slice(errorsMark)
   errorsMark = session.errors.length
