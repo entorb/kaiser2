@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/main.ts",
+    "src/game/debug/icon-gallery.ts",
+    "src/game/debug/image-gallery.ts",
+    "vite/config.*.mjs",
+    "scripts/*.mjs"
+  ],
+  "ignore": ["atari/scripts/convert-assets.mjs"],
+  "ignoreExportsUsedInFile": true
+}
