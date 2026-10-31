@@ -12,6 +12,6 @@ echo "### Code checks"
 
 echo "## Frontend Build and Transfer"
 pnpm run build
-rsync -rhv --delete --no-perms dist/ entorb@entorb.net:html/kaiser2/
+rsync -rhv --delete --no-perms dist/ entorb@mab.uberspace.de:html/kaiser2/
 
 echo "## DONE"
