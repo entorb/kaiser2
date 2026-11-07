@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",
-    "knip": "^6.44.0",
+    "knip": "^6.44.1",
     "playwright-core": "1.63.0",
     "terser": "^5.51.2",
     "typescript": "~7.0.2",
