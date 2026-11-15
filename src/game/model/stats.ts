@@ -23,5 +23,5 @@ export function reportGameStart(): void {
   // dev server and local preview must not raise the live counter
   const host = globalThis.location?.hostname ?? ""
   if (import.meta.env.DEV || host === "localhost" || host === "127.0.0.1") return
-  void globalThis.fetch?.(`${STATS_URL}&action=write`).catch(() => {})
+  void globalThis.fetch?.(`${STATS_URL}&action=write`).catch(() => undefined)
 }

@@ -4,7 +4,7 @@ import { t } from "../i18n/i18n.ts"
 import { playerColor } from "../model/constants.ts"
 import { highscoreValue } from "../model/rules.ts"
 import { getState } from "../model/session.ts"
-import { playerAt } from "../model/types.ts"
+import { type PlayerState, playerAt } from "../model/types.ts"
 import { FocusGroup } from "../ui/focus.ts"
 import { drawPointsIcon } from "../ui/icon.ts"
 import { frame } from "../ui/layout.ts"
@@ -23,7 +23,7 @@ export class Highscore extends GameScene {
   async create() {
     playFanfare()
     const state = getState(this)
-    const entries = []
+    const entries: { p: PlayerState; jahr: number; score: number }[] = []
     for (let i = 1; i <= state.count; i++) {
       const p = playerAt(state, i)
       entries.push({

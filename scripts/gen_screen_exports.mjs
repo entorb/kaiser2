@@ -75,7 +75,7 @@ const CANVAS_RENDERER_TXT = "reading 'drawImage'"
 
 const section = async (titel = 1) => {
   await page.reload({ waitUntil: "load" })
-  await page.waitForFunction(() => window.__game?.scene?.isActive("Menu"), undefined, {
+  await page.waitForFunction(() => globalThis.__game?.scene?.isActive("Menu"), undefined, {
     timeout: 15_000,
   })
   await session.inject(baronState(titel))
@@ -83,7 +83,7 @@ const section = async (titel = 1) => {
 const startScene = (key) => session.startScene(key)
 const startSceneData = (key, data) =>
   page.evaluate(
-    ([k, d]) => window.__game.scene.getScenes(true).at(-1).scene.start(k, d),
+    ([k, d]) => globalThis.__game.scene.getScenes(true).at(-1).scene.start(k, d),
     [key, data],
   )
 const click = async (cx, cy) => {
@@ -138,8 +138,8 @@ const SCREENS = [
       // Arrow next (bottom-right action button; the canvas width follows the
       // window aspect), no computers -> ruler setup.
       const designW = await page.evaluate(() => {
-        const cam = window.__game.scene.getScenes(true)[0].cameras.main
-        return window.__game.scale.width / cam.zoom
+        const cam = globalThis.__game.scene.getScenes(true)[0].cameras.main
+        return globalThis.__game.scale.width / cam.zoom
       })
       await click(designW - 134, 516)
       await session.wait(400)

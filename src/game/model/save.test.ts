@@ -15,7 +15,7 @@ describe("save", () => {
 
   it("treats saves without a ruleset as Atari", () => {
     const old = JSON.parse(serialize(createGameState(2, "remake")))
-    delete old.state.rules
+    old.state.rules = undefined
     expect(deserialize(JSON.stringify(old))?.rules).toBe("atari")
   })
 

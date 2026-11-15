@@ -1,12 +1,21 @@
 import { describe, expect, it, vi } from "vitest"
 import { FocusGroup } from "./focus.ts"
 
-vi.mock("../audio/music", () => ({ blip: () => {} }))
+vi.mock("../audio/music", () => ({
+  blip: () => undefined,
+}))
 
 function scene() {
   return {
-    input: { keyboard: { on: () => {}, off: () => {} } },
-    events: { once: () => {} },
+    input: {
+      keyboard: {
+        on: () => undefined,
+        off: () => undefined,
+      },
+    },
+    events: {
+      once: () => undefined,
+    },
   } as never
 }
 

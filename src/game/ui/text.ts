@@ -40,7 +40,7 @@ export async function loadFonts(): Promise<void> {
  * texture needs roughly `displayScale * dpr * RENDER_SCALE` times the font size.
  */
 function textResolution(scene: Phaser.Scene): number {
-  const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1
+  const dpr = globalThis.devicePixelRatio || 1
   const fit = scene.scale?.displayScale?.x || 1
   return Math.min(MAX_RESOLUTION, Math.max(1, Math.round(fit * dpr * RENDER_SCALE)))
 }

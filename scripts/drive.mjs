@@ -91,37 +91,37 @@ const opt = (name) => {
   return hit?.slice(name.length + 3)
 }
 
-async function runStep(session, step) {
+async function runStep(sess, step) {
   const i = step.indexOf(":")
   const kind = i < 0 ? step : step.slice(0, i)
   const arg = i < 0 ? "" : step.slice(i + 1)
   switch (kind) {
     case "wait":
-      return session.wait(Number(arg))
+      return sess.wait(Number(arg))
     case "type":
-      return session.type(arg)
+      return sess.type(arg)
     case "press":
-      return session.press(arg)
+      return sess.press(arg)
     case "scene":
-      return session.startScene(arg)
+      return sess.startScene(arg)
     case "click": {
       const [cx, cy] = arg.split(",").map(Number)
-      const pt = await session.canvasPoint(cx, cy)
-      return session.page.mouse.click(pt.x, pt.y)
+      const pt = await sess.canvasPoint(cx, cy)
+      return sess.page.mouse.click(pt.x, pt.y)
     }
     case "shot":
-      return session.shot(arg)
+      return sess.shot(arg)
     case "fixture":
-      return session.inject(fixtureState(arg ? JSON.parse(arg) : {}))
+      return sess.inject(fixtureState(arg ? JSON.parse(arg) : {}))
     case "reload": {
-      await session.page.reload({ waitUntil: "load" })
-      return session.wait(1200)
+      await sess.page.reload({ waitUntil: "load" })
+      return sess.wait(1200)
     }
     case "snap":
-      console.log(formatSnapshot(await session.snapshot()))
+      console.log(formatSnapshot(await sess.snapshot()))
       return
     default:
-      return session.press(step)
+      return sess.press(step)
   }
 }
 

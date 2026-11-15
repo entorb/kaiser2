@@ -14,9 +14,7 @@ import type { PlayerState } from "./types.ts"
 
 function players(...portraits: number[]): PlayerState[] {
   const list = [{} as PlayerState]
-  portraits.forEach((portrait) => {
-    list.push({ portrait } as PlayerState)
-  })
+  for (const portrait of portraits) list.push({ portrait } as PlayerState)
   return list
 }
 
@@ -32,7 +30,7 @@ describe("player colors", () => {
 
   it("collects taken colors from earlier players only", () => {
     const taken = takenColors(players(0, 3, 1), 3)
-    expect([...taken].sort()).toEqual([0, 3])
+    expect([...taken].sort((a, b) => a - b)).toEqual([0, 3])
   })
 
   it("skips taken colors when stepping, wrapping around", () => {

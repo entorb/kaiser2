@@ -139,7 +139,7 @@
 
       function ensureAudio() {
         if (!audio) {
-          const Ctor = window.AudioContext || window.webkitAudioContext;
+          const Ctor = globalThis.AudioContext || globalThis.webkitAudioContext;
           audio = new Ctor();
           attachAudio(audio);
           setMuted(false);

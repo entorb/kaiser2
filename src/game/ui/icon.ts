@@ -114,6 +114,8 @@ function drawEmblem(
       g.fillRect(l + w * 0.18, t + h * 0.12, w * 0.28, h * 0.26)
       g.fillRect(r - w * 0.46, t + h * 0.4, w * 0.28, h * 0.26)
       break
+    default:
+      break
   }
 }
 
@@ -534,6 +536,8 @@ export function drawEventIcon(
       g.fillRoundedRect(cx - s * 0.48, cy - s * 0.17, s * 0.96, s * 0.09, s * 0.045)
       break
     }
+    default:
+      break
   }
 }
 
@@ -657,6 +661,8 @@ export function drawWeatherIcon(
       g.fillStyle(COLORS.accent, 1)
       g.fillCircle(cx - 15 * u, cy - 8 * u, 1.5 * u)
       g.fillCircle(cx + 15 * u, cy - 8 * u, 1.5 * u)
+      break
+    default:
       break
   }
 }

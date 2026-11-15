@@ -77,8 +77,8 @@ function mulberry32(seed) {
   }
 }
 
-function newState(count, ruleset, rng) {
-  const state = createGameState(count, ruleset)
+function newState(n, ruleset, rng) {
+  const state = createGameState(n, ruleset)
   state.players[0].hh = rand(20, rng) + 30
   return state
 }
@@ -198,9 +198,7 @@ function duel(ruleset) {
   console.log(
     `${"nobody".padEnd(16)} ${col(fmt((100 * games.filter((g) => !g.winner).length) / N), 6)}`,
   )
-  const seats = [1, 2, 3].map((seat) =>
-    fmt((100 * games.filter((g) => g.seat === seat).length) / N),
-  )
+  const seats = [1, 2, 3].map((s) => fmt((100 * games.filter((g) => g.seat === s).length) / N))
   console.log(`wins by seat (1st, 2nd, 3rd): ${seats.join(" / ")} %`)
 }
 

@@ -200,9 +200,9 @@ export class Grain extends GameScene {
     const roofH = bodyTop - apexY
     const half = (w - 20) / 2
     for (let i = 1; i <= 5; i++) {
-      const t = i / 6
-      const yy = apexY + roofH * t
-      const hw = half * t
+      const frac = i / 6
+      const yy = apexY + roofH * frac
+      const hw = half * frac
       g.lineBetween(x + w / 2 - hw, yy, x + w / 2 + hw, yy)
     }
     g.lineStyle(3, COLORS.woodDark, 1)

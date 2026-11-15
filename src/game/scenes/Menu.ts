@@ -178,20 +178,20 @@ export class Menu extends GameScene {
 /** True when the game runs as an installed PWA, so there is nothing to install. */
 function isInstalled(): boolean {
   const standalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
-  return window.matchMedia("(display-mode: standalone)").matches || standalone
+  return globalThis.matchMedia("(display-mode: standalone)").matches || standalone
 }
 
 /** Share the game via the Web Share API, or copy the link as a fallback. */
 function shareGame(onCopied: (label: string) => void): void {
-  const url = window.location.href
+  const url = globalThis.location.href
   if (navigator.share) {
-    void navigator.share({ title: t("app.title"), url }).catch(() => {})
+    void navigator.share({ title: t("app.title"), url }).catch(() => undefined)
     return
   }
   void navigator.clipboard
     ?.writeText(url)
     .then(() => onCopied(t("menu.shareCopied")))
-    .catch(() => {})
+    .catch(() => undefined)
 }
 
 /** Small centred credits footer under the panels. */

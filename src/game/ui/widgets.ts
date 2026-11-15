@@ -393,13 +393,13 @@ export class ListMenu extends Widget {
         // Icon and figure are centered on the column as one block.
         const block = LIST_VALUE_ICON + 6 + text.width
         const left = cx - block / 2
-        const iconX = left + LIST_VALUE_ICON / 2
+        const gx = left + LIST_VALUE_ICON / 2
         text.setOrigin(0, 0.5)
         text.setX(left + LIST_VALUE_ICON + 6)
-        const icon = scene.add.graphics()
-        cell.icon(icon, iconX, cy, LIST_VALUE_ICON)
-        this.add(icon)
-        return { text, icon, iconX, muted: cell.muted === true }
+        const gfx = scene.add.graphics()
+        cell.icon(gfx, gx, cy, LIST_VALUE_ICON)
+        this.add(gfx)
+        return { text, icon: gfx, iconX: gx, muted: cell.muted === true }
       })
       this.rows.push({
         bg,

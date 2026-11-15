@@ -72,7 +72,7 @@ export class Land extends GameScene {
 
     const sliderX = rightX + SPACE.lg
     const sliderW = rightW - SPACE.lg * 2
-    let resolvePlay: () => void = () => {}
+    let resolvePlay: () => void = () => undefined
     const finish = () => resolvePlay()
 
     const { han } = state.turn
@@ -96,7 +96,7 @@ export class Land extends GameScene {
      * (coin icon first) under the name, the running cost right of the name
      * and the trade slider below.
      */
-    let refreshCosts = () => {}
+    let refreshCosts = () => undefined
     const section = (
       y: number,
       draw: IconDraw,

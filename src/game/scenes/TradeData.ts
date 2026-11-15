@@ -121,7 +121,7 @@ export class TradeData extends GameScene {
     panel.add(label(this, priceX, 8, t("tradeData.price"), head))
     panel.add(label(this, amountX, 8, t("tradeData.amount"), head))
 
-    let finish: () => void = () => {}
+    let finish: () => void = () => undefined
     let first: Slider | undefined
     rows.forEach((row, i) => {
       const y = 40 + i * 78

@@ -73,7 +73,7 @@ export class NewGame extends GameScene {
       weight: "bold",
     })
 
-    let finish: () => void = () => {}
+    let finish: () => void = () => undefined
     const control = new Slider(this, content.x, content.y + 92, content.w, 88, {
       min: GAME_CONFIG.minPlayers,
       max: GAME_CONFIG.maxPlayers,

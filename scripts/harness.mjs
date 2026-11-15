@@ -107,9 +107,13 @@ export async function openSession(options = {}) {
   const errors = []
   page.on("pageerror", (e) => errors.push(String(e)))
   await page.goto(url, { waitUntil: "load" })
-  await page.waitForFunction(() => window.__game?.scene?.getScenes(true).length > 0, undefined, {
-    timeout: 15_000,
-  })
+  await page.waitForFunction(
+    () => globalThis.__game?.scene?.getScenes(true).length > 0,
+    undefined,
+    {
+      timeout: 15_000,
+    },
+  )
 
   const canvasPoint = async (cx, cy) => {
     // The design size varies with the window aspect (see ui/layout.ts): it is
@@ -117,14 +121,14 @@ export async function openSession(options = {}) {
     const r = await page.evaluate(() => {
       const c = document.querySelector("canvas")
       const b = c.getBoundingClientRect()
-      const zoom = window.__game.scene.getScenes(true)[0].cameras.main.zoom
+      const zoom = globalThis.__game.scene.getScenes(true)[0].cameras.main.zoom
       return {
         x: b.x,
         y: b.y,
         w: b.width,
         h: b.height,
-        dw: window.__game.scale.width / zoom,
-        dh: window.__game.scale.height / zoom,
+        dw: globalThis.__game.scale.width / zoom,
+        dh: globalThis.__game.scale.height / zoom,
       }
     })
     return {
@@ -139,16 +143,16 @@ export async function openSession(options = {}) {
     errors,
     canvasPoint,
     inject: (state = fixtureState()) =>
-      page.evaluate((s) => window.__game.registry.set("kaiser2.state", s), state),
+      page.evaluate((s) => globalThis.__game.registry.set("kaiser2.state", s), state),
     startScene: (key) =>
       page.evaluate((k) => {
-        window.__game.scene.getScenes(true).at(-1).scene.start(k)
+        globalThis.__game.scene.getScenes(true).at(-1).scene.start(k)
       }, key),
     press: (key) => page.keyboard.press(key),
     type: (text) => page.keyboard.type(text),
     wait: (ms) => page.waitForTimeout(ms),
     shot: (name) => page.screenshot({ path: `./tmp/${name}.png` }),
-    snapshot: () => page.evaluate(() => window.__snapshot()),
+    snapshot: () => page.evaluate(() => globalThis.__snapshot()),
     close: () => browser.close(),
   }
 }

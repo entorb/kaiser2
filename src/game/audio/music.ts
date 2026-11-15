@@ -296,7 +296,7 @@ export function playTrack(name: TrackName): void {
   nextTime = loopStart + (notes[0]?.beat ?? 0) * secondsPerBeat
   if (track.drone) startDrone(track.drone, loopStart)
 
-  scheduler ??= window.setInterval(tick, TICK_MS)
+  scheduler ??= globalThis.setInterval(tick, TICK_MS)
 }
 
 /**
@@ -309,7 +309,7 @@ export function stopMusic(): void {
   currentTrack = null
   notes = []
   if (scheduler !== null) {
-    window.clearInterval(scheduler)
+    globalThis.clearInterval(scheduler)
     scheduler = null
   }
   stopSources(CROSSFADE)
@@ -359,7 +359,7 @@ export function attachMusic(game: Phaser.Game): void {
   if (!context) return // No Web Audio: the game stays silent.
 
   attachAudio(context)
-  window.addEventListener("keydown", onMuteKey)
+  globalThis.addEventListener("keydown", onMuteKey)
 }
 
 /** Select a scene's track and route its pointer clicks to a blip. */

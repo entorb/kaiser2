@@ -101,7 +101,7 @@ export class Taxes extends GameScene {
           ],
         ]
     const justiceY = 56 + fields.length * 58 + 6
-    const refresh = remake ? this.preview(panel, state, p, justiceY + 60) : () => {}
+    const refresh = remake ? this.preview(panel, state, p, justiceY + 60) : () => undefined
     fields.forEach(([text, value, set], i) => {
       const y = 56 + i * 58
       const field = new Slider(this, SPACE.lg, y, panelW - SPACE.lg * 2, 52, {

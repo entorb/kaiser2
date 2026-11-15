@@ -17,7 +17,7 @@ function fitViewport(game: PhaserGame): void {
   apply()
   game.events.once("ready", apply)
   window.visualViewport.addEventListener("resize", apply)
-  window.addEventListener("orientationchange", apply)
+  globalThis.addEventListener("orientationchange", apply)
 }
 
 // The portrait overlay is plain HTML; fill it from the game's language, and
@@ -31,14 +31,14 @@ function syncRotateText(): void {
 
 document.addEventListener("DOMContentLoaded", () => {
   syncRotateText()
-  window.matchMedia("(orientation: portrait)").addEventListener("change", syncRotateText)
+  globalThis.matchMedia("(orientation: portrait)").addEventListener("change", syncRotateText)
   captureInstallPrompt()
   const game = StartGame("game-container")
   fitViewport(game)
   attachMusic(game)
   // Dev-only handles for browser debugging (Playwright `page.evaluate`).
   if (import.meta.env.DEV) {
-    const w = window as unknown as {
+    const w = globalThis as unknown as {
       __game: unknown
       __snapshot: () => unknown
       __music: { isMuted: () => boolean; toggleMute: () => void }

@@ -133,7 +133,7 @@ export class TradingHouse extends GameScene {
   /** Remake: what other rulers traded with this one since their last turn. */
   private async showNotices(p: PlayerState): Promise<void> {
     const notices = p.notices ?? []
-    delete p.notices
+    p.notices = undefined
     if (notices.length === 0) return
     const lines = notices.slice(0, MAX_NOTICES).map((n) =>
       t(n.sold ? "trade.noticeSold" : "trade.noticeBought", {

@@ -17,9 +17,7 @@ describe("stats", () => {
 
   it("returns null when the read request fails", async () => {
     const original = globalThis.fetch
-    globalThis.fetch = async () => {
-      throw new Error("offline")
-    }
+    globalThis.fetch = () => Promise.reject(new Error("offline"))
     expect(await readGlobalGames()).toBeNull()
     globalThis.fetch = original
   })
@@ -27,9 +25,9 @@ describe("stats", () => {
   it("does not write in dev mode", () => {
     const original = globalThis.fetch
     let called = false
-    globalThis.fetch = async () => {
+    globalThis.fetch = () => {
       called = true
-      return new Response(null, { status: 200 })
+      return Promise.resolve(new Response(null, { status: 200 }))
     }
     reportGameStart()
     globalThis.fetch = original

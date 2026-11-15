@@ -108,6 +108,7 @@
         "**/e2e/**",
         "**/playwright/**",
         "scripts/**",
+        "atari/scripts/**",
         "vite/**"
       ],
       "linter": {
