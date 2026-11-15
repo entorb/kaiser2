@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { at } from "../lookup"
-import { createGameState, createPlayer } from "./constants"
+import { at } from "../lookup.ts"
+import { createGameState, createPlayer } from "./constants.ts"
 import {
   chronicle,
   cities,
@@ -16,9 +16,9 @@ import {
   stateIncome,
   titleAdvance,
   tradeHouse,
-} from "./rules"
-import type { Rng } from "./types"
-import { playerAt } from "./types"
+} from "./rules.ts"
+import type { Rng } from "./types.ts"
+import { playerAt } from "./types.ts"
 
 /** RNG that returns a fixed sequence (cycling). */
 function seq(...values: number[]): Rng {
@@ -37,8 +37,8 @@ describe("harvest", () => {
     // korn = 100*1.9 + (10000/10)*1 + 1 = 1191
     expect(r.harvest).toBeCloseTo(1191, 5)
     // fixed rot: 15000*99/100 + 1191
-    expect(p.lkorn).toBeCloseTo(16041, 5)
-    expect(r.vkorn).toBe(11001)
+    expect(p.lkorn).toBeCloseTo(16_041, 5)
+    expect(r.vkorn).toBe(11_001)
   })
 
   it("yields more per acre in the Remake", () => {
@@ -46,8 +46,8 @@ describe("harvest", () => {
     // 100*1.9 + (10000/10) * 1 * FARMING.acreYield + 1
     const r = harvest(state, 1, seq(0, 0, 0, 0))
     expect(r.harvest).toBeCloseTo(191 + 1000 * FARMING.acreYield, 5)
-    expect(r.vkorn).toBe(13751)
-    expect(r.klager).toBeCloseTo(17188.75)
+    expect(r.vkorn).toBe(13_751)
+    expect(r.klager).toBeCloseTo(17_188.75)
     expect(FARMING.acreYield).toBeGreaterThan(1)
   })
 
@@ -119,8 +119,8 @@ describe("guards", () => {
 describe("chronicle", () => {
   it("applies births, deaths and migration to the population", () => {
     const state = createGameState(1)
-    state.turn.kaus = 10000
-    state.turn.vkorn = 10000
+    state.turn.kaus = 10_000
+    state.turn.vkorn = 10_000
     const p = playerAt(state, 1)
     const before = p.leute
     const r = chronicle(state, 1, seq(0, 0, 0, 0, 0, 0))
@@ -199,7 +199,7 @@ describe("titleAdvance", () => {
     const state = createGameState(1)
     const p = playerAt(state, 1)
     p.titel = 7
-    p.punkte = 100000
+    p.punkte = 100_000
     p.geld = 1
     p.dom = 20
     p.burg = 15

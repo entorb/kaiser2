@@ -1,7 +1,7 @@
-import { GAME_CONFIG } from "../config"
-import { startTurn } from "../flow"
-import { t } from "../i18n/i18n"
-import { AI_PROFILES, DIFFICULTIES, setupComputer } from "../model/ai"
+import { GAME_CONFIG } from "../config.ts"
+import { startTurn } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { AI_PROFILES, DIFFICULTIES, setupComputer } from "../model/ai.ts"
 import {
   createGameState,
   freeColor,
@@ -10,23 +10,23 @@ import {
   PROVINCES,
   playerNameError,
   takenColors,
-} from "../model/constants"
-import { loadProfiles, type Profile, saveProfiles } from "../model/profiles"
-import { getRuleset } from "../model/ruleset"
-import { saveGame } from "../model/save"
-import { setState } from "../model/session"
-import { reportGameStart } from "../model/stats"
-import { startRuler } from "../model/turn"
-import type { Difficulty, GameState } from "../model/types"
-import { playerAt } from "../model/types"
-import { type Focusable, FocusGroup } from "../ui/focus"
-import { drawShield } from "../ui/icon"
-import { frame } from "../ui/layout"
-import { label } from "../ui/text"
-import { COLORS, css, FONT_UI, FS, RADIUS, SPACE } from "../ui/theme"
-import { Button, Slider } from "../ui/widgets"
-import { GameScene } from "./base"
-import { continueAction, screenTitle } from "./common"
+} from "../model/constants.ts"
+import { loadProfiles, type Profile, saveProfiles } from "../model/profiles.ts"
+import { getRuleset } from "../model/ruleset.ts"
+import { saveGame } from "../model/save.ts"
+import { setState } from "../model/session.ts"
+import { reportGameStart } from "../model/stats.ts"
+import { startRuler } from "../model/turn.ts"
+import type { Difficulty, GameState } from "../model/types.ts"
+import { playerAt } from "../model/types.ts"
+import { type Focusable, FocusGroup } from "../ui/focus.ts"
+import { drawShield } from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, css, FONT_UI, FS, RADIUS, SPACE } from "../ui/theme.ts"
+import { Button, Slider } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { continueAction, screenTitle } from "./common.ts"
 
 export class NewGame extends GameScene {
   constructor() {
@@ -306,6 +306,7 @@ export class NewGame extends GameScene {
 
     return new Promise<void>((resolve) => {
       let settled = false
+      // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
       const confirm = () => {
         const name = nameInput.value.trim().slice(0, 10)
         const kingdom = kingdomInput.value.trim().slice(0, 12)

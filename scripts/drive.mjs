@@ -22,6 +22,8 @@
 //   --raw      skip the default fixture injection + scene start
 //   --png      screenshot the final state to tmp/<scene>.png
 //   --url=...  game URL (default http://localhost:5173/kaiser2/)
+
+import process from "node:process"
 import { fixtureState, formatSnapshot, openSession } from "./harness.mjs"
 
 const FLOW = [
@@ -127,7 +129,7 @@ const flow = has("flow")
 const positional = args.filter((a) => !a.startsWith("--"))
 const scene = positional[0]
 const steps = flow ? FLOW : positional.slice(1)
-if (!flow && !scene) {
+if (!(flow || scene)) {
   console.error(
     "usage: node scripts/drive.mjs <Scene> [step...] [--flow] [--raw] [--png] [--url=...]",
   )
@@ -137,7 +139,7 @@ if (!flow && !scene) {
 const session = await openSession({ url: opt("url") })
 let failed = false
 try {
-  if (!flow && !has("raw")) {
+  if (!(flow || has("raw"))) {
     await session.inject(fixtureState())
     await session.startScene(scene)
     await session.wait(700)

@@ -11,9 +11,9 @@ import {
   buildingCost,
   landRequired,
   MAX_DOM,
-} from "./constants"
-import { applyInterest, depose, die, expropriate, pawn, taxDemotion } from "./events"
-import { canLeaseHouse, crewNeeded, leaseHouse, leasePrice, tributePoints } from "./houses"
+} from "./constants.ts"
+import { applyInterest, depose, die, expropriate, pawn, taxDemotion } from "./events.ts"
+import { canLeaseHouse, crewNeeded, leaseHouse, leasePrice, tributePoints } from "./houses.ts"
 import {
   chronicle,
   FARMING,
@@ -24,14 +24,14 @@ import {
   stateIncome,
   titleAdvance,
   tradeHouse,
-} from "./rules"
+} from "./rules.ts"
 import {
   buyCheapest,
   GRAIN_PRICE_UNIT,
   LAND_PRICE_UNIT,
   refreshEmperorStock,
   updateEmperorPrices,
-} from "./trade"
+} from "./trade.ts"
 import {
   type Difficulty,
   defaultRng,
@@ -41,7 +41,7 @@ import {
   type Rng,
   type Ruleset,
   rand,
-} from "./types"
+} from "./types.ts"
 
 export interface AiProfile {
   /** Fixed ruler name (at most 10 characters) and kingdom (at most 12). */
@@ -297,7 +297,7 @@ function nextBuilding(state: GameState, p: PlayerState, ai: AiProfile): Building
 /** KAISER4 #GESCHAFT end of turn: pawn, deposition, death, interest, title. */
 function endOfTurn(state: GameState, sp: number, rng: Rng, report: ComputerReport): void {
   const p = playerAt(state, sp)
-  if (p.geld < -10000 - p.titel * 2000) {
+  if (p.geld < -10_000 - p.titel * 2000) {
     pawn(p, rng)
     report.events.push("pawn")
   }

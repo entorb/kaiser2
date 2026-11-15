@@ -1,7 +1,7 @@
-import { GAME_CONFIG } from "../config"
-import { setLang } from "../i18n/i18n"
-import { loadFonts } from "../ui/text"
-import { GameScene } from "./base"
+import { GAME_CONFIG } from "../config.ts"
+import { setLang } from "../i18n/i18n.ts"
+import { loadFonts } from "../ui/text.ts"
+import { GameScene } from "./base.ts"
 
 export class Boot extends GameScene {
   constructor() {

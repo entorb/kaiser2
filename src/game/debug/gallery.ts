@@ -1,7 +1,7 @@
 import { AUTO, Game, Scale, type Scene } from "phaser"
-import { RENDER_SCALE } from "../ui/layout"
-import { loadFonts } from "../ui/text"
-import { COLORS, css } from "../ui/theme"
+import { RENDER_SCALE } from "../ui/layout.ts"
+import { loadFonts } from "../ui/text.ts"
+import { COLORS, css } from "../ui/theme.ts"
 
 /**
  * Boot a scrolling overview page: a canvas of `width` x `height` design pixels

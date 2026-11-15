@@ -1,11 +1,11 @@
-import { at } from "../lookup"
+import { at } from "../lookup.ts"
 // Player profiles: name, kingdom and coat of arms of rulers 1..6 are kept in
 // localStorage so the next new game starts with the same setup prefilled.
 
-import { GAME_CONFIG } from "../config"
-import { MAX_PORTRAIT } from "./constants"
-import { storage } from "./save"
-import type { PlayerState } from "./types"
+import { GAME_CONFIG } from "../config.ts"
+import { MAX_PORTRAIT } from "./constants.ts"
+import { storage } from "./save.ts"
+import type { PlayerState } from "./types.ts"
 
 export const PROFILES_KEY = "kaiser2.players"
 

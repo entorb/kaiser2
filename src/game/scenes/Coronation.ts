@@ -1,14 +1,14 @@
 import { type GameObjects, Math as PhaserMath } from "phaser"
-import { playFanfare } from "../audio/music"
-import { toHighscore } from "../flow"
-import { t } from "../i18n/i18n"
-import { FocusGroup } from "../ui/focus"
-import { CANVAS_H, CANVAS_W, MARGIN } from "../ui/layout"
-import { panelFrame } from "../ui/ornament"
-import { label } from "../ui/text"
-import { COLORS } from "../ui/theme"
-import { GameScene } from "./base"
-import { continueAction } from "./common"
+import { playFanfare } from "../audio/music.ts"
+import { toHighscore } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { FocusGroup } from "../ui/focus.ts"
+import { CANVAS_H, CANVAS_W, MARGIN } from "../ui/layout.ts"
+import { panelFrame } from "../ui/ornament.ts"
+import { label } from "../ui/text.ts"
+import { COLORS } from "../ui/theme.ts"
+import { GameScene } from "./base.ts"
+import { continueAction } from "./common.ts"
 
 interface CoronationData {
   name: string
@@ -28,14 +28,14 @@ const WOOD = COLORS.wood
 const WOOD_DK = COLORS.woodDark
 const RED = COLORS.danger
 const BLUE = COLORS.info
-const WALL_TOP = 0x3b1a17
-const WALL_BOTTOM = 0x63302a
-const VELVET = 0x6f1f1b
-const SHADOW = 0x120b06
-const SKIN = 0xe2b48c
-const HAIR = 0x3a2410
-const GLASS = 0x6c9bc8
-const FLASH = 0xfff0b0
+const WALL_TOP = 0x3b_1a_17
+const WALL_BOTTOM = 0x63_30_2a
+const VELVET = 0x6f_1f_1b
+const SHADOW = 0x12_0b_06
+const SKIN = 0xe2_b4_8c
+const HAIR = 0x3a_24_10
+const GLASS = 0x6c_9b_c8
+const FLASH = 0xff_f0_b0
 
 const CROWN_X = 352
 const CROWN_START_Y = 100
@@ -47,7 +47,7 @@ const BANNER_MID_Y = 35
 
 /** Deterministic pseudo-random in [0,1), so the art needs no RNG. */
 function hash(n: number): number {
-  const x = Math.sin(n * 127.1 + 311.7) * 43758.5453
+  const x = Math.sin(n * 127.1 + 311.7) * 43_758.5453
   return x - Math.floor(x)
 }
 
@@ -63,7 +63,7 @@ function pillar(g: GameObjects.Graphics, x: number, top: number) {
   const h = FLOOR_Y - top
   g.fillStyle(STONE, 1)
   g.fillRect(x, top + 8, 36, h - 8)
-  g.fillStyle(0xc9b78a, 1)
+  g.fillStyle(0xc9_b7_8a, 1)
   g.fillRect(x + 25, top + 8, 11, h - 8)
   g.lineStyle(1, COLORS.border, 0.5)
   for (const dx of [8, 17, 25]) g.lineBetween(x + dx, top + 10, x + dx, FLOOR_Y - 8)
@@ -83,7 +83,7 @@ function drawHall(g: GameObjects.Graphics) {
   // Stone courses with staggered joints.
   for (let row = 0; row * 38 + 72 < 380; row++) {
     const y = row * 38 + 72
-    g.lineStyle(2, 0x000000, 0.16)
+    g.lineStyle(2, 0x00_00_00, 0.16)
     g.lineBetween(0, y, W, y)
     for (let j = 0; j < 6; j++) {
       const x = hash(row * 11 + j) * W
@@ -284,7 +284,7 @@ function drawRuler(g: GameObjects.Graphics) {
   )
 
   // Orb with cross, and a sword across the lap.
-  g.lineStyle(5, 0xcfd3d8, 1)
+  g.lineStyle(5, 0xcf_d3_d8, 1)
   g.lineBetween(322, 334, 398, 324)
   g.lineStyle(4, GOLD_HI, 1)
   g.lineBetween(322, 327, 322, 341)
@@ -393,7 +393,7 @@ function drawWings(g: GameObjects.Graphics, time: number, flap: number) {
 /** Darkening toward the picture edges, like the wood backdrop's vignette. */
 function drawVignette(g: GameObjects.Graphics) {
   for (let i = 0; i < 8; i++) {
-    g.lineStyle(8, 0x000000, 0.06)
+    g.lineStyle(8, 0x00_00_00, 0.06)
     g.strokeRect(i * 8, i * 8, W - i * 16, H - i * 16)
   }
   g.lineStyle(4, WOOD_DK, 1)
@@ -513,13 +513,13 @@ export class Coronation extends GameScene {
   }
 
   update(time: number) {
-    if (!this.wings || !this.crownFlying) return
+    if (!(this.wings && this.crownFlying)) return
     drawWings(this.wings, time, 0.5 + 0.5 * Math.sin(time / 130))
   }
 
   /** A short-lived golden speck falling away behind the crown. */
   private trail(pic: GameObjects.Container) {
-    if (!this.crown || !this.crownFlying) return
+    if (!(this.crown && this.crownFlying)) return
     const seed = this.time.now
     const x = this.crown.x + (hash(seed) - 0.5) * 70
     const y = this.crown.y + 6 + hash(seed + 1) * 16

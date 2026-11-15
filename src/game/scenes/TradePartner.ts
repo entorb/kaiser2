@@ -1,23 +1,23 @@
-import { toGrain } from "../flow"
-import { t } from "../i18n/i18n"
-import { at } from "../lookup"
-import { playerColor } from "../model/constants"
-import { getState } from "../model/session"
-import { refreshEmperorStock, shownPrice, updateEmperorPrices } from "../model/trade"
-import { type GameState, playerAt } from "../model/types"
-import { FocusGroup } from "../ui/focus"
+import { toGrain } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { at } from "../lookup.ts"
+import { playerColor } from "../model/constants.ts"
+import { getState } from "../model/session.ts"
+import { refreshEmperorStock, shownPrice, updateEmperorPrices } from "../model/trade.ts"
+import { type GameState, playerAt } from "../model/types.ts"
+import { FocusGroup } from "../ui/focus.ts"
 import {
   drawAcreIcon,
   drawBuildingIcon,
   drawCoinsIcon,
   drawGrainIcon,
   drawStockIcon,
-} from "../ui/icon"
-import { frame } from "../ui/layout"
-import { COLORS, FS, SPACE } from "../ui/theme"
-import { type ListCell, type ListItem, ListMenu, Panel } from "../ui/widgets"
-import { GameScene } from "./base"
-import { screenTitle, statusBar } from "./common"
+} from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { COLORS, FS, SPACE } from "../ui/theme.ts"
+import { type ListCell, type ListItem, ListMenu, Panel } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { screenTitle, statusBar } from "./common.ts"
 
 export class TradePartner extends GameScene {
   constructor() {

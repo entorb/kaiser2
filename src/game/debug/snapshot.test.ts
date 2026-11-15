@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { collectText, type SceneNode, type SnapshotText } from "./snapshot"
+import { collectText, type SceneNode, type SnapshotText } from "./snapshot.ts"
 
 describe("collectText", () => {
   it("flattens nested text with canvas offsets and marks focus", () => {

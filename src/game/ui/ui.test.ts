@@ -10,8 +10,8 @@ import {
   landscapeAspect,
   MARGIN,
   MAX_CANVAS_W,
-} from "./layout"
-import { FS } from "./theme"
+} from "./layout.ts"
+import { FS } from "./theme.ts"
 
 describe("frame", () => {
   it("keeps header, content and action inside the canvas margins", () => {

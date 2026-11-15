@@ -1,11 +1,16 @@
-import { playCoins } from "../audio/music"
-import { t } from "../i18n/i18n"
-import { at } from "../lookup"
-import { distributeGuards, type GuardKind, guardsInBuilding, resolveSabotage } from "../model/rules"
-import { getState } from "../model/session"
-import { type GameState, playerAt, rand } from "../model/types"
-import { alert, chooseList, sliderPrompt } from "../ui/dialog"
-import { FocusGroup } from "../ui/focus"
+import { playCoins } from "../audio/music.ts"
+import { t } from "../i18n/i18n.ts"
+import { at } from "../lookup.ts"
+import {
+  distributeGuards,
+  type GuardKind,
+  guardsInBuilding,
+  resolveSabotage,
+} from "../model/rules.ts"
+import { getState } from "../model/session.ts"
+import { type GameState, playerAt, rand } from "../model/types.ts"
+import { alert, chooseList, sliderPrompt } from "../ui/dialog.ts"
+import { FocusGroup } from "../ui/focus.ts"
 import {
   drawCoinsIcon,
   drawEventIcon,
@@ -13,12 +18,12 @@ import {
   drawPalaceIcon,
   drawShield,
   type IconDraw,
-} from "../ui/icon"
-import { frame } from "../ui/layout"
-import { SPACE } from "../ui/theme"
-import { type ListItem, ListMenu, Panel, StatRow } from "../ui/widgets"
-import { GameScene } from "./base"
-import { actionFooter, primaryAction, screenTitle, statusBar } from "./common"
+} from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { SPACE } from "../ui/theme.ts"
+import { type ListItem, ListMenu, Panel, StatRow } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { actionFooter, primaryAction, screenTitle, statusBar } from "./common.ts"
 
 type Building = GuardKind
 
@@ -27,6 +32,7 @@ export class SecretService extends GameScene {
     super("SecretService")
   }
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
   async create() {
     const state = getState(this)
     const p = playerAt(state, state.sp)

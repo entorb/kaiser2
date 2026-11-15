@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import { FocusGroup } from "./focus"
+import { FocusGroup } from "./focus.ts"
 
 vi.mock("../audio/music", () => ({ blip: () => {} }))
 

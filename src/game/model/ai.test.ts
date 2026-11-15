@@ -1,18 +1,18 @@
 import { describe, expect, it } from "vitest"
-import { AI_PROFILES, DIFFICULTIES, openTrade, playComputerTurn, setupComputer } from "./ai"
-import { createGameState } from "./constants"
-import { advancePlayer, startRuler } from "./turn"
-import { type Difficulty, playerAt, type Ruleset, rand } from "./types"
+import { AI_PROFILES, DIFFICULTIES, openTrade, playComputerTurn, setupComputer } from "./ai.ts"
+import { createGameState } from "./constants.ts"
+import { advancePlayer, startRuler } from "./turn.ts"
+import { type Difficulty, playerAt, type Ruleset, rand } from "./types.ts"
 
 /** Seeded PRNG (mulberry32) so the games are reproducible. */
 function mulberry32(seed: number) {
   let a = seed >>> 0
   return () => {
-    a = (a + 0x6d2b79f5) >>> 0
+    a = (a + 0x6d_2b_79_f5) >>> 0
     let t = a
     t = Math.imul(t ^ (t >>> 15), t | 1)
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296
   }
 }
 
@@ -111,13 +111,13 @@ describe("computer habits", () => {
       const p = playerAt(state, 1)
       setupComputer(p, "hard", rules)
       // 20000 ha for 1500 people: the 11 ha per head rule buys nothing.
-      Object.assign(p, { leute: 1500, geld: 500000, acker: 15000 })
+      Object.assign(p, { leute: 1500, geld: 500_000, acker: 15_000 })
       startRuler(state)
       for (let seed = 1; seed <= 3; seed++) playComputerTurn(state, 1, mulberry32(seed))
       return p.acker
     }
-    expect(acre("remake")).toBeGreaterThan(15000)
-    expect(acre("atari")).toBe(15000)
+    expect(acre("remake")).toBeGreaterThan(15_000)
+    expect(acre("atari")).toBe(15_000)
   })
 })
 
@@ -128,7 +128,7 @@ describe("openTrade", () => {
     setupComputer(p, "hard", rules)
     p.leute = 1000
     p.lkorn = lkorn
-    state.turn.vkorn = 22000
+    state.turn.vkorn = 22_000
     return { state, p }
   }
 
@@ -142,9 +142,9 @@ describe("openTrade", () => {
     openTrade(normal.state, normal.p, AI_PROFILES.hard)
     expect([normal.p.verkorn, normal.p.kpreis]).toEqual([0, 100])
 
-    const full = setup("remake", 20000)
+    const full = setup("remake", 20_000)
     openTrade(full.state, full.p, AI_PROFILES.hard)
-    expect([full.p.verkorn, full.p.kpreis]).toEqual([13625, 75])
+    expect([full.p.verkorn, full.p.kpreis]).toEqual([13_625, 75])
   })
 
   it("offers all grain at the old price under Atari rules", () => {

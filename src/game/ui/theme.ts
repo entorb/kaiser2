@@ -4,37 +4,37 @@
 
 export const COLORS = {
   /** Dark walnut surround behind the parchment panels. */
-  bg: 0x241810,
+  bg: 0x24_18_10,
   /** Parchment panel fill. */
-  surface: 0xf3e6c8,
+  surface: 0xf3_e6_c8,
   /** Aged parchment: recessed fields, tracks, alternate rows. */
-  surfaceAlt: 0xe4d3ad,
-  hover: 0xd9c69c,
+  surfaceAlt: 0xe4_d3_ad,
+  hover: 0xd9_c6_9c,
   /** Dark wood / ink outline. */
-  border: 0x6b4a2b,
+  border: 0x6b_4a_2b,
   /** Dark ink text on parchment. */
-  text: 0x2c1e10,
+  text: 0x2c_1e_10,
   /** Faded sepia for secondary labels. */
-  muted: 0x7b6245,
+  muted: 0x7b_62_45,
   /** Heraldic gold. */
-  accent: 0xc08a1e,
-  accentHover: 0xd8a63a,
-  accentText: 0x2a1a06,
+  accent: 0xc0_8a_1e,
+  accentHover: 0xd8_a6_3a,
+  accentText: 0x2a_1a_06,
   /** Forest green. */
-  success: 0x3d7a34,
+  success: 0x3d_7a_34,
   /** Heraldic red. */
-  danger: 0x9c2b24,
+  danger: 0x9c_2b_24,
   /** Heraldic blue. */
-  info: 0x2e5a86,
+  info: 0x2e_5a_86,
   /** Leather/wood accents for chrome (darker than `border`). */
-  wood: 0x4a3218,
-  woodDark: 0x2f1f0f,
+  wood: 0x4a_32_18,
+  woodDark: 0x2f_1f_0f,
   /** Text drawn directly on the dark wood backdrop (not on a panel). */
-  onWood: 0xe6d6ae,
+  onWood: 0xe6_d6_ae,
   /** Plowed land on the Land map, legend and Ranking icon. */
-  acre: 0xd8b13a,
+  acre: 0xd8_b1_3a,
   /** Building land (stone) on the Land map, legend and Ranking icon. */
-  building: 0x8d8d8d,
+  building: 0x8d_8d_8d,
 } as const
 
 /** Slight bevel, not a modern pill. */

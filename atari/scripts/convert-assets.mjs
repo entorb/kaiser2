@@ -10,6 +10,7 @@ import { execFileSync } from "node:child_process"
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
+// biome-ignore lint/correctness/noUndeclaredDependencies: archival script, ffmpeg-static intentionally not a dependency
 import ffmpegPath from "ffmpeg-static"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")

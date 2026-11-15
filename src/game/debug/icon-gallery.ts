@@ -24,12 +24,12 @@ import {
   drawWeatherIcon,
   EVENT_ICONS,
   ICON_COUNT,
-} from "../ui/icon"
-import { RENDER_SCALE } from "../ui/layout"
-import { panelFrame } from "../ui/ornament"
-import { label } from "../ui/text"
-import { COLORS, FS } from "../ui/theme"
-import { bootGallery } from "./gallery"
+} from "../ui/icon.ts"
+import { RENDER_SCALE } from "../ui/layout.ts"
+import { panelFrame } from "../ui/ornament.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, FS } from "../ui/theme.ts"
+import { bootGallery } from "./gallery.ts"
 
 type DrawFn = (g: GameObjects.Graphics, cx: number, cy: number, size: number) => void
 

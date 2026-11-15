@@ -1,5 +1,5 @@
 import { Scene } from "phaser"
-import { attachSceneMusic } from "../audio/music"
+import { attachSceneMusic } from "../audio/music.ts"
 import {
   CANVAS_H,
   CANVAS_W,
@@ -8,7 +8,7 @@ import {
   GAME_W,
   landscapeAspect,
   RENDER_SCALE,
-} from "../ui/layout"
+} from "../ui/layout.ts"
 
 /**
  * Base scene for every screen. The game canvas renders at `RENDER_SCALE` times

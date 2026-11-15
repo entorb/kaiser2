@@ -1,4 +1,4 @@
-import { at } from "../lookup"
+import { at } from "../lookup.ts"
 // Procedural music and UI blips, generated with Web Audio oscillators — no
 // audio files. We reuse Phaser's AudioContext (`game.sound.context`), which
 // already handles the browser autoplay unlock; when the game runs without Web
@@ -18,7 +18,7 @@ import {
   TRACKS,
   type TrackName,
   trackForScene,
-} from "./tracks"
+} from "./tracks.ts"
 
 const MUTE_KEY = "kaiser2.music"
 const MUSIC_GAIN = 0.3

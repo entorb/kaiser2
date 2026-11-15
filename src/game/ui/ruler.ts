@@ -1,14 +1,14 @@
 import { type GameObjects, Math as PhaserMath } from "phaser"
-import { at } from "../lookup"
-import { drawShield } from "./icon"
-import { drawRegalia } from "./regalia"
-import { COLORS } from "./theme"
+import { at } from "../lookup.ts"
+import { drawShield } from "./icon.ts"
+import { drawRegalia } from "./regalia.ts"
+import { COLORS } from "./theme.ts"
 
 const V = PhaserMath.Vector2
-const SKIN = 0xe2b48c
-const SKIN_DK = 0xb98b63
+const SKIN = 0xe2_b4_8c
+const SKIN_DK = 0xb9_8b_63
 const INK = COLORS.woodDark
-const ERMINE = 0xf4f0e6
+const ERMINE = 0xf4_f0_e6
 const RAYS = 24
 /** Band of the headgear sits on the forehead; the bust is drawn around (0, 0) = chin. */
 const BAND_Y = -80
@@ -27,56 +27,56 @@ interface Age {
 /** The ruler at each title, Baron (about 25) .. König (about 72): greying, lined, bearded. */
 const AGES: Age[] = [
   {
-    hair: 0x3a2410,
-    robe: 0x5a4632,
+    hair: 0x3a_24_10,
+    robe: 0x5a_46_32,
     beard: 0,
     moustache: false,
     wrinkles: 0,
     ermine: false,
   },
   {
-    hair: 0x3f2a14,
-    robe: 0x3d5a3a,
+    hair: 0x3f_2a_14,
+    robe: 0x3d_5a_3a,
     beard: 0,
     moustache: true,
     wrinkles: 0,
     ermine: false,
   },
   {
-    hair: 0x4a3520,
-    robe: 0x2e4a70,
+    hair: 0x4a_35_20,
+    robe: 0x2e_4a_70,
     beard: 8,
     moustache: true,
     wrinkles: 1,
     ermine: false,
   },
   {
-    hair: 0x6b5a4a,
-    robe: 0x5b3a6b,
+    hair: 0x6b_5a_4a,
+    robe: 0x5b_3a_6b,
     beard: 16,
     moustache: true,
     wrinkles: 2,
     ermine: false,
   },
   {
-    hair: 0x8a8478,
-    robe: 0x7a2a2a,
+    hair: 0x8a_84_78,
+    robe: 0x7a_2a_2a,
     beard: 22,
     moustache: true,
     wrinkles: 3,
     ermine: true,
   },
   {
-    hair: 0xb8b4ac,
-    robe: 0x7a2a2a,
+    hair: 0xb8_b4_ac,
+    robe: 0x7a_2a_2a,
     beard: 28,
     moustache: true,
     wrinkles: 4,
     ermine: true,
   },
   {
-    hair: 0xece8e0,
-    robe: 0x8a1f1f,
+    hair: 0xec_e8_e0,
+    robe: 0x8a_1f_1f,
     beard: 34,
     moustache: true,
     wrinkles: 5,
@@ -147,7 +147,7 @@ function drawFace(g: GameObjects.Graphics, age: Age): void {
   g.fillStyle(SKIN, 1)
   g.fillEllipse(0, -50, 82, 104)
   if (age.wrinkles < 2) {
-    g.fillStyle(0xe59a86, 0.45)
+    g.fillStyle(0xe5_9a_86, 0.45)
     for (const m of [-1, 1]) g.fillEllipse(m * 22, -38, 14, 8)
   }
   g.fillStyle(age.hair, 1)
@@ -191,13 +191,13 @@ function drawFace(g: GameObjects.Graphics, age: Age): void {
       ],
       age.hair,
     )
-  g.fillStyle(0x7a3a30, 1)
+  g.fillStyle(0x7a_3a_30, 1)
   g.fillRect(-7, -27, 14, 2.5)
 }
 
 function drawEyes(g: GameObjects.Graphics, age: Age): void {
   for (const m of [-1, 1]) {
-    g.fillStyle(0xffffff, 1)
+    g.fillStyle(0xff_ff_ff, 1)
     g.fillEllipse(m * 16, -56, 14, 7)
     g.fillStyle(INK, 1)
     g.fillCircle(m * 16, -56, 2.6)

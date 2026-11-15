@@ -1,5 +1,5 @@
 import type Phaser from "phaser"
-import type { GameState } from "./types"
+import type { GameState } from "./types.ts"
 
 const KEY = "kaiser2.state"
 

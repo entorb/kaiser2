@@ -2,7 +2,7 @@
 // stock and prices (KAISER3 #HANDEL) and the grain and land transfers of
 // KAISER3 #KORN / #LAND. Shared by the scenes and the computer players.
 
-import { BUILDINGS } from "./constants"
+import { BUILDINGS } from "./constants.ts"
 import {
   defaultRng,
   type GameState,
@@ -11,7 +11,7 @@ import {
   type Rng,
   rand,
   type TradeNote,
-} from "./types"
+} from "./types.ts"
 
 /** `KPREIS` is the price of 500 units of grain. */
 export const GRAIN_PRICE_UNIT = 500
@@ -47,7 +47,7 @@ export function relativeOfferShare(amount: number, max: number, previous?: numbe
  * quoted price.
  */
 export const MARKET = { emperorGrain: 5000, impact: 0.5 }
-const IMPACT_SCALE = { grain: 20000, acker: 5000, land: 5000 } as const
+const IMPACT_SCALE = { grain: 20_000, acker: 5000, land: 5000 } as const
 
 const OFFERS = { grain: "verkorn", acker: "verAcker", land: "verBau" } as const
 
@@ -285,7 +285,7 @@ export function tradeGrain(state: GameState, sp: number, han: number, amount: nu
     if (a <= 0) return 0
     p.lkorn += a
     // Remake: no free point (two rulers could pass 50000 back and forth).
-    if (a > 50000 && state.rules === "atari") p.punkte += 1
+    if (a > 50_000 && state.rules === "atari") p.punkte += 1
     seller.lkorn -= a
     seller.verkorn -= a
     settle(state, sp, han, "grain", false, a, Math.trunc(buyCost(state, han, "grain", a)))
@@ -365,7 +365,7 @@ export function buyCheapest(
   cash: number,
   maxPrice = Number.POSITIVE_INFINITY,
 ): number {
-  let best = { han: -1, units: 0, unit: Infinity }
+  let best = { han: -1, units: 0, unit: Number.POSITIVE_INFINITY }
   for (let han = 0; han <= state.count; han++) {
     if (han === sp || (han > 0 && state.rules !== "remake")) continue
     if (tradePrice(state, han, good) > maxPrice) continue

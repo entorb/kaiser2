@@ -14,6 +14,7 @@
 // trading-house screen only renders from Landgraf up (TradingHouse.create
 // skips `titel <= 1`), so its exports temporarily promote the ruler to 2.
 import { mkdirSync, writeFileSync } from "node:fs"
+import process from "node:process"
 import { fixtureState, formatSnapshot, openSession } from "./harness.mjs"
 
 const OUT = process.env.OUT ?? "tmp/screens"
@@ -25,8 +26,8 @@ function baronState(titel = 1) {
     rules: "remake",
     turn: {
       han: 0,
-      kaus: 12000,
-      vkorn: 14000,
+      kaus: 12_000,
+      vkorn: 14_000,
       klager: 0,
       abg: 0,
       zahl: 0,
@@ -38,8 +39,8 @@ function baronState(titel = 1) {
     players: {
       1: {
         titel, // 1 = Baron; the trading-house exports pass 2 (Landgraf).
-        geld: 50000,
-        land: 50000,
+        geld: 50_000,
+        land: 50_000,
         // One of each Business purchase (Staatseinkäufe) and of each
         // secret-service hire/training (Baron can afford all of them).
         markt: 1,
@@ -75,7 +76,7 @@ const CANVAS_RENDERER_TXT = "reading 'drawImage'"
 const section = async (titel = 1) => {
   await page.reload({ waitUntil: "load" })
   await page.waitForFunction(() => window.__game?.scene?.isActive("Menu"), undefined, {
-    timeout: 15000,
+    timeout: 15_000,
   })
   await session.inject(baronState(titel))
 }
@@ -91,7 +92,7 @@ const click = async (cx, cy) => {
 }
 
 async function capture(name) {
-  await session.shot(`${OUT.replace(/^tmp\//, "")}/${name}`)
+  await session.shot(`${OUT.replace(/^tmp\//u, "")}/${name}`)
   const fresh = session.errors.slice(errorsMark)
   errorsMark = session.errors.length
   const broken = fresh.some((e) => !e.includes(CANVAS_RENDERER_TXT))

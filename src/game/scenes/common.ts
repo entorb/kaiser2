@@ -1,17 +1,17 @@
 import type Phaser from "phaser"
-import { isMuted, onMuteChange, toggleMute } from "../audio/music"
-import { nextTurn, toHighscore, toPromotion, toRanking } from "../flow"
-import { t } from "../i18n/i18n"
-import type { StringKey } from "../i18n/strings"
-import { type BuildingKind, TITLES } from "../model/constants"
-import { claimTitle, landShortage } from "../model/rules"
-import { clearSave, saveGame } from "../model/save"
-import { advancePlayer } from "../model/turn"
-import type { GameState, PlayerState } from "../model/types"
-import { playerAt } from "../model/types"
-import { alert } from "../ui/dialog"
-import { FocusGroup } from "../ui/focus"
-import { fullscreenButton } from "../ui/fullscreen"
+import { isMuted, onMuteChange, toggleMute } from "../audio/music.ts"
+import { nextTurn, toHighscore, toPromotion, toRanking } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import type { StringKey } from "../i18n/strings.ts"
+import { type BuildingKind, TITLES } from "../model/constants.ts"
+import { claimTitle, landShortage } from "../model/rules.ts"
+import { clearSave, saveGame } from "../model/save.ts"
+import { advancePlayer } from "../model/turn.ts"
+import type { GameState, PlayerState } from "../model/types.ts"
+import { playerAt } from "../model/types.ts"
+import { alert } from "../ui/dialog.ts"
+import { FocusGroup } from "../ui/focus.ts"
+import { fullscreenButton } from "../ui/fullscreen.ts"
 import {
   drawArrowIcon,
   drawCathedralIcon,
@@ -25,11 +25,11 @@ import {
   drawSoundOffIcon,
   drawSoundOnIcon,
   type IconDraw,
-} from "../ui/icon"
-import { CANVAS_H, CANVAS_W, frame } from "../ui/layout"
-import { label } from "../ui/text"
-import { COLORS, css, FS, RADIUS, SPACE } from "../ui/theme"
-import { Button, Panel } from "../ui/widgets"
+} from "../ui/icon.ts"
+import { CANVAS_H, CANVAS_W, frame } from "../ui/layout.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, css, FS, RADIUS, SPACE } from "../ui/theme.ts"
+import { Button, Panel } from "../ui/widgets.ts"
 
 export function titleName(titel: number): string {
   return TITLES[Math.min(titel, TITLES.length - 1)] ?? ""
@@ -159,7 +159,7 @@ function openGameMenu(scene: Phaser.Scene): void {
   const x = (CANVAS_W - w) / 2
   const y = (CANVAS_H - h) / 2
   const overlay = scene.add
-    .rectangle(0, 0, CANVAS_W, CANVAS_H, 0x000000, 0.65)
+    .rectangle(0, 0, CANVAS_W, CANVAS_H, 0x00_00_00, 0.65)
     .setOrigin(0, 0)
     .setInteractive()
   const panel = new Panel(scene, x, y, w, h, t("menu.pauseTitle"))

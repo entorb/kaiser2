@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { at } from "../lookup"
-import { createGameState, createPlayer } from "./constants"
-import { depose, die, expropriate, heirName, taxDemotion } from "./events"
-import type { Rng } from "./types"
-import { playerAt } from "./types"
+import { at } from "../lookup.ts"
+import { createGameState, createPlayer } from "./constants.ts"
+import { depose, die, expropriate, heirName, taxDemotion } from "./events.ts"
+import type { Rng } from "./types.ts"
+import { playerAt } from "./types.ts"
 
 /** RNG that returns a fixed sequence (cycling). */
 function seq(...values: number[]): Rng {
@@ -88,7 +88,7 @@ describe("expropriate", () => {
     const before = kaiser.hh
     p.hh = 2
     p.verkorn = 0
-    p.lkorn = 100000
+    p.lkorn = 100_000
     // rand(6)=5 (event), rand(5000)=0 (hoarded), rand(5000)=0.
     expect(expropriate(state, 1, seq(0.999, 0, 0))).toBe(true)
     expect(p.hh).toBe(1)
@@ -99,7 +99,7 @@ describe("expropriate", () => {
     const state = createGameState(2)
     const p = playerAt(state, 1)
     p.hh = 2
-    p.lkorn = 100000
+    p.lkorn = 100_000
     expect(expropriate(state, 1, seq(0))).toBe(false)
     expect(p.hh).toBe(2)
   })

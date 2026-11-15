@@ -1,28 +1,28 @@
-import { toBusiness } from "../flow"
-import { t } from "../i18n/i18n"
-import { getState } from "../model/session"
+import { toBusiness } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { getState } from "../model/session.ts"
 import {
   relativeOffer,
   relativeOfferShare,
   shownPrice,
   spareLand,
   type TradeGood,
-} from "../model/trade"
-import { playerAt, type TradeOfferShares } from "../model/types"
-import { FocusGroup } from "../ui/focus"
+} from "../model/trade.ts"
+import { playerAt, type TradeOfferShares } from "../model/types.ts"
+import { FocusGroup } from "../ui/focus.ts"
 import {
   drawAcreIcon,
   drawBuildingIcon,
   drawCoinsIcon,
   drawGrainIcon,
   type IconDraw,
-} from "../ui/icon"
-import { frame } from "../ui/layout"
-import { label } from "../ui/text"
-import { COLORS, FS, SPACE } from "../ui/theme"
-import { Panel, Slider } from "../ui/widgets"
-import { GameScene } from "./base"
-import { applyLandShortage, continueAction, screenTitle, statusBar } from "./common"
+} from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, FS, SPACE } from "../ui/theme.ts"
+import { Panel, Slider } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { applyLandShortage, continueAction, screenTitle, statusBar } from "./common.ts"
 
 type PriceKey = "kpreis" | "apreis" | "lpreis"
 type AmountKey = "verkorn" | "verAcker" | "verBau"
@@ -148,7 +148,9 @@ export class TradeData extends GameScene {
         // Land prices are stored per 1000 ha and shown per 500, like grain.
         format: (v) => `${shownPrice(row.good, v)}`,
         valueIcon: drawCoinsIcon,
-        onChange: (v) => (p[row.price] = v),
+        onChange: (v) => {
+          p[row.price] = v
+        },
         onSubmit: () => finish(),
       })
       // Amount defaults to the minimum offer (10% of the holdings).

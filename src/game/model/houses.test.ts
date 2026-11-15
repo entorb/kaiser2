@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { createGameState } from "./constants"
-import { expropriate } from "./events"
+import { createGameState } from "./constants.ts"
+import { expropriate } from "./events.ts"
 import {
   canLeaseHouse,
   crewNeeded,
@@ -11,9 +11,9 @@ import {
   staffedHouses,
   tributePoints,
   tributeVerdict,
-} from "./houses"
-import { tradeHouse } from "./rules"
-import { playerAt } from "./types"
+} from "./houses.ts"
+import { tradeHouse } from "./rules.ts"
+import { playerAt } from "./types.ts"
 
 describe("remake trading houses", () => {
   it("staffs houses fractionally up to the houses owned", () => {
@@ -137,7 +137,7 @@ describe("leasing a house", () => {
     expect(leaseHouse(state, 1)).toBe(true)
     expect([p.geld, p.hh, kaiser.hh, p.punkte]).toEqual([0, 3, 1, 1.3])
     kaiser.hh = 0
-    p.geld = 99999
+    p.geld = 99_999
     expect(leaseHouse(state, 1)).toBe(false)
   })
 })

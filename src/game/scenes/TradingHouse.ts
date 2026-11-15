@@ -1,9 +1,9 @@
-import { playCoins } from "../audio/music"
-import { toCoronation, toPartner } from "../flow"
-import { t } from "../i18n/i18n"
-import { type ComputerEvent, playComputerTurn } from "../model/ai"
-import type { BuildingKind } from "../model/constants"
-import { expropriate, taxDemotion } from "../model/events"
+import { playCoins } from "../audio/music.ts"
+import { toCoronation, toPartner } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { type ComputerEvent, playComputerTurn } from "../model/ai.ts"
+import type { BuildingKind } from "../model/constants.ts"
+import { expropriate, taxDemotion } from "../model/events.ts"
 import {
   canLeaseHouse,
   crewNeeded,
@@ -12,12 +12,12 @@ import {
   STAFF_PER_HOUSE,
   tributePoints,
   tributeVerdict,
-} from "../model/houses"
-import { tradeHouse } from "../model/rules"
-import { getState } from "../model/session"
-import { type GameState, type PlayerState, playerAt } from "../model/types"
-import { type AlertLine, alert, sliderPrompt } from "../ui/dialog"
-import { FocusGroup } from "../ui/focus"
+} from "../model/houses.ts"
+import { tradeHouse } from "../model/rules.ts"
+import { getState } from "../model/session.ts"
+import { type GameState, type PlayerState, playerAt } from "../model/types.ts"
+import { type AlertLine, alert, sliderPrompt } from "../ui/dialog.ts"
+import { FocusGroup } from "../ui/focus.ts"
 import {
   drawAcreIcon,
   drawCoinsIcon,
@@ -26,9 +26,9 @@ import {
   drawKontorIcon,
   drawPointsIcon,
   type IconDraw,
-} from "../ui/icon"
-import { frame } from "../ui/layout"
-import { COLORS, SPACE } from "../ui/theme"
+} from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { COLORS, SPACE } from "../ui/theme.ts"
 import {
   type ListItem,
   ListMenu,
@@ -36,8 +36,8 @@ import {
   Panel,
   StatRow,
   type StatRowOptions,
-} from "../ui/widgets"
-import { GameScene } from "./base"
+} from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
 import {
   actionFooter,
   BUILDING_ICON,
@@ -46,7 +46,7 @@ import {
   screenTitle,
   statusBar,
   titleName,
-} from "./common"
+} from "./common.ts"
 
 /** The alert must fit the 576 px screen: 190 px of frame plus 30 px a line. */
 const MAX_NOTICES = 10
@@ -248,18 +248,18 @@ export class TradingHouse extends GameScene {
 
     // Footer: what the highlighted action does.
     const footer = actionFooter(this, "")
-    const describe = (index: number): string => {
+    const describeItem = (index: number): string => {
       const id = entries[index]?.id
       if (id === "servants") return this.staffHint(state, p, needed, staffNow)
       return ""
     }
-    footer.setText(describe(0))
+    footer.setText(describeItem(0))
 
     const choice = await this.choose(
       group,
       entries.map((e) => e.item),
       content,
-      (i) => footer.setText(describe(i)),
+      (i) => footer.setText(describeItem(i)),
       focusServants && !staffed,
     )
     group.destroy()

@@ -1,4 +1,4 @@
-import type { BuildingKind } from "./model/constants"
+import type { BuildingKind } from "./model/constants.ts"
 
 // The slice of Phaser's ScenePlugin the flow needs. Scenes pass `this.scene`;
 // tests pass a recorder, so the transitions are testable without Phaser.

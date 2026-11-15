@@ -1,9 +1,9 @@
 import type { GameObjects } from "phaser"
-import { playCoins } from "../audio/music"
-import { toChronicle } from "../flow"
-import { t } from "../i18n/i18n"
-import { at } from "../lookup"
-import { getState } from "../model/session"
+import { playCoins } from "../audio/music.ts"
+import { toChronicle } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { at } from "../lookup.ts"
+import { getState } from "../model/session.ts"
 import {
   dealPrice,
   dealSpend,
@@ -12,17 +12,17 @@ import {
   maxSale,
   type TradeGood,
   tradeLand,
-} from "../model/trade"
-import type { GameState } from "../model/types"
-import { playerAt } from "../model/types"
-import { FocusGroup } from "../ui/focus"
-import { drawAcreIcon, drawBuildingIcon, drawCoinsIcon, type IconDraw } from "../ui/icon"
-import { frame } from "../ui/layout"
-import { label } from "../ui/text"
-import { COLORS, css, FS, SPACE } from "../ui/theme"
-import { moneyLabel, Panel, Slider } from "../ui/widgets"
-import { GameScene } from "./base"
-import { applyLandShortage, continueAction, screenTitle, statusBar } from "./common"
+} from "../model/trade.ts"
+import type { GameState } from "../model/types.ts"
+import { playerAt } from "../model/types.ts"
+import { FocusGroup } from "../ui/focus.ts"
+import { drawAcreIcon, drawBuildingIcon, drawCoinsIcon, type IconDraw } from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, css, FS, SPACE } from "../ui/theme.ts"
+import { moneyLabel, Panel, Slider } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { applyLandShortage, continueAction, screenTitle, statusBar } from "./common.ts"
 
 export class Land extends GameScene {
   constructor() {

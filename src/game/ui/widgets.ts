@@ -1,10 +1,10 @@
 import type Phaser from "phaser"
 import { GameObjects, Geom, type Scene } from "phaser"
-import type { Focusable, FocusGroup } from "./focus"
-import { drawCoinsIcon, drawTradeIcon, type IconDraw } from "./icon"
-import { panelFrame, panelTitle } from "./ornament"
-import { label } from "./text"
-import { COLORS, css, FS, RADIUS, SPACE } from "./theme"
+import type { Focusable, FocusGroup } from "./focus.ts"
+import { drawCoinsIcon, drawTradeIcon, type IconDraw } from "./icon.ts"
+import { panelFrame, panelTitle } from "./ornament.ts"
+import { label } from "./text.ts"
+import { COLORS, css, FS, RADIUS, SPACE } from "./theme.ts"
 
 const CONTAINS = Geom.Rectangle.Contains as Phaser.Types.Input.HitAreaCallback
 
@@ -241,10 +241,10 @@ export class Button extends Widget {
     g.fillStyle(fill, 1)
     g.fillRoundedRect(2, 2, this.bw - 4, this.bh - 4, RADIUS)
     // Emboss: lit top-left edge, shadowed bottom-right edge.
-    g.lineStyle(2, 0xffffff, 0.18)
+    g.lineStyle(2, 0xff_ff_ff, 0.18)
     g.lineBetween(4, this.bh - 4, 4, 4)
     g.lineBetween(4, 4, this.bw - 4, 4)
-    g.lineStyle(2, 0x000000, 0.22)
+    g.lineStyle(2, 0x00_00_00, 0.22)
     g.lineBetween(4, this.bh - 4, this.bw - 4, this.bh - 4)
     g.lineBetween(this.bw - 4, this.bh - 4, this.bw - 4, 4)
     g.lineStyle(2, this.focused ? COLORS.accent : border, 1)
@@ -700,6 +700,7 @@ export class Slider extends Widget {
   private dragging = false
   private readonly onUp: () => void
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
   constructor(
     scene: Scene,
     x: number,
@@ -939,13 +940,13 @@ export class Slider extends Widget {
     if (this.opts.valueIcon) this.drawBefore(this.opts.valueIcon, this.valueText, 16)
     // Brass knob: shadow, body, ring and a highlight pip.
     const ky = this.trackY + 5
-    g.fillStyle(0x000000, 0.25)
+    g.fillStyle(0x00_00_00, 0.25)
     g.fillCircle(tx, ky + 2, 17)
     g.fillStyle(COLORS.accent, 1)
     g.fillCircle(tx, ky, 16)
     g.lineStyle(2, COLORS.woodDark, 1)
     g.strokeCircle(tx, ky, 16)
-    g.fillStyle(0xffffff, 0.25)
+    g.fillStyle(0xff_ff_ff, 0.25)
     g.fillCircle(tx - 5, ky - 5, 5)
     if (this.focused) {
       g.lineStyle(2, COLORS.accentHover, 1)

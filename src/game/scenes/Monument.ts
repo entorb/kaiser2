@@ -1,16 +1,16 @@
 import type { GameObjects } from "phaser"
-import { playTrack } from "../audio/music"
-import { toBusiness } from "../flow"
-import { t } from "../i18n/i18n"
-import type { BuildingKind } from "../model/constants"
-import { FocusGroup } from "../ui/focus"
-import { CANVAS_H, CANVAS_W, MARGIN } from "../ui/layout"
-import { panelFrame } from "../ui/ornament"
-import { label } from "../ui/text"
-import { COLORS } from "../ui/theme"
-import { GameScene } from "./base"
-import { poly } from "./Coronation"
-import { continueAction } from "./common"
+import { playTrack } from "../audio/music.ts"
+import { toBusiness } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import type { BuildingKind } from "../model/constants.ts"
+import { FocusGroup } from "../ui/focus.ts"
+import { CANVAS_H, CANVAS_W, MARGIN } from "../ui/layout.ts"
+import { panelFrame } from "../ui/ornament.ts"
+import { label } from "../ui/text.ts"
+import { COLORS } from "../ui/theme.ts"
+import { GameScene } from "./base.ts"
+import { poly } from "./Coronation.ts"
+import { continueAction } from "./common.ts"
 
 interface MonumentData {
   kind: BuildingKind
@@ -26,19 +26,19 @@ const WOOD = COLORS.wood
 const WOOD_DK = COLORS.woodDark
 const RED = COLORS.danger
 const GLASS = COLORS.info
-const GLASS_HI = 0x6c9bc8
-const SKY_TOP = 0x4f7fb5
-const SKY_BOTTOM = 0xf3dca4
-const HILL_FAR = 0x8d9c7a
-const HILL = 0x5f7d43
-const GRASS = 0x46653a
-const PATH = 0xc9b07a
-const WATER = 0x3f6f9a
-const STONE = 0xcfc0a0
-const STONE_LIT = 0xe2d6b8
-const STONE_DK = 0x9a8862
-const SLATE = 0x4e5a6b
-const FLASH = 0xfff0b0
+const GLASS_HI = 0x6c_9b_c8
+const SKY_TOP = 0x4f_7f_b5
+const SKY_BOTTOM = 0xf3_dc_a4
+const HILL_FAR = 0x8d_9c_7a
+const HILL = 0x5f_7d_43
+const GRASS = 0x46_65_3a
+const PATH = 0xc9_b0_7a
+const WATER = 0x3f_6f_9a
+const STONE = 0xcf_c0_a0
+const STONE_LIT = 0xe2_d6_b8
+const STONE_DK = 0x9a_88_62
+const SLATE = 0x4e_5a_6b
+const FLASH = 0xff_f0_b0
 /** Where the walls meet the grass. */
 const GROUND = 400
 const BANNER_MID_Y = 35
@@ -177,7 +177,7 @@ function drawLandscape(g: GameObjects.Graphics) {
     g.fillRect(x - 3, y, 6, 14)
     g.fillStyle(COLORS.success, 1)
     g.fillCircle(x, y, r)
-    g.fillStyle(0x000000, 0.18)
+    g.fillStyle(0x00_00_00, 0.18)
     g.fillCircle(x + r * 0.3, y + r * 0.2, r * 0.7)
   }
 }
@@ -188,7 +188,7 @@ function roundTower(g: GameObjects.Graphics, x: number, top: number, w: number, 
   g.fillStyle(STONE_DK, 1)
   g.fillRect(x - 5, top, w + 10, 6)
   arch(g, x + w / 2 - 7, top + 70, 14, top + 34, GLASS)
-  spire(g, x - 8, w + 16, top, top - roofH, RED, 0xb8403a)
+  spire(g, x - 8, w + 16, top, top - roofH, RED, 0xb8_40_3a)
   g.lineStyle(2, WOOD_DK, 1)
   g.lineBetween(x + w / 2, top - roofH, x + w / 2, top - roofH - 22)
   poly(
@@ -223,7 +223,7 @@ export function drawPalace(g: GameObjects.Graphics) {
   masonry(g, 286, 152, 146, GROUND - 152, STONE_LIT)
   battlements(g, 286, 152, 146)
   masonry(g, 322, 118, 74, 34, STONE_LIT)
-  spire(g, 314, 90, 118, 78, RED, 0xb8403a)
+  spire(g, 314, 90, 118, 78, RED, 0xb8_40_3a)
   for (const row of [
     [172, 214],
     [236, 278],
@@ -236,7 +236,7 @@ export function drawPalace(g: GameObjects.Graphics) {
   // Gate on a drawbridge over the moat.
   g.fillStyle(WATER, 1)
   g.fillRect(0, GROUND, W, 14)
-  g.fillStyle(0xffffff, 0.25)
+  g.fillStyle(0xff_ff_ff, 0.25)
   for (let x = 10; x < W; x += 46) g.fillRect(x, GROUND + 5, 20, 2)
   poly(
     g,
@@ -382,7 +382,7 @@ export function drawCathedral(g: GameObjects.Graphics) {
         STONE,
       )
     }
-    spire(g, x - 2, 84, 170, 84, SLATE, 0x6b7a90)
+    spire(g, x - 2, 84, 170, 84, SLATE, 0x6b_7a_90)
   }
 
   // Steps.

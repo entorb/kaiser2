@@ -1,16 +1,16 @@
-import { playFanfare } from "../audio/music"
-import { nextTurn, toRanking } from "../flow"
-import { t } from "../i18n/i18n"
-import { FocusGroup } from "../ui/focus"
-import { frame } from "../ui/layout"
-import { drawPromotionArt } from "../ui/ruler"
-import { Panel } from "../ui/widgets"
-import { GameScene } from "./base"
-import { continueAction, screenTitle } from "./common"
+import { playFanfare } from "../audio/music.ts"
+import { nextTurn, toRanking } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { FocusGroup } from "../ui/focus.ts"
+import { frame } from "../ui/layout.ts"
+import { drawPromotionArt } from "../ui/ruler.ts"
+import { Panel } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { continueAction, screenTitle } from "./common.ts"
 
 /** "zum Landgrafen": German counts these titles among the weak nouns. */
 function dative(title: string): string {
-  return /(graf|fürst)$/i.test(title) ? `${title}en` : title
+  return /(graf|fürst)$/iu.test(title) ? `${title}en` : title
 }
 
 interface PromotionData {

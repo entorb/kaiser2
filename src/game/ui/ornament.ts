@@ -1,11 +1,11 @@
 import { type GameObjects, Math as PhaserMath, type Scene } from "phaser"
-import { CANVAS_H, CANVAS_W } from "./layout"
-import { label } from "./text"
-import { COLORS, FS, RADIUS } from "./theme"
+import { CANVAS_H, CANVAS_W } from "./layout.ts"
+import { label } from "./text.ts"
+import { COLORS, FS, RADIUS } from "./theme.ts"
 
 /** Deterministic pseudo-random in [0,1) so texture is stable across redraws. */
 function hash(n: number): number {
-  const x = Math.sin(n * 127.1 + 311.7) * 43758.5453
+  const x = Math.sin(n * 127.1 + 311.7) * 43_758.5453
   return x - Math.floor(x)
 }
 
@@ -17,14 +17,14 @@ export function woodBackground(scene: Scene): GameObjects.Graphics {
   const g = scene.add.graphics()
   g.setDepth(-1000)
 
-  g.fillGradientStyle(0x3a2814, 0x33240f, 0x160e07, 0x120b05, 1)
+  g.fillGradientStyle(0x3a_28_14, 0x33_24_0f, 0x16_0e_07, 0x12_0b_05, 1)
   g.fillRect(0, 0, CANVAS_W, CANVAS_H)
 
   const plank = 72
   for (let y = plank; y < CANVAS_H; y += plank) {
     g.lineStyle(2, COLORS.woodDark, 0.55)
     g.lineBetween(0, y, CANVAS_W, y)
-    g.lineStyle(1, 0x5a4020, 0.18)
+    g.lineStyle(1, 0x5a_40_20, 0.18)
     g.lineBetween(0, y + 2, CANVAS_W, y + 2)
   }
   // Short vertical joints, staggered per row.
@@ -41,7 +41,7 @@ export function woodBackground(scene: Scene): GameObjects.Graphics {
   // Vignette: nested strokes darkening toward the edges.
   const steps = 10
   for (let i = 0; i < steps; i++) {
-    g.lineStyle(6, 0x000000, 0.05)
+    g.lineStyle(6, 0x00_00_00, 0.05)
     g.strokeRect(i * 6, i * 6, CANVAS_W - i * 12, CANVAS_H - i * 12)
   }
   return g
@@ -61,7 +61,7 @@ export function parchmentTexture(
     const py = y + hash(i * 5.7 + y) * h
     const r = 2 + hash(i * 9.3) * 6
     const light = hash(i * 1.7) > 0.5
-    g.fillStyle(light ? 0xffffff : 0x8a6b3f, light ? 0.05 : 0.04)
+    g.fillStyle(light ? 0xff_ff_ff : 0x8a_6b_3f, light ? 0.05 : 0.04)
     g.fillCircle(px, py, r)
   }
 }

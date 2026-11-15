@@ -1,19 +1,18 @@
+import process from "node:process"
 import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
 const base = "/kaiser2/"
 
-const phasermsg = () => {
-  return {
-    name: "phasermsg",
-    buildStart() {
-      process.stdout.write(`Building for production...\n`)
-    },
-    buildEnd() {
-      process.stdout.write(`✨ Done ✨\n`)
-    },
-  }
-}
+const phasermsg = () => ({
+  name: "phasermsg",
+  buildStart() {
+    process.stdout.write("Building for production...\n")
+  },
+  buildEnd() {
+    process.stdout.write("✨ Done ✨\n")
+  },
+})
 
 // Matomo visitor counting, prod build only (dev uses config.dev.mjs)
 const matomo = () => ({

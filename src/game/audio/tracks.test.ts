@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { BLIPS, COINS, TRACKS, trackForScene } from "./tracks"
+import { BLIPS, COINS, TRACKS, trackForScene } from "./tracks.ts"
 
 describe("score data", () => {
   for (const [name, track] of Object.entries(TRACKS)) {

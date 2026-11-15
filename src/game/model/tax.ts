@@ -2,8 +2,8 @@
 // building tax on mills and markets, justice fines, and a scaling unrest that
 // hurts births, immigration and emigration. Pure functions, no Phaser.
 
-import { at } from "../lookup"
-import type { GameState, PlayerState } from "./types"
+import { at } from "../lookup.ts"
+import type { GameState, PlayerState } from "./types.ts"
 
 const int = Math.floor
 

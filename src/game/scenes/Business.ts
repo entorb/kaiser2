@@ -1,7 +1,7 @@
-import { playCoins } from "../audio/music"
-import { toCoronation, toMonument, toSecretService } from "../flow"
-import { t } from "../i18n/i18n"
-import { at } from "../lookup"
+import { playCoins } from "../audio/music.ts"
+import { toCoronation, toMonument, toSecretService } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { at } from "../lookup.ts"
 import {
   addBuilding,
   atMaxBuildings,
@@ -9,20 +9,20 @@ import {
   type BuildingKind,
   buildingCost,
   landRequired,
-} from "../model/constants"
-import { applyInterest, depose, die, interest, pawn } from "../model/events"
-import { titleAdvance } from "../model/rules"
-import { getState } from "../model/session"
-import type { GameState } from "../model/types"
-import { playerAt } from "../model/types"
-import { alert } from "../ui/dialog"
-import { FocusGroup } from "../ui/focus"
-import { drawBuildingIcon, drawCoinsIcon, drawEventIcon, drawPointsIcon } from "../ui/icon"
-import { frame } from "../ui/layout"
-import { label } from "../ui/text"
-import { COLORS, css } from "../ui/theme"
-import { type ListItem, ListMenu } from "../ui/widgets"
-import { GameScene } from "./base"
+} from "../model/constants.ts"
+import { applyInterest, depose, die, interest, pawn } from "../model/events.ts"
+import { titleAdvance } from "../model/rules.ts"
+import { getState } from "../model/session.ts"
+import type { GameState } from "../model/types.ts"
+import { playerAt } from "../model/types.ts"
+import { alert } from "../ui/dialog.ts"
+import { FocusGroup } from "../ui/focus.ts"
+import { drawBuildingIcon, drawCoinsIcon, drawEventIcon, drawPointsIcon } from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, css } from "../ui/theme.ts"
+import { type ListItem, ListMenu } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
 import {
   BUILDING_ICON,
   BUILDING_LABEL,
@@ -31,7 +31,7 @@ import {
   primaryAction,
   screenTitle,
   statusBar,
-} from "./common"
+} from "./common.ts"
 
 const BUILDING_ORDER: BuildingKind[] = ["markt", "muhl", "burg", "dom"]
 
@@ -110,7 +110,8 @@ export class Business extends GameScene {
       ;[costLabel, landLabel, pointsLabel].forEach((l) => {
         l.setOrigin(0, 0.5)
       })
-      const describe = (index: number): void => {
+      // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: shortcut: existing complex logic, refactor when touched next
+      const describeItem = (index: number): void => {
         const kind = BUILDING_ORDER[index]
         if (!kind) {
           for (const icon of [costIcon, landIcon, pointsIcon]) icon.setVisible(false)
@@ -129,7 +130,7 @@ export class Business extends GameScene {
         landLabel.setColor(css(p.land < required ? COLORS.danger : COLORS.onWood))
         pointsLabel.setText(`+${b.points}`)
       }
-      describe(0)
+      describeItem(0)
 
       // Buildings and the secret service are one list; the expected interest
       // sits in its own strip below the last row.
@@ -144,7 +145,7 @@ export class Business extends GameScene {
             selected = i
             resolve(i)
           },
-          onChange: (i) => describe(i),
+          onChange: (i) => describeItem(i),
         })
         menu.bind(group)
         menu.setSelected(selected)
@@ -193,7 +194,7 @@ export class Business extends GameScene {
   private async endOfTurn(state: GameState): Promise<void> {
     const p = playerAt(state, state.sp)
 
-    if (p.geld < -10000 - p.titel * 2000) {
+    if (p.geld < -10_000 - p.titel * 2000) {
       pawn(p)
       await alert(this, t("business.pawn"), [t("business.pawnText")])
     }

@@ -1,6 +1,6 @@
 import { type GameObjects, Math as PhaserMath } from "phaser"
-import { MAX_PORTRAIT, playerColor } from "../model/constants"
-import { COLORS } from "./theme"
+import { MAX_PORTRAIT, playerColor } from "../model/constants.ts"
+import { COLORS } from "./theme.ts"
 
 const V = PhaserMath.Vector2
 
@@ -522,7 +522,7 @@ export function drawEventIcon(
         ],
         true,
       )
-      g.fillStyle(0xe0b98a, 1)
+      g.fillStyle(0xe0_b9_8a, 1)
       g.fillEllipse(cx, cy + s * 0.1, s * 0.38, s * 0.42)
       g.fillStyle(ink, 1)
       g.fillCircle(cx - s * 0.08, cy + s * 0.06, s * 0.035)
@@ -550,8 +550,8 @@ export function drawWeatherIcon(
   wetter: number,
 ): void {
   const u = size / 26
-  const cloudColor = 0x8d95a3
-  const stormColor = 0x5f6b80
+  const cloudColor = 0x8d_95_a3
+  const stormColor = 0x5f_6b_80
   const sunAt = (x: number, y: number, r: number, count: number, len: number, color: number) => {
     g.fillStyle(color, 1)
     g.fillCircle(x, y, r * u)
@@ -602,16 +602,16 @@ export function drawWeatherIcon(
     }
     case 2: {
       // Drought: scorching sun over cracked ground.
-      g.fillStyle(0xdf8c3f, 1)
+      g.fillStyle(0xdf_8c_3f, 1)
       g.fillCircle(cx, cy - 5 * u, 7 * u)
-      g.lineStyle(1.5 * u, 0xdf8c3f, 1)
+      g.lineStyle(1.5 * u, 0xdf_8c_3f, 1)
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * 2 * Math.PI - Math.PI / 2
         line(Math.cos(a) * 10, -5 + Math.sin(a) * 10, Math.cos(a) * 12, -5 + Math.sin(a) * 12)
       }
-      g.lineStyle(2 * u, 0xa06a1f, 1)
+      g.lineStyle(2 * u, 0xa0_6a_1f, 1)
       line(-12, 8, 12, 9)
-      g.lineStyle(1.5 * u, 0xa06a1f, 1)
+      g.lineStyle(1.5 * u, 0xa0_6a_1f, 1)
       line(-7, 8.5, -4, 13)
       line(0, 9, 3, 13)
       line(7, 9, 4, 13)

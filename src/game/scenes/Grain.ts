@@ -1,22 +1,22 @@
 import type { GameObjects } from "phaser"
-import { playCoins } from "../audio/music"
-import { toLand } from "../flow"
-import { t } from "../i18n/i18n"
-import type { StringKey } from "../i18n/strings"
-import { grainNeed, grainPlan, stockForGrainNeed } from "../model/grain"
-import { giveGrain, grainBounds, harvest } from "../model/rules"
-import { getState } from "../model/session"
-import { buyCost, dealPrice, maxSale, sellProceeds, tradeGrain } from "../model/trade"
-import type { GameState } from "../model/types"
-import { playerAt } from "../model/types"
-import { FocusGroup } from "../ui/focus"
-import { drawCoinsIcon, drawGrainIcon, drawWeatherIcon } from "../ui/icon"
-import { frame } from "../ui/layout"
-import { label } from "../ui/text"
-import { COLORS, FS, RADIUS, SPACE } from "../ui/theme"
-import { moneyLabel, Panel, Slider, StatRow, type StatRowOptions } from "../ui/widgets"
-import { GameScene } from "./base"
-import { continueAction, screenTitle, statusBar } from "./common"
+import { playCoins } from "../audio/music.ts"
+import { toLand } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import type { StringKey } from "../i18n/strings.ts"
+import { grainNeed, grainPlan, stockForGrainNeed } from "../model/grain.ts"
+import { giveGrain, grainBounds, harvest } from "../model/rules.ts"
+import { getState } from "../model/session.ts"
+import { buyCost, dealPrice, maxSale, sellProceeds, tradeGrain } from "../model/trade.ts"
+import type { GameState } from "../model/types.ts"
+import { playerAt } from "../model/types.ts"
+import { FocusGroup } from "../ui/focus.ts"
+import { drawCoinsIcon, drawGrainIcon, drawWeatherIcon } from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, FS, RADIUS, SPACE } from "../ui/theme.ts"
+import { moneyLabel, Panel, Slider, StatRow, type StatRowOptions } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { continueAction, screenTitle, statusBar } from "./common.ts"
 
 export class Grain extends GameScene {
   private granary?: GameObjects.Graphics
@@ -194,9 +194,9 @@ export class Grain extends GameScene {
     const apexY = y + 2
 
     // Thatched conical roof.
-    g.fillStyle(0x7a5a2e, 1)
+    g.fillStyle(0x7a_5a_2e, 1)
     g.fillTriangle(x + w / 2, apexY, x + 10, bodyTop, x + w - 10, bodyTop)
-    g.lineStyle(1, 0x5a4020, 0.6)
+    g.lineStyle(1, 0x5a_40_20, 0.6)
     const roofH = bodyTop - apexY
     const half = (w - 20) / 2
     for (let i = 1; i <= 5; i++) {
@@ -209,7 +209,7 @@ export class Grain extends GameScene {
     g.strokeTriangle(x + w / 2, apexY, x + 10, bodyTop, x + w - 10, bodyTop)
 
     // Stone plinth under the silo.
-    g.fillStyle(0x8a8578, 1)
+    g.fillStyle(0x8a_85_78, 1)
     g.fillRoundedRect(bodyX - 6, bodyBottom - 14, bodyW + 12, 18, 2)
     g.lineStyle(2, COLORS.woodDark, 1)
     g.strokeRoundedRect(bodyX - 6, bodyBottom - 14, bodyW + 12, 18, 2)
@@ -232,7 +232,7 @@ export class Grain extends GameScene {
       g.fillStyle(COLORS.accent, 1)
       g.fillRect(bodyX + 2, fy, bodyW - 4, fillH)
       // Grain texture.
-      g.fillStyle(0x8a6b1f, 0.45)
+      g.fillStyle(0x8a_6b_1f, 0.45)
       for (let i = 0; i < Math.min(60, Math.floor(fillH / 5)); i++) {
         const gx = bodyX + 6 + ((i * 37) % (bodyW - 12))
         const gy = fy + 4 + ((i * 53) % Math.max(1, fillH - 6))

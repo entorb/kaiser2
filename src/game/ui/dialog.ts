@@ -1,11 +1,11 @@
 import type { Scene } from "phaser"
-import { t } from "../i18n/i18n"
-import { FocusGroup } from "./focus"
-import type { IconDraw } from "./icon"
-import { CANVAS_H, CANVAS_W } from "./layout"
-import { label } from "./text"
-import { SPACE } from "./theme"
-import { Button, type ListItem, ListMenu, Panel, Slider, type SliderOptions } from "./widgets"
+import { t } from "../i18n/i18n.ts"
+import { FocusGroup } from "./focus.ts"
+import type { IconDraw } from "./icon.ts"
+import { CANVAS_H, CANVAS_W } from "./layout.ts"
+import { label } from "./text.ts"
+import { SPACE } from "./theme.ts"
+import { Button, type ListItem, ListMenu, Panel, Slider, type SliderOptions } from "./widgets.ts"
 
 interface Modal {
   group: FocusGroup
@@ -23,7 +23,7 @@ function openModal(
   const x = (CANVAS_W - w) / 2
   const y = (CANVAS_H - h) / 2
   const overlay = scene.add
-    .rectangle(0, 0, CANVAS_W, CANVAS_H, 0x000000, 0.65)
+    .rectangle(0, 0, CANVAS_W, CANVAS_H, 0x00_00_00, 0.65)
     .setOrigin(0, 0)
     .setInteractive()
   const panel = new Panel(scene, x, y, w, h, title)

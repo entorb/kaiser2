@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { createGameState } from "./constants"
-import { grainNeed, grainPlan, stockForGrainNeed } from "./grain"
+import { createGameState } from "./constants.ts"
+import { grainNeed, grainPlan, stockForGrainNeed } from "./grain.ts"
 
 describe("grain need", () => {
   it("uses VKORN as the population need", () => {
@@ -13,7 +13,7 @@ describe("grain need", () => {
   it("targets the need while it is reachable", () => {
     const state = createGameState(1, "remake")
     state.turn.vkorn = 6000
-    expect(grainPlan(state, 10000)).toEqual({
+    expect(grainPlan(state, 10_000)).toEqual({
       min: 2000,
       max: 8000,
       need: 6000,

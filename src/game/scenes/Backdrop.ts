@@ -1,5 +1,5 @@
-import { frameBorder, woodBackground } from "../ui/ornament"
-import { GameScene } from "./base"
+import { frameBorder, woodBackground } from "../ui/ornament.ts"
+import { GameScene } from "./base.ts"
 
 /**
  * Persistent backdrop rendered behind every screen: the walnut wood texture and

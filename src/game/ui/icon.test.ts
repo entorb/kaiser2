@@ -1,6 +1,6 @@
 import type { GameObjects } from "phaser"
 import { describe, expect, it, vi } from "vitest"
-import { ICON_SECTIONS } from "../debug/icon-gallery"
+import { ICON_SECTIONS } from "../debug/icon-gallery.ts"
 
 // Phaser touches `window` on import; the icons only need Vector2 and Scene.
 vi.mock("phaser", () => ({

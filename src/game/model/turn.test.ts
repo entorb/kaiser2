@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
-import { createGameState } from "./constants"
-import { advancePlayer, startRuler } from "./turn"
-import { playerAt } from "./types"
+import { createGameState } from "./constants.ts"
+import { advancePlayer, startRuler } from "./turn.ts"
+import { playerAt } from "./types.ts"
 
 describe("advancePlayer", () => {
   it("moves to the next ruler", () => {

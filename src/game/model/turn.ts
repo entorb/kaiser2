@@ -1,5 +1,5 @@
-import type { GameState, PlayerState } from "./types"
-import { playerAt } from "./types"
+import type { GameState, PlayerState } from "./types.ts"
+import { playerAt } from "./types.ts"
 
 /** Fresh per-turn scratch values (locals in KAISERB/KAISER3). */
 export function resetTurn(state: GameState): void {

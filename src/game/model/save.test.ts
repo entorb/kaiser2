@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest"
-import { createGameState } from "./constants"
-import { deserialize, serialize } from "./save"
-import { playerAt } from "./types"
+import { createGameState } from "./constants.ts"
+import { deserialize, serialize } from "./save.ts"
+import { playerAt } from "./types.ts"
 
 describe("save", () => {
   it("round-trips a game state", () => {
     const state = createGameState(3)
-    playerAt(state, 2).geld = 12345
+    playerAt(state, 2).geld = 12_345
     state.jahr = 1712
     const restored = deserialize(serialize(state))
     expect(restored?.jahr).toBe(1712)
-    expect(restored?.players[2]?.geld).toBe(12345)
+    expect(restored?.players[2]?.geld).toBe(12_345)
   })
 
   it("treats saves without a ruleset as Atari", () => {

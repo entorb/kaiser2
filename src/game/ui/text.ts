@@ -1,6 +1,6 @@
 import type Phaser from "phaser"
-import { RENDER_SCALE } from "./layout"
-import { COLORS, css, FONT_DISPLAY, FONT_MONO, FONT_UI, FS } from "./theme"
+import { RENDER_SCALE } from "./layout.ts"
+import { COLORS, css, FONT_DISPLAY, FONT_MONO, FONT_UI, FS } from "./theme.ts"
 
 export interface LabelOptions {
   /** Font size in canvas pixels. */

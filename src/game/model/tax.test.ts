@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { createGameState } from "./constants"
-import { taxDemotion } from "./events"
-import { chronicle, stateIncome } from "./rules"
-import { burden, fedFactor, taxBreakdown, unrest, unrestLevel } from "./tax"
-import { playerAt } from "./types"
+import { createGameState } from "./constants.ts"
+import { taxDemotion } from "./events.ts"
+import { chronicle, stateIncome } from "./rules.ts"
+import { burden, fedFactor, taxBreakdown, unrest, unrestLevel } from "./tax.ts"
+import { playerAt } from "./types.ts"
 
 const seq = (...v: number[]) => {
   let i = 0
@@ -13,7 +13,7 @@ const seq = (...v: number[]) => {
 function remake() {
   const state = createGameState(1, "remake")
   const p = playerAt(state, 1)
-  state.turn.kaus = state.turn.vkorn = 10000 // fed
+  state.turn.kaus = state.turn.vkorn = 10_000 // fed
   return { state, p }
 }
 
@@ -90,7 +90,7 @@ describe("remake tax", () => {
     angry.p.leute = 2000
     angry.p.ein = 60
     angry.p.mwst = 20 // burden 80 -> unrest 1
-    angry.state.turn.kaus = 40000 // huge surplus would attract immigrants
+    angry.state.turn.kaus = 40_000 // huge surplus would attract immigrants
     const r = chronicle(angry.state, 1, seq(0))
     expect(r.geb).toBe(0)
     expect(r.einw).toBe(0)

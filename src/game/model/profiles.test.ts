@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseProfiles } from "./profiles"
+import { parseProfiles } from "./profiles.ts"
 
 describe("parseProfiles", () => {
   it("keeps valid slots and nulls the rest", () => {

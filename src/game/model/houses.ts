@@ -10,7 +10,7 @@ import {
   type Rng,
   type Ruleset,
   rand,
-} from "./types"
+} from "./types.ts"
 
 /** Servants one house needs to run at full profit. */
 export const STAFF_PER_HOUSE = 8

@@ -1,5 +1,5 @@
 import type Phaser from "phaser"
-import { blip } from "../audio/music"
+import { blip } from "../audio/music.ts"
 
 /** A widget that can take keyboard focus and optionally consume keys. */
 export interface Focusable {
@@ -98,7 +98,7 @@ export class FocusGroup {
   private navigate(event: KeyboardEvent): void {
     const forward = event.key === "ArrowDown" || (this.horizontal && event.key === "ArrowRight")
     const back = event.key === "ArrowUp" || (this.horizontal && event.key === "ArrowLeft")
-    if (!forward && !back) return
+    if (!(forward || back)) return
     const n = this.items.length
     const next = this.index + (forward ? 1 : -1)
     // No wrapping: ArrowDown on the bottom action (Next/Continue) is ignored.

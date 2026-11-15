@@ -1,5 +1,5 @@
-import { GAME_CONFIG } from "../config"
-import { type Lang, STRINGS, type StringKey } from "./strings"
+import { GAME_CONFIG } from "../config.ts"
+import { type Lang, STRINGS, type StringKey } from "./strings.ts"
 
 let current: Lang = GAME_CONFIG.language
 

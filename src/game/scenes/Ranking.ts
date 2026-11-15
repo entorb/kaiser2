@@ -1,10 +1,10 @@
-import { nextTurn } from "../flow"
-import { t } from "../i18n/i18n"
-import { playerColor } from "../model/constants"
-import { cities } from "../model/rules"
-import { getState } from "../model/session"
-import type { PlayerState } from "../model/types"
-import { FocusGroup } from "../ui/focus"
+import { nextTurn } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { playerColor } from "../model/constants.ts"
+import { cities } from "../model/rules.ts"
+import { getState } from "../model/session.ts"
+import type { PlayerState } from "../model/types.ts"
+import { FocusGroup } from "../ui/focus.ts"
 import {
   drawAcreIcon,
   drawBuildingIcon,
@@ -14,13 +14,13 @@ import {
   drawEventIcon,
   drawPointsIcon,
   type IconDraw,
-} from "../ui/icon"
-import { frame } from "../ui/layout"
-import { label } from "../ui/text"
-import { COLORS, FS, RADIUS, SPACE } from "../ui/theme"
-import { Panel } from "../ui/widgets"
-import { GameScene } from "./base"
-import { continueAction, gameMenuButton, screenTitle, titleName } from "./common"
+} from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, FS, RADIUS, SPACE } from "../ui/theme.ts"
+import { Panel } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { continueAction, gameMenuButton, screenTitle, titleName } from "./common.ts"
 
 interface Column {
   /** Header pictogram, centered over the centered values. */

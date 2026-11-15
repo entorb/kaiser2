@@ -9,8 +9,8 @@ import {
   nextFreeColor,
   playerNameError,
   takenColors,
-} from "./constants"
-import type { PlayerState } from "./types"
+} from "./constants.ts"
+import type { PlayerState } from "./types.ts"
 
 function players(...portraits: number[]): PlayerState[] {
   const list = [{} as PlayerState]
@@ -67,7 +67,7 @@ describe("prestige building prices", () => {
     p.burg = 2
     p.dom = 10
     expect(buildingCost(p, "burg", "remake")).toBe(5500)
-    expect(buildingCost(p, "dom", "remake")).toBe(13500)
+    expect(buildingCost(p, "dom", "remake")).toBe(13_500)
     expect(buildingCost(p, "burg", "atari")).toBe(BUILDINGS.burg.cost)
   })
 
@@ -80,7 +80,7 @@ describe("prestige building prices", () => {
   it("charges the raised price when buying", () => {
     const p = createPlayer("A", 1)
     p.burg = 2
-    p.geld = 10000
+    p.geld = 10_000
     addBuilding(p, "burg", "remake")
     expect(p.geld).toBe(4500)
     expect(p.burg).toBe(3)

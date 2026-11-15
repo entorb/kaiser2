@@ -1,18 +1,18 @@
-import { toTradeData } from "../flow"
-import { t } from "../i18n/i18n"
-import { at } from "../lookup"
-import { stateIncome } from "../model/rules"
-import { getState } from "../model/session"
-import { fedFactor, taxBreakdown, UNREST_LIMIT, unrest, unrestLevel } from "../model/tax"
-import { type GameState, type PlayerState, playerAt } from "../model/types"
-import { FocusGroup } from "../ui/focus"
-import { drawCoinsIcon } from "../ui/icon"
-import { frame } from "../ui/layout"
-import { label } from "../ui/text"
-import { COLORS, SPACE } from "../ui/theme"
-import { Panel, SegmentedControl, Slider, StatRow } from "../ui/widgets"
-import { GameScene } from "./base"
-import { continueAction, panelFigure, screenTitle, statusBar } from "./common"
+import { toTradeData } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { at } from "../lookup.ts"
+import { stateIncome } from "../model/rules.ts"
+import { getState } from "../model/session.ts"
+import { fedFactor, taxBreakdown, UNREST_LIMIT, unrest, unrestLevel } from "../model/tax.ts"
+import { type GameState, type PlayerState, playerAt } from "../model/types.ts"
+import { FocusGroup } from "../ui/focus.ts"
+import { drawCoinsIcon } from "../ui/icon.ts"
+import { frame } from "../ui/layout.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, SPACE } from "../ui/theme.ts"
+import { Panel, SegmentedControl, Slider, StatRow } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { continueAction, panelFigure, screenTitle, statusBar } from "./common.ts"
 
 /** Gauge color per `unrestLevel`. */
 const MOOD_COLORS = [COLORS.success, COLORS.accent, COLORS.danger, COLORS.danger] as const
@@ -62,13 +62,43 @@ export class Taxes extends GameScene {
     // Remake taxes people (EIN) and buildings (MWST); customs are unused.
     const fields: [string, number, (v: number) => void][] = remake
       ? [
-          [t("tax.headTax"), p.ein, (v) => (p.ein = v)],
-          [t("tax.buildingTax"), p.mwst, (v) => (p.mwst = v)],
+          [
+            t("tax.headTax"),
+            p.ein,
+            (v) => {
+              p.ein = v
+            },
+          ],
+          [
+            t("tax.buildingTax"),
+            p.mwst,
+            (v) => {
+              p.mwst = v
+            },
+          ],
         ]
       : [
-          [t("tax.customs"), p.zoll, (v) => (p.zoll = v)],
-          [t("tax.vat"), p.mwst, (v) => (p.mwst = v)],
-          [t("tax.incomeTax"), p.ein, (v) => (p.ein = v)],
+          [
+            t("tax.customs"),
+            p.zoll,
+            (v) => {
+              p.zoll = v
+            },
+          ],
+          [
+            t("tax.vat"),
+            p.mwst,
+            (v) => {
+              p.mwst = v
+            },
+          ],
+          [
+            t("tax.incomeTax"),
+            p.ein,
+            (v) => {
+              p.ein = v
+            },
+          ],
         ]
     const justiceY = 56 + fields.length * 58 + 6
     const refresh = remake ? this.preview(panel, state, p, justiceY + 60) : () => {}

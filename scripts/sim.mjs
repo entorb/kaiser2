@@ -10,13 +10,15 @@
 // duel: Otto, Konrad and Barbarossa in the same game, seats shuffled.
 // --set overrides profile fields to try parameters without editing ai.ts.
 // The bots are naive next to a human; read the numbers as relative comparisons.
+
+import process from "node:process"
 import { fileURLToPath } from "node:url"
 import { createServer } from "vite"
 
 const args = Object.fromEntries(
   process.argv
     .slice(2)
-    .map((a) => a.replace(/^--/, "").split("="))
+    .map((a) => a.replace(/^--/u, "").split("="))
     .map(([k, ...v]) => [k, v.length ? v.join("=") : "1"]),
 )
 const N = Number(args.n ?? 200)
@@ -50,7 +52,7 @@ for (const item of (args.set ?? "").split(",").filter(Boolean)) {
   const [path, value] = item.split("=")
   const [level, field] = path.split(".")
   const profile = ai.AI_PROFILES[level]
-  if (!profile || !(field in profile)) throw new Error(`--set: unknown ${path}`)
+  if (!(profile && field in profile)) throw new Error(`--set: unknown ${path}`)
   profile[field] = typeof profile[field] === "boolean" ? value === "true" : Number(value)
 }
 
@@ -59,7 +61,7 @@ const TUNABLES = { market: trade.MARKET, farming: rules.FARMING }
 for (const item of (args.tune ?? "").split(",").filter(Boolean)) {
   const [path, value] = item.split("=")
   const [group, field] = path.split(".")
-  if (!TUNABLES[group] || !(field in TUNABLES[group])) throw new Error(`--tune: unknown ${path}`)
+  if (!(TUNABLES[group] && field in TUNABLES[group])) throw new Error(`--tune: unknown ${path}`)
   TUNABLES[group][field] = Number(value)
 }
 
@@ -67,11 +69,11 @@ for (const item of (args.tune ?? "").split(",").filter(Boolean)) {
 function mulberry32(seed) {
   let a = seed >>> 0
   return () => {
-    a = (a + 0x6d2b79f5) >>> 0
+    a = (a + 0x6d_2b_79_f5) >>> 0
     let t = a
     t = Math.imul(t ^ (t >>> 15), t | 1)
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296
   }
 }
 
@@ -166,7 +168,7 @@ function solo(ruleset) {
     `${"computer".padEnd(16)} ${col("win%", 5)} ${col("yrsMed", 6)} ${col("pop", 6)} ${col("geld", 7)} ${col("titel", 5)} ${col("hh", 4)} ${col("mill", 5)} ${col("mkt", 4)} ${col("pawn", 5)} ${col("demot", 5)} ${col("seized", 6)}`,
   )
   for (const level of LEVELS) {
-    const games = Array.from({ length: N }, (_, i) => soloGame(level, ruleset, SEED * 100003 + i))
+    const games = Array.from({ length: N }, (_, i) => soloGame(level, ruleset, SEED * 100_003 + i))
     const won = games.filter((g) => g.won)
     const snaps = games.map((g) => g.snap).filter(Boolean)
     const per = (name) => mean(games.map((g) => count(g.events, name)))
@@ -184,7 +186,7 @@ function duel(ruleset) {
   console.log(
     `${"computer".padEnd(16)} ${col("wins%", 6)} ${col("yrsMed", 6)} ${col("pop", 6)} ${col("geld", 7)} ${col("titel", 5)} ${col("pts", 5)}`,
   )
-  const games = Array.from({ length: N }, (_, i) => duelGame(ruleset, SEED * 100003 + i))
+  const games = Array.from({ length: N }, (_, i) => duelGame(ruleset, SEED * 100_003 + i))
   for (const level of LEVELS) {
     const won = games.filter((g) => g.winner === level)
     const snaps = games.map((g) => g.snaps[level]).filter(Boolean)

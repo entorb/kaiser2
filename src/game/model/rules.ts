@@ -1,14 +1,14 @@
-import { at } from "../lookup"
+import { at } from "../lookup.ts"
 // Pure port of the Atari game rules. Each function takes the game state plus an
 // injectable RNG (so tests are deterministic) and mutates the relevant player.
 //
 // Where the original has a clear bug the *intended* behaviour is ported and the
 // deviation is noted inline and in rewrite.md ("Known issues").
 
-import { MAX_BURG, WIN_TITLE } from "./constants"
-import { houseProfit, remakeTribute } from "./houses"
-import { taxBreakdown, unrest } from "./tax"
-import { defaultRng, type GameState, type PlayerState, playerAt, type Rng, rand } from "./types"
+import { MAX_BURG, WIN_TITLE } from "./constants.ts"
+import { houseProfit, remakeTribute } from "./houses.ts"
+import { taxBreakdown, unrest } from "./tax.ts"
+import { defaultRng, type GameState, type PlayerState, playerAt, type Rng, rand } from "./types.ts"
 
 // Turbo-BASIC `INT(x)` floors (rounds toward -infinity), not toward zero; the
 // difference matters for negative arguments (e.g. the trading-house profit).

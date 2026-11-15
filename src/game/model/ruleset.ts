@@ -1,5 +1,5 @@
-import { storage } from "./save"
-import type { Ruleset } from "./types"
+import { storage } from "./save.ts"
+import type { Ruleset } from "./types.ts"
 
 const KEY = "kaiser2.rules"
 

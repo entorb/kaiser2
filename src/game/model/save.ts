@@ -2,7 +2,7 @@
 // whole GameState to localStorage. Pure serialise/deserialise is separated from
 // storage so it can be unit-tested without a DOM.
 
-import type { GameState } from "./types"
+import type { GameState } from "./types.ts"
 
 // v2: land prices are per 1000 ha (v1 stored them per 10 ha).
 // v3: players carry a `kingdom` name.

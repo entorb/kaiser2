@@ -1,12 +1,12 @@
 import { type Game, type GameObjects, Scene } from "phaser"
-import { TITLES } from "../model/constants"
-import { drawCathedral, drawPalace } from "../scenes/Monument"
-import { RENDER_SCALE } from "../ui/layout"
-import { panelFrame } from "../ui/ornament"
-import { drawPromotionArt } from "../ui/ruler"
-import { label } from "../ui/text"
-import { COLORS, FS } from "../ui/theme"
-import { bootGallery } from "./gallery"
+import { TITLES } from "../model/constants.ts"
+import { drawCathedral, drawPalace } from "../scenes/Monument.ts"
+import { RENDER_SCALE } from "../ui/layout.ts"
+import { panelFrame } from "../ui/ornament.ts"
+import { drawPromotionArt } from "../ui/ruler.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, FS } from "../ui/theme.ts"
+import { bootGallery } from "./gallery.ts"
 
 interface ImageSpec {
   /** Card title. */

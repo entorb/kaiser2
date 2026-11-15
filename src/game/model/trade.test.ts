@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { createGameState } from "./constants"
+import { createGameState } from "./constants.ts"
 import {
   buyCheapest,
   buyCost,
@@ -20,18 +20,18 @@ import {
   tradeLand,
   tradePrice,
   updateEmperorPrices,
-} from "./trade"
-import { playerAt } from "./types"
+} from "./trade.ts"
+import { playerAt } from "./types.ts"
 
 describe("relative offers", () => {
   it("restores the same slider position against the current maximum", () => {
-    const share = relativeOfferShare(3000, 12000)
+    const share = relativeOfferShare(3000, 12_000)
     expect(share).toBe(0.25)
     expect(relativeOffer(8000, share)).toBe(2000)
   })
 
   it("defaults to ten percent and preserves the position without stock", () => {
-    expect(relativeOffer(12345, undefined)).toBe(1234)
+    expect(relativeOffer(12_345, undefined)).toBe(1234)
     expect(relativeOfferShare(0, 0, 0.4)).toBe(0.4)
   })
 
@@ -48,9 +48,9 @@ describe("emperor", () => {
     state.wetter = 5
     refreshEmperorStock(state, () => 0)
     const k = playerAt(state, 0)
-    expect([k.verkorn, k.verAcker, k.verBau]).toEqual([40000, 0, 0])
+    expect([k.verkorn, k.verAcker, k.verBau]).toEqual([40_000, 0, 0])
     refreshEmperorStock(state, () => 0.99)
-    expect([k.verkorn, k.verAcker, k.verBau]).toEqual([40990, 18000, 18000])
+    expect([k.verkorn, k.verAcker, k.verBau]).toEqual([40_990, 18_000, 18_000])
   })
 
   it("tracks the rulers' average price", () => {
@@ -95,7 +95,7 @@ describe("tradeLand", () => {
     const k = playerAt(state, 0)
     k.apreis = 2000
     k.verAcker = 3000
-    p.geld = 10000
+    p.geld = 10_000
     const acker = p.acker
     expect(tradeLand(state, 1, 0, "acker", 5000)).toBe(3000)
     expect([p.acker, p.geld]).toEqual([acker + 3000, 4000])
@@ -134,25 +134,25 @@ describe("remake trading rules", () => {
 
   it("caps a sale to a ruler by his treasury, never to the Emperor", () => {
     const { state, a, b } = setup()
-    a.lkorn = 100000
+    a.lkorn = 100_000
     b.kpreis = 100
     b.geld = 1000
     expect(maxSale(state, 1, 2, "grain")).toBe(5000)
-    expect(tradeGrain(state, 1, 2, -100000)).toBe(5000)
+    expect(tradeGrain(state, 1, 2, -100_000)).toBe(5000)
     expect(b.geld).toBeGreaterThanOrEqual(0)
     b.geld = 0
     expect(tradeGrain(state, 1, 2, -100)).toBe(0)
     b.geld = -500 // debt: nothing sells
     expect(maxSale(state, 1, 2, "grain")).toBe(0)
-    expect(maxSale(state, 1, 0, "grain")).toBe(95000)
+    expect(maxSale(state, 1, 0, "grain")).toBe(95_000)
   })
 
   it("caps land sales by the partner's treasury too", () => {
     const { state, a, b } = setup()
     b.lpreis = 2000
     b.geld = 3999
-    a.land = 10000
-    expect(tradeLand(state, 1, 2, "land", -10000)).toBe(1999)
+    a.land = 10_000
+    expect(tradeLand(state, 1, 2, "land", -10_000)).toBe(1999)
     expect(b.geld).toBeGreaterThanOrEqual(0)
   })
 
@@ -168,7 +168,7 @@ describe("remake trading rules", () => {
 
   it("notes trades for an absent human, not for computers or Atari", () => {
     const { state, a, b } = setup()
-    b.geld = 10000
+    b.geld = 10_000
     b.verkorn = 1000
     b.lkorn = 1000
     b.kpreis = 100
@@ -191,16 +191,16 @@ describe("remake trading rules", () => {
 
   it("gives no point for a big grain purchase, Atari still does", () => {
     const { state, a, b } = setup()
-    b.verkorn = 60000
-    b.lkorn = 60000
+    b.verkorn = 60_000
+    b.lkorn = 60_000
     a.geld = 1e6
-    tradeGrain(state, 1, 2, 60000)
+    tradeGrain(state, 1, 2, 60_000)
     expect(a.punkte).toBe(0)
     const atari = createGameState(2)
-    playerAt(atari, 2).verkorn = 60000
-    playerAt(atari, 2).lkorn = 60000
+    playerAt(atari, 2).verkorn = 60_000
+    playerAt(atari, 2).lkorn = 60_000
     playerAt(atari, 1).geld = 1e6
-    tradeGrain(atari, 1, 2, 60000)
+    tradeGrain(atari, 1, 2, 60_000)
     expect(playerAt(atari, 1).punkte).toBe(1)
   })
 })
@@ -224,7 +224,7 @@ describe("remake market", () => {
     expect(quote(normal)).toEqual([100, 2000]) // normal stock
     expect(quote(5000)[0]).toBe(132) // +32 %: he is short
     expect(quote(0)[0]).toBe(135) // capped at +35 %
-    expect(quote(40000)[0]).toBe(85) // glut: capped at -15 %
+    expect(quote(40_000)[0]).toBe(85) // glut: capped at -15 %
     k.verAcker = 0
     updateEmperorPrices(state, 1, () => 0)
     expect(k.apreis).toBe(2700)
@@ -280,17 +280,17 @@ describe("remake market", () => {
     const { state, k } = setup()
     k.kpreis = 100
     // 20000 grain at 100 per 500 = 4000; impact 0.5 per 20000 pays +25 % on average.
-    expect(buyCost(state, 0, "grain", 20000)).toBe(5000)
+    expect(buyCost(state, 0, "grain", 20_000)).toBe(5000)
     expect(buyCost(state, 0, "grain", 500)).toBeCloseTo(100.625)
     k.apreis = 2000
-    expect(buyCost(state, 0, "acker", 5000)).toBe(12500)
+    expect(buyCost(state, 0, "acker", 5000)).toBe(12_500)
     // Selling the same lowers the price by the same factor.
-    expect(sellProceeds(state, 0, "grain", 20000)).toBe(3200)
+    expect(sellProceeds(state, 0, "grain", 20_000)).toBe(3200)
     const atari = createGameState(3)
     playerAt(atari, 0).kpreis = 100
-    expect(buyCost(atari, 0, "grain", 20000)).toBe(4000)
-    expect(sellProceeds(atari, 0, "grain", 20000)).toBe(4000)
-    expect(maxAfford(atari, 0, "grain", 4000)).toBe(20000)
+    expect(buyCost(atari, 0, "grain", 20_000)).toBe(4000)
+    expect(sellProceeds(atari, 0, "grain", 20_000)).toBe(4000)
+    expect(maxAfford(atari, 0, "grain", 4000)).toBe(20_000)
   })
 
   it("shows the average price of the deal, per 500", () => {
@@ -299,8 +299,8 @@ describe("remake market", () => {
     k.apreis = 2000
     expect(dealPrice(state, 0, "grain", 0)).toBe(100)
     expect(dealPrice(state, 0, "acker", 0)).toBe(1000)
-    expect(dealPrice(state, 0, "grain", 20000)).toBe(125) // +25 % on average
-    expect(dealPrice(state, 0, "grain", -20000)).toBe(80) // -20 %
+    expect(dealPrice(state, 0, "grain", 20_000)).toBe(125) // +25 % on average
+    expect(dealPrice(state, 0, "grain", -20_000)).toBe(80) // -20 %
     expect(dealPrice(state, 0, "acker", 5000)).toBe(1250)
   })
 
@@ -318,7 +318,7 @@ describe("remake market", () => {
     const { state, k } = setup()
     k.kpreis = 100
     const n = maxAfford(state, 0, "grain", 5000)
-    expect(n).toBe(20000)
+    expect(n).toBe(20_000)
     expect(buyCost(state, 0, "grain", n)).toBeLessThanOrEqual(5000)
     expect(buyCost(state, 0, "grain", n + 1)).toBeGreaterThan(5000)
     expect(maxAfford(state, 0, "grain", 0)).toBe(0)
@@ -343,8 +343,8 @@ describe("land that keeps buildings and the realm", () => {
     const a = playerAt(state, 1)
     Object.assign(a, {
       leute: 1000,
-      land: 12000,
-      acker: 20000,
+      land: 12_000,
+      acker: 20_000,
       markt: 5,
       muhl: 10,
     })
@@ -355,12 +355,12 @@ describe("land that keeps buildings and the realm", () => {
     const { a } = setup()
     // 10 mills keep 10000 of the 12000 ha building land.
     expect(spareLand(a, "land")).toBe(2000)
-    expect(spareLand(a, "acker")).toBe(20000)
+    expect(spareLand(a, "acker")).toBe(20_000)
     a.acker = 1000 // 10 ha per head leaves room for 3000, the mills for 2000
     expect(spareLand(a, "land")).toBe(2000)
-    a.land = 10000
+    a.land = 10_000
     expect(spareLand(a, "land")).toBe(0)
-    a.land = 12000
+    a.land = 12_000
     a.acker = 0 // nothing to spare in acre land
     expect(spareLand(a, "acker")).toBe(0)
     expect(spareLand(a, "land")).toBe(2000)
@@ -370,10 +370,10 @@ describe("land that keeps buildings and the realm", () => {
     const { state, a, b } = setup()
     expect(maxSale(state, 1, 0, "land")).toBe(2000)
     expect(tradeLand(state, 1, 0, "land", -9000)).toBe(2000)
-    expect(a.land).toBe(10000)
+    expect(a.land).toBe(10_000)
     expect(a.muhl).toBe(10)
     b.geld = 1e6
-    a.land = 12000
+    a.land = 12_000
     a.verBau = 6000
     expect(maxBuy(state, 1, "land")).toBe(2000)
     expect(tradeLand(state, 2, 1, "land", 6000)).toBe(2000)
@@ -385,7 +385,7 @@ describe("land that keeps buildings and the realm", () => {
   it("does not limit Atari rulers", () => {
     const state = createGameState(2)
     const a = playerAt(state, 1)
-    Object.assign(a, { leute: 1000, land: 12000, muhl: 10 })
-    expect(maxSale(state, 1, 0, "land")).toBe(12000)
+    Object.assign(a, { leute: 1000, land: 12_000, muhl: 10 })
+    expect(maxSale(state, 1, 0, "land")).toBe(12_000)
   })
 })

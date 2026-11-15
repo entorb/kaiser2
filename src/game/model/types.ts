@@ -1,4 +1,4 @@
-import { at } from "../lookup"
+import { at } from "../lookup.ts"
 // Game state. Mirrors the Atari COMMON block (KAISERB:110-130 etc.).
 //
 // `players[0]` is the Kaiser (only its trading-house count `hh` is used);

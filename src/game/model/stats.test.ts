@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseAccessCounts, readGlobalGames, reportGameStart } from "./stats"
+import { parseAccessCounts, readGlobalGames, reportGameStart } from "./stats.ts"
 
 describe("stats", () => {
   it("reads a valid accesscounts number", () => {

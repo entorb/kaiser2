@@ -1,7 +1,7 @@
 import type Phaser from "phaser"
-import type { FocusGroup } from "./focus"
-import { drawExpandIcon } from "./icon"
-import { Button } from "./widgets"
+import type { FocusGroup } from "./focus.ts"
+import { drawExpandIcon } from "./icon.ts"
+import { Button } from "./widgets.ts"
 
 /**
  * Icon button that toggles browser fullscreen. Returns `undefined` where the

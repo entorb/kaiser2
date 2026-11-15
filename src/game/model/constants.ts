@@ -1,7 +1,7 @@
-import { GAME_CONFIG } from "../config"
-import { at } from "../lookup"
-import { REMAKE_START_TAXES } from "./tax"
-import { type GameState, type PlayerState, type Ruleset, rand } from "./types"
+import { GAME_CONFIG } from "../config.ts"
+import { at } from "../lookup.ts"
+import { REMAKE_START_TAXES } from "./tax.ts"
+import { type GameState, type PlayerState, type Ruleset, rand } from "./types.ts"
 
 /** LAND$ (KAISER3:180) - the six provinces, index 0 = province of player 1. */
 export const PROVINCES = [
@@ -47,8 +47,8 @@ export interface BuildingInfo {
 export const BUILDINGS: Record<BuildingKind, BuildingInfo> = {
   markt: { cost: 1000, land: 600, points: 0.5 },
   muhl: { cost: 2000, land: 1000, points: 0.8 },
-  burg: { cost: 5000, land: 20000, points: 1.6, max: MAX_BURG },
-  dom: { cost: 9000, land: 30000, points: 2.1, max: MAX_DOM },
+  burg: { cost: 5000, land: 20_000, points: 1.6, max: MAX_BURG },
+  dom: { cost: 9000, land: 30_000, points: 2.1, max: MAX_DOM },
 }
 
 /** Remake: each palace/cathedral part already owned adds this share of the base price. */
@@ -84,7 +84,7 @@ export function addBuilding(p: PlayerState, kind: BuildingKind, rules: Ruleset):
 
 /** Distinct ruler colors; a player's `portrait` is an index into this. */
 export const PLAYER_COLORS = [
-  0xe0a83c, 0x5bc98c, 0x5aa9e0, 0xe0605f, 0xb07ce0, 0x40c9c9, 0xe08a5a, 0x9aa3b2,
+  0xe0_a8_3c, 0x5b_c9_8c, 0x5a_a9_e0, 0xe0_60_5f, 0xb0_7c_e0, 0x40_c9_c9, 0xe0_8a_5a, 0x9a_a3_b2,
 ] as const
 
 export const MAX_PORTRAIT = PLAYER_COLORS.length
@@ -137,15 +137,15 @@ export function createPlayer(name: string, index: number): PlayerState {
     kingdom: "",
     portrait: (index - 1 + MAX_PORTRAIT) % MAX_PORTRAIT,
     controller: 0,
-    acker: 10000,
+    acker: 10_000,
     leute: 500,
     krieg: 0,
-    lkorn: 15000,
+    lkorn: 15_000,
     land: 5000,
     kpreis: 100,
     muhl: 0,
     markt: 0,
-    geld: 10000,
+    geld: 10_000,
     lpreis: 2000,
     apreis: 2000,
     verAcker: 2500,
@@ -166,7 +166,7 @@ export function createPlayer(name: string, index: number): PlayerState {
     manov: 0,
     tod: rand(10) + 35,
     titel: 0,
-    verkorn: 10000,
+    verkorn: 10_000,
     offerShares: { grain: 0.1, acker: 0.1, land: 0.1 },
   }
 }

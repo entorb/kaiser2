@@ -1,12 +1,12 @@
 import { type GameObjects, Math as PhaserMath } from "phaser"
-import { at } from "../lookup"
-import { COLORS } from "./theme"
+import { at } from "../lookup.ts"
+import { COLORS } from "./theme.ts"
 
 const V = PhaserMath.Vector2
 const GOLD = COLORS.accentHover
 const GOLD_DK = COLORS.accent
 const PEARL = COLORS.surface
-const ERMINE = 0xf4f0e6
+const ERMINE = 0xf4_f0_e6
 /** Half width and height of the band the headgear sits on. */
 const HALF = 50
 const BAND = 14

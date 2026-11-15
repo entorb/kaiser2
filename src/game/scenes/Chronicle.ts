@@ -1,23 +1,23 @@
-import { toTaxes } from "../flow"
-import { t } from "../i18n/i18n"
-import { at } from "../lookup"
-import { chronicle } from "../model/rules"
-import { getState } from "../model/session"
-import { FocusGroup } from "../ui/focus"
+import { toTaxes } from "../flow.ts"
+import { t } from "../i18n/i18n.ts"
+import { at } from "../lookup.ts"
+import { chronicle } from "../model/rules.ts"
+import { getState } from "../model/session.ts"
+import { FocusGroup } from "../ui/focus.ts"
 import {
   drawCoinsIcon,
   drawCrowdIcon,
   drawEventIcon,
   type EventIcon,
   type IconDraw,
-} from "../ui/icon"
-import { columns, frame } from "../ui/layout"
-import { divider } from "../ui/ornament"
-import { label } from "../ui/text"
-import { COLORS, FS, SPACE } from "../ui/theme"
-import { Panel } from "../ui/widgets"
-import { GameScene } from "./base"
-import { continueAction, panelFigure, screenTitle, statusBar } from "./common"
+} from "../ui/icon.ts"
+import { columns, frame } from "../ui/layout.ts"
+import { divider } from "../ui/ornament.ts"
+import { label } from "../ui/text.ts"
+import { COLORS, FS, SPACE } from "../ui/theme.ts"
+import { Panel } from "../ui/widgets.ts"
+import { GameScene } from "./base.ts"
+import { continueAction, panelFigure, screenTitle, statusBar } from "./common.ts"
 
 /** A chronicle row: event icon, the figure, and the sentence. */
 type Row = [EventIcon, string, string]

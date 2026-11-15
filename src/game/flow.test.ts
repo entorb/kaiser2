@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import * as Flow from "./flow"
+import * as Flow from "./flow.ts"
 
 type Call = [name: string, ...args: unknown[]]
 

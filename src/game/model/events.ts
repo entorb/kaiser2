@@ -1,8 +1,8 @@
 // End-of-turn events from KAISER4: pawn, deposition and death. Pure functions
 // with an injectable RNG so they can be tested.
 
-import { tributeVerdict } from "./houses"
-import { UNREST_LIMIT, unrest } from "./tax"
+import { tributeVerdict } from "./houses.ts"
+import { UNREST_LIMIT, unrest } from "./tax.ts"
 import {
   defaultRng,
   type GameState,
@@ -11,7 +11,7 @@ import {
   type Rng,
   type Ruleset,
   rand,
-} from "./types"
+} from "./types.ts"
 
 /** KAISER4 PFAND: creditors seize mills, markets and land. */
 export function pawn(p: PlayerState, rng: Rng = defaultRng): void {
@@ -69,7 +69,7 @@ export function expropriate(state: GameState, sp: number, rng: Rng = defaultRng)
   if (p.hh <= 0) return false
   const hoarded = p.verkorn + rand(5000, rng) < p.lkorn
   const underpaid = state.turn.abg + rand(5000, rng) < state.turn.zahl
-  if (!hoarded && !underpaid) return false
+  if (!(hoarded || underpaid)) return false
   return takeHouse(state, sp)
 }
 

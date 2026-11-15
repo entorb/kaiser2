@@ -2,13 +2,15 @@
 //
 // Reuse this from a throwaway `./tmp/*.mjs` script or via `scripts/drive.mjs`.
 // Start `pnpm dev` first; the game URL defaults to the vite dev server.
+
+import process from "node:process"
 import { chromium } from "playwright-core"
 
 export const DEFAULT_URL = "http://localhost:5173/kaiser2/"
 
 /** `VIEWPORT=844x390` runs the whole session at another window size (phones). */
 function envViewport() {
-  const m = /^(\d+)x(\d+)$/.exec(process.env.VIEWPORT ?? "")
+  const m = /^(\d+)x(\d+)$/u.exec(process.env.VIEWPORT ?? "")
   return m ? { width: Number(m[1]), height: Number(m[2]) } : undefined
 }
 
@@ -31,15 +33,15 @@ export function fixtureState(overrides = {}) {
     kingdom: `Reich ${i}`,
     portrait: i % 8,
     controller: 0,
-    acker: 30000,
+    acker: 30_000,
     leute: 500,
     krieg: 0,
-    lkorn: 15000,
-    land: 50000,
+    lkorn: 15_000,
+    land: 50_000,
     kpreis: 100,
     muhl: 0,
     markt: 0,
-    geld: 10000,
+    geld: 10_000,
     lpreis: 2000,
     apreis: 2000,
     verAcker: 2500,
@@ -60,7 +62,7 @@ export function fixtureState(overrides = {}) {
     manov: 0,
     tod: 40,
     titel: 0,
-    verkorn: 10000,
+    verkorn: 10_000,
     ...playerOverrides[i],
   })
   const players = [mk("der Kaiser", 0)]
@@ -106,7 +108,7 @@ export async function openSession(options = {}) {
   page.on("pageerror", (e) => errors.push(String(e)))
   await page.goto(url, { waitUntil: "load" })
   await page.waitForFunction(() => window.__game?.scene?.getScenes(true).length > 0, undefined, {
-    timeout: 15000,
+    timeout: 15_000,
   })
 
   const canvasPoint = async (cx, cy) => {
@@ -158,7 +160,7 @@ export function formatSnapshot(snapshots) {
       [
         `# ${scene}`,
         ...texts.map((t) => {
-          const sizeSuffix = t.size != null ? ` [${t.size}]` : ""
+          const sizeSuffix = t.size == null ? "" : ` [${t.size}]`
           return `${t.focused ? "*" : " "} ${String(t.y).padStart(3)} ${String(t.x).padStart(
             3,
           )}  ${t.text}${sizeSuffix}`
