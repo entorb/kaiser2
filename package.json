@@ -15,8 +15,8 @@
     "phaser": "4.2.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.6",
-    "knip": "^6.44.2",
+    "@biomejs/biome": "^2.6.7",
+    "knip": "^6.45.1",
     "playwright-core": "1.65.0",
     "terser": "^5.51.2",
     "typescript": "~7.0.2",
